@@ -1,5 +1,6 @@
 <div align="center">
-  <h1 style="border-bottom: none;">AnimePaint - النسخة الخاصة بماريا</h1>
+  <img src="assets/app_logo.jpg" alt="AnimePaint Logo" width="120" style="border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); margin-bottom: 10px;" />
+  <h1 style="border-bottom: none; margin-top: 10px;">AnimePaint - النسخة الخاصة بماريا</h1>
   <p><b>تطبيق الرسم الرقمي والتلوين الأكثر تكاملاً وسرعة لويندوز والويب مع تعريب شامل ودعم كامل لمحاذاة اليمين إلى اليسار</b></p>
   <img src="assets/screenshot1.png" alt="AnimePaint UI Showcase" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 100%; margin: 20px 0;" />
 </div>
