@@ -1,5 +1,9 @@
 {
   "type": "module",
+  "main": "main.cjs",
+  "targets": {
+    "main": false
+  },
   "browserslist": [
     "> 0.2%",
     "last 2 versions",
@@ -11,7 +15,8 @@
   ],
   "scripts": {
     "start": "parcel serve src/index.html --no-cache",
-    "build": "parcel build src/index.html",
+    "electron": "electron .",
+    "build": "parcel build src/index.html --public-url . --no-cache",
     "build:embed": "parcel build src/embed.ts",
     "build:help": "parcel build src/help.html --public-url .",
     "lang:add": "node src/languages/generate.js add",
@@ -21,6 +26,7 @@
   "dependencies": {
     "@parcel/transformer-glsl": "2.16.4",
     "@parcel/transformer-sass": "2.16.4",
+    "@swc/helpers": "^0.5.23",
     "ag-psd": "28.3.1",
     "buffer": "6.0.3",
     "js-beautify": "1.15.4",
@@ -29,5 +35,9 @@
     "parcel": "2.16.4",
     "polygon-clipping": "0.15.7",
     "transformation-matrix": "3.1.0"
+  },
+  "devDependencies": {
+    "electron": "^19.0.0",
+    "electron-packager": "^17.1.2"
   }
 }

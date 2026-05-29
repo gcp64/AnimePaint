@@ -560,4 +560,243 @@
     .kl-floating-window-header {
         background: var(--ui-bg-dark);
     }
+
+    // ==========================================
+    // PREMIUM HOYOVERSE / SCI-FI GLASSMORPHISM OVERRIDES
+    // ==========================================
+    
+    --ui-bg-dark: rgba(10, 10, 15, 0.65);
+    background: #06060a !important;
+    color: #e2e8f0 !important;
+
+    // Scrollbars
+    ::-webkit-scrollbar {
+        width: 4px;
+        height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 2px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--active-highlight-color);
+    }
+
+    // Glass panel widgets styling
+    .kl-toolspace {
+        background: rgba(10, 10, 15, 0.65) !important;
+        backdrop-filter: blur(30px) saturate(140%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 240, 255, 0.03) !important;
+    }
+
+    .kl-popup-box, .kl-d-modal {
+        background-color: rgba(12, 12, 22, 0.8) !important;
+        backdrop-filter: blur(40px) saturate(150%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 20px !important;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(255, 0, 127, 0.05) !important;
+    }
+
+    // Custom headers decor
+    .kl-toolspace-row {
+        background: linear-gradient(to top, rgba(255, 255, 255, 0) 10%, rgba(255, 255, 255, 0.04) 100%) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        box-shadow: none !important;
+    }
+
+    // Buttons
+    button, .kl-button {
+        color: #e2e8f0 !important;
+        background-color: rgba(255, 255, 255, 0.04) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 8px !important;
+        box-shadow: none !important;
+        background-image: none !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        font-family: inherit;
+
+        &:hover {
+            background-color: rgba(0, 240, 255, 0.08) !important;
+            border-color: var(--active-highlight-color) !important;
+            color: #fff !important;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.15) !important;
+        }
+
+        &:active {
+            transform: scale(0.96) !important;
+            background-color: rgba(0, 240, 255, 0.15) !important;
+        }
+    }
+
+    .kl-button-primary {
+        background: rgba(255, 0, 127, 0.15) !important;
+        border: 1px solid rgba(255, 0, 127, 0.35) !important;
+        color: #fff !important;
+        box-shadow: 0 0 12px rgba(255, 0, 127, 0.2) !important;
+
+        &:hover {
+            background: rgba(255, 0, 127, 0.28) !important;
+            border-color: var(--kl-color) !important;
+            box-shadow: 0 0 18px rgba(255, 0, 127, 0.4) !important;
+        }
+        &:active {
+            background: rgba(255, 0, 127, 0.4) !important;
+        }
+    }
+
+    .kl-button-delete:not(:disabled) {
+        background: rgba(239, 68, 68, 0.1) !important;
+        border: 1px solid rgba(239, 68, 68, 0.35) !important;
+        color: #fca5a5 !important;
+
+        &:hover {
+            background: rgba(239, 68, 68, 0.25) !important;
+            border-color: #f87171 !important;
+            color: #fff !important;
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.3) !important;
+        }
+    }
+
+    // Sliders (Thin laser beams)
+    .slider-wrapper {
+        background: rgba(255, 255, 255, 0.05) !important;
+        box-shadow: none !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        color: #94a3b8 !important;
+        height: 24px !important;
+        line-height: 24px !important;
+        border-radius: 6px !important;
+
+        .slider-inner {
+            background: linear-gradient(90deg, #9d00ff, #00f0ff) !important;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.35) !important;
+            border-radius: 5px 0 0 5px !important;
+            border-right: 1px solid #00f0ff !important;
+        }
+    }
+
+    .slider-wrapper--active {
+        border-color: var(--active-highlight-color) !important;
+        color: #fff !important;
+    }
+
+    // Custom Layer Stack Item
+    .kl-layer {
+        background: rgba(255, 255, 255, 0.02) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        border-radius: 8px !important;
+        margin-bottom: 5px !important;
+        height: 38px !important;
+        box-shadow: none !important;
+        background-image: none !important;
+        transition: all 0.2s ease !important;
+
+        .kl-layer__label, .kl-layer__opacity-label {
+            color: #94a3b8 !important;
+            font-size: 11px !important;
+            font-weight: 600 !important;
+        }
+    }
+
+    .kl-layer--selected {
+        background: rgba(157, 0, 255, 0.1) !important;
+        border: 1px solid var(--kl-note-3) !important;
+        box-shadow: 0 0 12px rgba(157, 0, 255, 0.2) !important;
+
+        .kl-layer__label {
+            color: #fff !important;
+        }
+    }
+
+    // Tabs
+    .tabrow {
+        background: transparent !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+
+    .tabrow__tab {
+        background-color: transparent !important;
+        border: 1px solid transparent !important;
+        border-bottom: none !important;
+        opacity: 0.5;
+        transition: all 0.2s ease !important;
+        border-radius: 8px 8px 0 0 !important;
+        margin: 0 2px !important;
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.03) !important;
+            opacity: 0.8;
+        }
+    }
+
+    .tabrow__tab--opened-accented, .tabrow__tab--opened {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-bottom: 1px solid #06060a !important;
+        opacity: 1;
+        box-shadow: none !important;
+    }
+
+    .tabrow__tab__rounding-left, .tabrow__tab__rounding-right {
+        display: none !important; // Hide old rounded tab adapters
+    }
+
+    // Options, dropdowns, and checkboxes
+    .kl-option, .kl-box-toggle {
+        background: rgba(255, 255, 255, 0.03) !important;
+        box-shadow: none !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 6px !important;
+        color: #94a3b8 !important;
+
+        &:not(.kl-option-selected):hover, &:not(.kl-box-toggle--active):hover {
+            background: rgba(255, 255, 255, 0.06) !important;
+            color: #fff !important;
+        }
+    }
+
+    .kl-option-selected, .kl-box-toggle--active {
+        background: rgba(0, 240, 255, 0.08) !important;
+        color: #fff !important;
+        border-color: var(--active-highlight-color) !important;
+        box-shadow: 0 0 10px rgba(0, 240, 255, 0.15) !important;
+    }
+
+    // Color Pickers
+    .kl-color-picker__h, .kl-color-picker__sv, .kl-color-picker__preview, .kl-color-picker__secondary {
+        border-radius: 6px !important;
+        box-shadow: none !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    }
+
+    // Form controls
+    input, textarea, select, .kl-select {
+        background: rgba(0, 0, 0, 0.3) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 8px !important;
+        color: #fff !important;
+        padding: 6px 10px !important;
+        font-family: inherit;
+
+        &:focus {
+            background: rgba(0, 0, 0, 0.5) !important;
+            border-color: var(--active-highlight-color) !important;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.15) !important;
+            color: #fff !important;
+        }
+    }
+
+    // Typo alignment
+    .kl-floating-window-header {
+        background: rgba(10, 10, 15, 0.9) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        color: #fff !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.05em !important;
+    }
 }
+

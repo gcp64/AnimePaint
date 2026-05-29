@@ -280,6 +280,48 @@ export class PointerListener {
     // chrome input glitch workaround
     private lastPointerType: TPointerType | null = null;
     private didSkip: boolean = false;
+    private lastPenTime: number = 0;
+
+    private updatePenTime(pointerType: string): void {
+        if (pointerType === 'pen') {
+            this.lastPenTime = performance.now();
+            let touchCanceled = false;
+            for (let i = 0; i < this.dragPointerIdArr.length; i++) {
+                const id = this.dragPointerIdArr[i];
+                const dragObj = this.dragObjArr[i];
+                if (dragObj.pointerType === 'touch') {
+                    this.dragObjArr.splice(i, 1);
+                    this.dragPointerIdArr.splice(i, 1);
+                    i--;
+                    touchCanceled = true;
+                    const cancelEvent = this.createPointerOutEvent('pointerup', {
+                        pointerId: id,
+                        pointerType: 'touch',
+                        pageX: dragObj.lastPageX,
+                        pageY: dragObj.lastPageY,
+                        clientX: dragObj.lastPageX,
+                        clientY: dragObj.lastPageY,
+                        movementX: 0,
+                        movementY: 0,
+                        timeStamp: performance.now(),
+                        pressure: 0,
+                        buttons: 0,
+                        button: 0,
+                        coalescedArr: [],
+                        eventPreventDefault: () => {},
+                        eventStopPropagation: () => {}
+                    } as any, {
+                        downPageX: dragObj.downPageX,
+                        downPageY: dragObj.downPageY,
+                    });
+                    this.onPointerCallback?.(cancelEvent);
+                }
+            }
+            if (touchCanceled && this.dragObjArr.length === 0) {
+                this.destroyDocumentListeners();
+            }
+        }
+    }
 
     // listeners
     private readonly onPointerEnter: ((e: PointerEvent) => void) | undefined;
@@ -423,6 +465,10 @@ export class PointerListener {
         if (this.onPointerCallback) {
             this.onPointerMove = (event: PointerEvent) => {
                 const correctedEvent = correctPointerEvent(event);
+                this.updatePenTime(correctedEvent.pointerType);
+                if (correctedEvent.pointerType === 'touch' && performance.now() - this.lastPenTime < 1000) {
+                    return;
+                }
 
                 const tempLastPointerType = this.lastPointerType;
                 this.lastPointerType = correctedEvent.pointerType as TPointerType;
@@ -454,6 +500,10 @@ export class PointerListener {
             this.onPointerDown = (event: PointerEvent, onSkipGlobal?: boolean) => {
                 //BB.throwOut('pointerdown ' + event.pointerId + ' | ' + dragPointerIdArr.length);
                 const correctedEvent = correctPointerEvent(event, true);
+                this.updatePenTime(correctedEvent.pointerType);
+                if (correctedEvent.pointerType === 'touch' && performance.now() - this.lastPenTime < 1000) {
+                    return;
+                }
                 ////console.log('debug: ' + event.pointerId + ' pointerdown');
                 if (
                     this.dragPointerIdArr.includes(correctedEvent.pointerId) ||
@@ -498,6 +548,10 @@ export class PointerListener {
             this.windowOnPointerMove = (event: PointerEvent) => {
                 //BB.throwOut('pointermove ' + event.pointerId);
                 const correctedEvent = correctPointerEvent(event);
+                this.updatePenTime(correctedEvent.pointerType);
+                if (correctedEvent.pointerType === 'touch' && performance.now() - this.lastPenTime < 1000) {
+                    return;
+                }
                 ////console.log('debug: ' + event.pointerId + ' GLOBALpointermove');
                 if (!this.dragPointerIdArr.includes(correctedEvent.pointerId)) {
                     return;
@@ -556,6 +610,10 @@ export class PointerListener {
             this.windowOnPointerUp = (event: PointerEvent) => {
                 //BB.throwOut('pointerup ' + event.pointerId);
                 const correctedEvent = correctPointerEvent(event);
+                this.updatePenTime(correctedEvent.pointerType);
+                if (correctedEvent.pointerType === 'touch' && performance.now() - this.lastPenTime < 1000) {
+                    return;
+                }
                 ////console.log('debug: ' + event.pointerId + ' GLOBALpointerup');
                 if (!this.dragPointerIdArr.includes(correctedEvent.pointerId)) {
                     return;
@@ -581,6 +639,10 @@ export class PointerListener {
             this.windowOnPointerLeave = (event: PointerEvent) => {
                 //BB.throwOut('pointerleave ' + event.pointerId);
                 const correctedEvent = correctPointerEvent(event);
+                this.updatePenTime(correctedEvent.pointerType);
+                if (correctedEvent.pointerType === 'touch' && performance.now() - this.lastPenTime < 1000) {
+                    return;
+                }
                 ////console.log('debug: ' + event.pointerId + ' onGlobalPointerLeave', event);
                 if (!this.dragPointerIdArr.includes(correctedEvent.pointerId)) {
                     //} || event.target !== document) {

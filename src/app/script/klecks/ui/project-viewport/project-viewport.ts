@@ -77,6 +77,12 @@ export class ProjectViewport {
     private project: TProjectViewportProject;
     private useNativeResolution: boolean;
 
+    private fps: number = 60;
+    private lastRenderTime: number = 0;
+    private bottomCacheCanvas: HTMLCanvasElement | null = null;
+    private fullCacheCanvas: HTMLCanvasElement | null = null;
+    private lastCacheSignature: string = '';
+
     private pattern: CanvasPattern;
     private resFactor: number;
     private readonly drawBackground: boolean;
@@ -125,6 +131,8 @@ export class ProjectViewport {
             imageRendering:
                 Math.round(devicePixelRatio) !== devicePixelRatio ? undefined : 'pixelated',
             display: 'block',
+            touchAction: 'none',
+            userSelect: 'none',
         });
         window.addEventListener('resize', this.resizeListener);
 
@@ -221,29 +229,145 @@ export class ProjectViewport {
             this.ctx.restore();
         }
 
-        this.project.layers.forEach((layer) => {
-            if (!layer.isVisible || !layer.opacity) {
-                return;
+        // ------------------ Incremental Compositing & FPS Optimizations ------------------
+        const nowTime = performance.now();
+        if (this.lastRenderTime > 0) {
+            const delta = nowTime - this.lastRenderTime;
+            if (delta > 0) {
+                const currentFps = 1000 / delta;
+                this.fps = this.fps * 0.9 + currentFps * 0.1;
             }
-            this.ctx.save();
-            this.ctx.globalCompositeOperation = layer.mixModeStr;
-            this.ctx.globalAlpha = layer.opacity;
+        }
+        this.lastRenderTime = nowTime;
 
-            let image: CanvasImageSource;
-            if (typeof layer.image === 'function') {
-                const res = layer.image(renderedTransform, this.canvas.width, this.canvas.height);
-                if ('image' in res && 'transform' in res) {
-                    image = res.image;
-                    this.ctx.setTransform(...matrixToTuple(compose(renderedMat, res.transform)));
+        const layers = this.project.layers;
+        let activeIndex = -1;
+        for (let i = 0; i < layers.length; i++) {
+            if (typeof layers[i].image === 'function') {
+                activeIndex = i;
+                break;
+            }
+        }
+
+        const useIncrementalCompositing = this.fps < 30;
+
+        if (useIncrementalCompositing) {
+            const signature = layers.map((layer, idx) => {
+                if (idx === activeIndex) return 'ACTIVE';
+                return `${layer.isVisible}:${layer.opacity}:${layer.mixModeStr}`;
+            }).join('|') + `|${this.project.width}x${this.project.height}`;
+
+            if (signature !== this.lastCacheSignature) {
+                this.lastCacheSignature = signature;
+                
+                if (activeIndex !== -1) {
+                    if (!this.bottomCacheCanvas) {
+                        this.bottomCacheCanvas = document.createElement('canvas');
+                    }
+                    if (this.bottomCacheCanvas.width !== this.project.width || this.bottomCacheCanvas.height !== this.project.height) {
+                        this.bottomCacheCanvas.width = this.project.width;
+                        this.bottomCacheCanvas.height = this.project.height;
+                    }
+                    const bCtx = this.bottomCacheCanvas.getContext('2d')!;
+                    bCtx.clearRect(0, 0, this.project.width, this.project.height);
+                    for (let i = 0; i < activeIndex; i++) {
+                        const l = layers[i];
+                        if (!l.isVisible || !l.opacity) continue;
+                        bCtx.save();
+                        bCtx.globalCompositeOperation = l.mixModeStr;
+                        bCtx.globalAlpha = l.opacity;
+                        bCtx.drawImage(l.image as CanvasImageSource, 0, 0);
+                        bCtx.restore();
+                    }
                 } else {
-                    image = res;
+                    if (!this.fullCacheCanvas) {
+                        this.fullCacheCanvas = document.createElement('canvas');
+                    }
+                    if (this.fullCacheCanvas.width !== this.project.width || this.fullCacheCanvas.height !== this.project.height) {
+                        this.fullCacheCanvas.width = this.project.width;
+                        this.fullCacheCanvas.height = this.project.height;
+                    }
+                    const fCtx = this.fullCacheCanvas.getContext('2d')!;
+                    fCtx.clearRect(0, 0, this.project.width, this.project.height);
+                    for (let i = 0; i < layers.length; i++) {
+                        const l = layers[i];
+                        if (!l.isVisible || !l.opacity) continue;
+                        fCtx.save();
+                        fCtx.globalCompositeOperation = l.mixModeStr;
+                        fCtx.globalAlpha = l.opacity;
+                        fCtx.drawImage(l.image as CanvasImageSource, 0, 0);
+                        fCtx.restore();
+                    }
+                }
+            }
+
+            if (activeIndex !== -1) {
+                if (activeIndex > 0 && this.bottomCacheCanvas) {
+                    this.ctx.save();
+                    this.ctx.drawImage(this.bottomCacheCanvas, 0, 0);
+                    this.ctx.restore();
+                }
+
+                const activeLayer = layers[activeIndex];
+                if (activeLayer.isVisible && activeLayer.opacity) {
+                    this.ctx.save();
+                    this.ctx.globalCompositeOperation = activeLayer.mixModeStr;
+                    this.ctx.globalAlpha = activeLayer.opacity;
+                    let image: CanvasImageSource;
+                    const res = (activeLayer.image as any)(renderedTransform, this.canvas.width, this.canvas.height);
+                    if ('image' in res && 'transform' in res) {
+                        image = res.image;
+                        this.ctx.setTransform(...matrixToTuple(compose(renderedMat, res.transform)));
+                    } else {
+                        image = res;
+                    }
+                    this.ctx.drawImage(image, 0, 0);
+                    this.ctx.restore();
+                }
+
+                for (let i = activeIndex + 1; i < layers.length; i++) {
+                    const layer = layers[i];
+                    if (!layer.isVisible || !layer.opacity) {
+                        continue;
+                    }
+                    this.ctx.save();
+                    this.ctx.globalCompositeOperation = layer.mixModeStr;
+                    this.ctx.globalAlpha = layer.opacity;
+                    this.ctx.drawImage(layer.image as CanvasImageSource, 0, 0);
+                    this.ctx.restore();
                 }
             } else {
-                image = layer.image;
+                if (this.fullCacheCanvas) {
+                    this.ctx.save();
+                    this.ctx.drawImage(this.fullCacheCanvas, 0, 0);
+                    this.ctx.restore();
+                }
             }
-            this.ctx.drawImage(image, 0, 0); // , this.project.width, this.project.height);
-            this.ctx.restore();
-        });
+        } else {
+            layers.forEach((layer) => {
+                if (!layer.isVisible || !layer.opacity) {
+                    return;
+                }
+                this.ctx.save();
+                this.ctx.globalCompositeOperation = layer.mixModeStr;
+                this.ctx.globalAlpha = layer.opacity;
+
+                let image: CanvasImageSource;
+                if (typeof layer.image === 'function') {
+                    const res = layer.image(renderedTransform, this.canvas.width, this.canvas.height);
+                    if ('image' in res && 'transform' in res) {
+                        image = res.image;
+                        this.ctx.setTransform(...matrixToTuple(compose(renderedMat, res.transform)));
+                    } else {
+                        image = res;
+                    }
+                } else {
+                    image = layer.image;
+                }
+                this.ctx.drawImage(image, 0, 0);
+                this.ctx.restore();
+            });
+        }
 
         this.renderAfter?.(this.ctx, renderedTransform);
 
@@ -275,6 +399,7 @@ export class ProjectViewport {
 
     setProject(project: TProjectViewportProject): void {
         this.project = project;
+        this.lastCacheSignature = ''; // invalidate incremental cache signature
     }
 
     getTransform(): TViewportTransform {
@@ -295,6 +420,16 @@ export class ProjectViewport {
     }
 
     destroy(): void {
+        if (this.bottomCacheCanvas) {
+            this.bottomCacheCanvas.width = 0;
+            this.bottomCacheCanvas.height = 0;
+            this.bottomCacheCanvas = null;
+        }
+        if (this.fullCacheCanvas) {
+            this.fullCacheCanvas.width = 0;
+            this.fullCacheCanvas.height = 0;
+            this.fullCacheCanvas = null;
+        }
         BB.freeCanvas(this.canvas);
         THEME.removeIsDarkListener(this.onIsDark);
         window.removeEventListener('resize', this.resizeListener);

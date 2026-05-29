@@ -19,10 +19,17 @@ class LanguageStrings {
         if (langCode === 'en') {
             this.data = { ...english };
         } else {
-            this.data = { ...english, ...(await loadLanguage(langCode)) };
+            const loaded = await loadLanguage(langCode);
+            const langData = (loaded as any).default ? (loaded as any).default : loaded;
+            this.data = { ...english, ...langData };
         }
         this.code = langCode;
         document.documentElement.setAttribute('lang', langCode);
+        if (langCode === 'ar') {
+            document.documentElement.setAttribute('dir', 'rtl');
+        } else {
+            document.documentElement.removeAttribute('dir');
+        }
         this.listeners.forEach((item) => {
             item();
         });

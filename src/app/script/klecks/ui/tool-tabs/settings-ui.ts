@@ -2,13 +2,10 @@ import { BB } from '../../../bb/bb';
 import { LANG, LANGUAGE_STRINGS, LS_LANGUAGE_KEY } from '../../../language/language';
 import { KL } from '../../kl';
 import { languages } from '../../../../languages/languages';
-import bitbofLogoImg from 'url:/src/app/img/bitbof-logo.svg';
-import klecksLogoImg from 'url:/src/app/img/klecks-logo.png';
 import uiSwapImg from 'url:/src/app/img/ui/ui-swap-lr.svg';
 import { LocalStorage } from '../../../bb/base/local-storage';
 import { THEME, TTheme } from '../../../theme/theme';
 import { addIsDarkListener, css, nullToUndefined } from '../../../bb/base/base';
-import { showLicensesDialog } from '../modals/licenses-dialog/show-licenses-dialog';
 import { c } from '../../../bb/base/c';
 import { SaveReminder } from '../components/save-reminder';
 import { showModal } from '../modals/base/showModal';
@@ -203,115 +200,6 @@ export class SettingsUi {
                 tabIndex: '-1',
             },
         });
-
-        // ---- about ----
-        this.rootEl.append(BB.el({ className: 'grid-hr', css: { margin: '10px 0' } }));
-
-        function makeLicenses() {
-            return BB.el({
-                tagName: 'a',
-                content: LANG('licenses'),
-                onClick: () => showLicensesDialog(),
-            });
-        }
-
-        if (customAbout) {
-            this.rootEl.append(customAbout);
-            if (!customAbout.innerHTML) {
-                const minimalAbout = BB.el({
-                    parent: customAbout,
-                    css: {
-                        textAlign: 'center',
-                    },
-                });
-                minimalAbout.append(
-                    BB.el({
-                        content: [
-                            createImage({
-                                alt: 'icon',
-                                height: 20,
-                                src: bitbofLogoImg,
-                                css: {
-                                    verticalAlign: 'middle',
-                                },
-                            }),
-                            ' ',
-                            BB.el({
-                                tagName: 'a',
-                                content: 'bitbof',
-                                custom: {
-                                    href: 'https://bitbof.com',
-                                    target: '_blank',
-                                    tabIndex: '-1',
-                                },
-                            }),
-                            ' © 2025',
-                            BB.el({ tagName: 'br' }),
-                        ],
-                    }),
-                    makeLicenses(),
-                );
-            }
-        } else {
-            const versionEl = BB.el({
-                parent: this.rootEl,
-                css: {
-                    textAlign: 'center',
-                },
-                content: [
-                    createImage({
-                        alt: 'Klecks',
-                        className: 'dark-invert',
-                        height: 25,
-                        src: klecksLogoImg,
-                    }),
-                    BB.el({ tagName: 'br' }),
-                    createImage({
-                        alt: 'icon',
-                        height: 20,
-                        src: bitbofLogoImg,
-                        css: {
-                            verticalAlign: 'middle',
-                        },
-                    }),
-                    ' ',
-                    BB.el({
-                        tagName: 'a',
-                        content: 'bitbof',
-                        custom: {
-                            href: 'https://bitbof.com',
-                            target: '_blank',
-                            tabIndex: '-1',
-                        },
-                    }),
-                    ' © 2025',
-                    BB.el({ tagName: 'br' }),
-                ],
-            });
-
-            versionEl.append(
-                makeLicenses(),
-                document.createTextNode(' | '),
-                BB.el({
-                    tagName: 'a',
-                    content: LANG('donate'),
-                    custom: {
-                        href: 'https://kleki.com/donate/',
-                        target: '_blank',
-                    },
-                }),
-                document.createTextNode(' | '),
-                BB.el({
-                    tagName: 'a',
-                    content: LANG('source-code'),
-                    custom: {
-                        href: 'https://klecks.org',
-                        target: '_blank',
-                    },
-                }),
-            );
-        }
-
         window.addEventListener('storage', (e) => {
             if (e.key !== LS_LANGUAGE_KEY) {
                 return;

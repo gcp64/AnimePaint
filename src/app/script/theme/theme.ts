@@ -15,7 +15,7 @@ class Theme {
 
     private updateTheme(): void {
         const oldTheme = this.theme;
-        this.theme = this.storedTheme || this.mediaQueryTheme;
+        this.theme = this.storedTheme || 'dark';
 
         if (this.theme === oldTheme) {
             return;

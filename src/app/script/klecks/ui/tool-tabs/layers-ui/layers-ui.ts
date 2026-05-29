@@ -172,7 +172,26 @@ export class LayersUi {
         this.layerListEl.style.height = this.layerElArr.length * 35 + 'px';
     }
 
+    private createLayerListTimeout: ReturnType<typeof setTimeout> | undefined;
+
     private createLayerList(force?: boolean): void {
+        if (this.oldHistoryState === undefined || force) {
+            if (this.createLayerListTimeout) {
+                clearTimeout(this.createLayerListTimeout);
+                this.createLayerListTimeout = undefined;
+            }
+            this.createLayerListDirect(force);
+        } else {
+            if (this.createLayerListTimeout) {
+                clearTimeout(this.createLayerListTimeout);
+            }
+            this.createLayerListTimeout = setTimeout(() => {
+                this.createLayerListDirect(force);
+            }, 300);
+        }
+    }
+
+    private createLayerListDirect(force?: boolean): void {
         if (this.klHistory.getChangeCount() === this.oldHistoryState && !force) {
             return;
         }
@@ -913,5 +932,9 @@ export class LayersUi {
         }
         this.isVisible = b;
         this.rootEl.style.display = b ? 'block' : 'none';
+        if (!b && this.createLayerListTimeout) {
+            clearTimeout(this.createLayerListTimeout);
+            this.createLayerListTimeout = undefined;
+        }
     }
 }

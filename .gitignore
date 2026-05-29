@@ -3,3 +3,7 @@ node_modules
 dist
 .idea
 src/app/languages
+.npm-cache
+dist-app
+.electron-cache
+*.exe

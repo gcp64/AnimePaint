@@ -30,6 +30,7 @@ import { SaveToComputer } from '../klecks/storage/save-to-computer';
 import { ToolspaceScroller } from '../klecks/ui/components/toolspace-scroller';
 import { translateSmoothing } from '../klecks/utils/translate-smoothing';
 import { KlAppImportHandler } from './kl-app-import-handler';
+import { initOnboarding } from './onboarding';
 import toolPaintImg from 'url:/src/app/img/ui/tool-paint.svg';
 import toolHandImg from 'url:/src/app/img/ui/tool-hand.svg';
 import toolFillImg from 'url:/src/app/img/ui/tool-fill.svg';
@@ -165,28 +166,16 @@ export class KlApp {
         if (this.uiWidth < this.collapseThreshold) {
             this.mobileUi.setIsVisible(true);
             if (this.mobileUi.getToolspaceIsOpen()) {
-                if (this.uiLayout === 'left') {
-                    css(this.easel.getElement(), {
-                        left: '271px',
-                    });
-                } else {
-                    css(this.easel.getElement(), {
-                        left: '0',
-                    });
-                }
+                css(this.easel.getElement(), {
+                    left: '0',
+                });
                 this.toolspace.style.display = 'block';
-                this.easel.setSize(Math.max(0, this.uiWidth - this.toolWidth), this.uiHeight);
+                this.easel.setSize(Math.max(0, this.uiWidth), this.uiHeight);
                 this.statusOverlay.setWide(false);
             } else {
-                if (this.uiLayout === 'left') {
-                    css(this.easel.getElement(), {
-                        left: '0',
-                    });
-                } else {
-                    css(this.easel.getElement(), {
-                        left: '0',
-                    });
-                }
+                css(this.easel.getElement(), {
+                    left: '0',
+                });
                 this.toolspace.style.display = 'none';
                 this.easel.setSize(Math.max(0, this.uiWidth), this.uiHeight);
                 this.statusOverlay.setWide(true);
@@ -194,13 +183,11 @@ export class KlApp {
         } else {
             this.mobileColorUi.closeColorPicker();
             this.mobileUi.setIsVisible(false);
-            if (this.uiLayout === 'left') {
-                css(this.easel.getElement(), {
-                    left: '271px',
-                });
-            }
+            css(this.easel.getElement(), {
+                left: '0',
+            });
             this.toolspace.style.display = 'block';
-            this.easel.setSize(Math.max(0, this.uiWidth - this.toolWidth), this.uiHeight);
+            this.easel.setSize(Math.max(0, this.uiWidth), this.uiHeight);
             this.statusOverlay.setWide(false);
         }
         this.mobileUi.update();
@@ -227,7 +214,7 @@ export class KlApp {
                 right: '',
             });
             css(this.easel.getElement(), {
-                left: '271px',
+                left: '0',
             });
         } else {
             css(this.toolspace, {
@@ -273,6 +260,50 @@ export class KlApp {
                 bottom: '0',
             },
         });
+
+        const winAny = window as any;
+        if (winAny.electronAPI) {
+            document.body.classList.add('is-electron');
+            const titlebar = document.createElement('div');
+            titlebar.className = 'anime-paint-titlebar';
+            
+            const titleText = document.createElement('div');
+            titleText.className = 'anime-paint-titlebar__title';
+            titleText.textContent = 'ANIMEPAINT × MARIA CORE';
+            
+            const actions = document.createElement('div');
+            actions.className = 'anime-paint-titlebar__actions';
+            
+            const minBtn = document.createElement('button');
+            minBtn.className = 'anime-paint-titlebar__btn btn-min';
+            minBtn.innerHTML = '&#9472;';
+            minBtn.onclick = () => winAny.electronAPI.minimize();
+            
+            const maxBtn = document.createElement('button');
+            maxBtn.className = 'anime-paint-titlebar__btn btn-max';
+            maxBtn.innerHTML = '&#9633;';
+            maxBtn.onclick = () => winAny.electronAPI.maximize();
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.id = 'close-btn';
+            closeBtn.className = 'anime-paint-titlebar__btn btn-close';
+            closeBtn.innerHTML = '&#10005;';
+            closeBtn.onclick = () => {
+                if (winAny.electronAPI) {
+                    winAny.electronAPI.close();
+                }
+            };
+            
+            actions.append(minBtn, maxBtn, closeBtn);
+            titlebar.append(titleText, actions);
+            document.body.prepend(titlebar);
+        }
+
+        // Inject floating watermark designed by Maria
+        const watermark = document.createElement('div');
+        watermark.className = 'maria-watermark';
+        watermark.textContent = 'DESIGNED BY MARIA // CORE v1.0';
+        document.body.appendChild(watermark);
 
         this.uiWidth = Math.max(0, window.innerWidth);
         this.uiHeight = Math.max(0, window.innerHeight);
@@ -2246,6 +2277,9 @@ export class KlApp {
             });
         }
         this.saveReminder?.init();
+        setTimeout(() => {
+            initOnboarding(document.body);
+        }, 100);
     }
 
     // -------- interface --------

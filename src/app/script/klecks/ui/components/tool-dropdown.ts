@@ -195,12 +195,12 @@ export class ToolDropdown {
 
         const overlay = BB.el({
             css: {
-                position: 'absolute',
-                //background: 'rgba(255,0,0,0.5)',
+                position: 'fixed',
                 left: '0',
                 top: '0',
                 right: '0',
                 bottom: '0',
+                zIndex: '99999',
             },
         });
         const overlayPointerListener = new BB.PointerListener({
@@ -221,7 +221,7 @@ export class ToolDropdown {
                 height: 100 * (this.optionArr.length - 1) + '%',
                 top: '100%',
                 left: '0',
-                zIndex: '-1',
+                zIndex: '100000',
                 boxSizing: 'border-box',
                 cursor: 'pointer',
                 transition: 'height 0.1s ease-in-out, opacity 0.1s ease-in-out',
@@ -322,8 +322,8 @@ export class ToolDropdown {
 
             this.arrowButton.style.setProperty('opacity', '0');
             this.arrowButton.style.setProperty('pointer-events', 'none');
-            this.rootEl.style.zIndex = '1';
-            document.body.append(overlay);
+            this.rootEl.style.zIndex = '100001';
+            this.rootEl.append(overlay);
             this.rootEl.append(dropdownWrapper);
         };
 
