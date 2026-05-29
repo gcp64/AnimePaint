@@ -2,7 +2,6 @@
   <img src="assets/app_logo.jpg" alt="AnimePaint Logo" width="120" style="border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); margin-bottom: 10px;" />
   <h1 style="border-bottom: none; margin-top: 10px;">AnimePaint - النسخة الخاصة بماريا</h1>
   <p><b>تطبيق الرسم الرقمي والتلوين الأكثر تكاملاً وسرعة لويندوز والويب مع تعريب شامل ودعم كامل لمحاذاة اليمين إلى اليسار</b></p>
-  <img src="assets/screenshot1.png" alt="AnimePaint UI Showcase" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); max-width: 100%; margin: 20px 0;" />
 </div>
 
 ---
@@ -20,18 +19,6 @@
 * **دعم الأجهزة اللوحية وحساسية الضغط**: توافق كامل مع ألواح الرسم الرقمية مع نظام حركي ذكي لتنعيم وتثبيت الخطوط أثناء الرسم الحر لمنع الارتجاف.
 * **فلاتر ومؤثرات مدعومة بـ WebGL**: مكتبة مؤثرات بصرية مدمجة تشمل التشويه البصري، تمويه التدرج، فلاتر استخلاص الخطوط الأساسية من الصور، وضبط منحنيات الإضاءة والألوان.
 * **أدوات المعالجة والتحويل الهندسي**: أدوات التحويل الحر، تغيير الحجم، قص وتوسيع مساحة العمل، المنظور ثلاثي الأبعاد، وإضافة النصوص العربية المخصصة.
-
----
-
-## لقطات من واجهة التطبيق
-
-<div align="center">
-  <p><b>لوحة التحكم والطبقات المعربة بالكامل مع محاذاة اليمين إلى اليسار</b></p>
-  <img src="assets/screenshot2.png" alt="AnimePaint RTL Layers & Settings" style="border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); max-width: 90%; margin-bottom: 20px;" />
-  
-  <p><b>واجهة الرسم والأدوات المتقدمة بوضع الملء الكامل للمستند</b></p>
-  <img src="assets/screenshot3.png" alt="AnimePaint Canvas & Tools" style="border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); max-width: 90%; margin-bottom: 20px;" />
-</div>
 
 ---
 
