@@ -192,7 +192,7 @@ export class ProjectViewport {
         // this.ctx.imageSmoothingEnabled = false;
 
         if (this.drawBackground) {
-            this.ctx.fillStyle = isDark ? 'rgb(33, 33, 33)' : 'rgb(158,158,158)';
+            this.ctx.fillStyle = isDark ? '#09090e' : 'rgb(158,158,158)';
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         } else {
             this.ctx.fillStyle = this.pattern;
@@ -207,15 +207,50 @@ export class ProjectViewport {
         if (this.drawBackground) {
             this.ctx.save();
 
-            this.ctx.fillStyle = THEME.isDark() ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.2)';
             const scaledPixelX = 1 / renderedTransform.scaleX;
             const scaledPixelY = 1 / renderedTransform.scaleY;
-            this.ctx.fillRect(
-                -scaledPixelX,
-                -scaledPixelY,
-                this.project.width + scaledPixelX * 2,
-                this.project.height + scaledPixelY * 2,
-            );
+
+            if (THEME.isDark()) {
+                // Soft outer shadow layers for eye-friendly floating canvas depth
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+                this.ctx.fillRect(
+                    -scaledPixelX * 8,
+                    -scaledPixelY * 8,
+                    this.project.width + scaledPixelX * 16,
+                    this.project.height + scaledPixelY * 16,
+                );
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
+                this.ctx.fillRect(
+                    -scaledPixelX * 4,
+                    -scaledPixelY * 4,
+                    this.project.width + scaledPixelX * 8,
+                    this.project.height + scaledPixelY * 8,
+                );
+                // Subtle thin accent border instead of a bright solid frame
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+                this.ctx.fillRect(
+                    -scaledPixelX,
+                    -scaledPixelY,
+                    this.project.width + scaledPixelX * 2,
+                    this.project.height + scaledPixelY * 2,
+                );
+            } else {
+                // Light mode soft drop shadow
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                this.ctx.fillRect(
+                    -scaledPixelX * 4,
+                    -scaledPixelY * 4,
+                    this.project.width + scaledPixelX * 8,
+                    this.project.height + scaledPixelY * 8,
+                );
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+                this.ctx.fillRect(
+                    -scaledPixelX,
+                    -scaledPixelY,
+                    this.project.width + scaledPixelX * 2,
+                    this.project.height + scaledPixelY * 2,
+                );
+            }
 
             this.ctx.fillStyle = this.pattern;
             try {

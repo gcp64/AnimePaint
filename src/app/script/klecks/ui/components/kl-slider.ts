@@ -266,6 +266,7 @@ export class KlSlider {
                     css: {
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
                     },
                 }),
                 this.labelValueEl,

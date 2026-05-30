@@ -127,7 +127,7 @@
   'brush-blending': {
     hint: 'Wetness. How much colors will bleed into each other.',
     original: 'Blending',
-    value: 'نسبة دمج وسيلان الألوان',
+    value: 'الدمج',
   },
   'brush-toggle-pressure': {
     hint: 'google "pressure sensitivity". Feature of Wacom tablets, Apple Pencil, XP Pen, etc.',
@@ -1674,12 +1674,12 @@
   opacity: {
     hint: 'for layer opacity, brush opacity, text opacity, ...',
     original: 'Opacity',
-    value: 'درجة وشدة شفافية الألوان',
+    value: 'الشفافية',
   },
   scatter: {
     hint: 'for brush scatter',
     original: 'Scatter',
-    value: 'نسبة تشتت ضربات الفرشاة على اللوحة',
+    value: 'التشتت',
   },
   red: {
     original: 'Red',
@@ -1743,7 +1743,7 @@
   'lock-alpha': {
     hint: 'Short. Freezes the alpha channel of image. Images consist of 4 channels (red, green, blue, alpha). Alpha lock also found in Procreate and photoshop',
     original: 'Lock Alpha',
-    value: 'قفل قناة الشفافية للطبقة (Lock Alpha)',
+    value: 'قفل الشفافية',
   },
   'lock-alpha-title': {
     hint: "same as 'lock-alpha' but longer version. Shows up as a tooltip when hovering",

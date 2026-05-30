@@ -571,32 +571,32 @@
 
     // Scrollbars
     ::-webkit-scrollbar {
-        width: 4px;
-        height: 4px;
+        width: 5px;
+        height: 5px;
     }
     ::-webkit-scrollbar-track {
         background: transparent;
     }
     ::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: 2px;
+        background: rgba(255, 255, 255, 0.08) !important;
+        border-radius: 10px !important;
     }
     ::-webkit-scrollbar-thumb:hover {
-        background: var(--active-highlight-color);
+        background: rgba(255, 255, 255, 0.18) !important;
     }
 
     // Glass panel widgets styling
     .kl-toolspace {
         background: rgba(10, 10, 15, 0.65) !important;
         backdrop-filter: blur(30px) saturate(140%) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 240, 255, 0.03) !important;
     }
 
     .kl-popup-box, .kl-d-modal {
         background-color: rgba(12, 12, 22, 0.8) !important;
         backdrop-filter: blur(40px) saturate(150%) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.07) !important;
         border-radius: 20px !important;
         box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(255, 0, 127, 0.05) !important;
     }
@@ -604,15 +604,15 @@
     // Custom headers decor
     .kl-toolspace-row {
         background: linear-gradient(to top, rgba(255, 255, 255, 0) 10%, rgba(255, 255, 255, 0.04) 100%) !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
         box-shadow: none !important;
     }
 
     // Buttons
     button, .kl-button {
-        color: #e2e8f0 !important;
-        background-color: rgba(255, 255, 255, 0.04) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        color: #cbd5e1 !important;
+        background-color: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
         border-radius: 8px !important;
         box-shadow: none !important;
         background-image: none !important;
@@ -620,62 +620,62 @@
         font-family: inherit;
 
         &:hover {
-            background-color: rgba(0, 240, 255, 0.08) !important;
+            background-color: rgba(0, 240, 255, 0.06) !important;
             border-color: var(--active-highlight-color) !important;
             color: #fff !important;
-            box-shadow: 0 0 10px rgba(0, 240, 255, 0.15) !important;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.12) !important;
         }
 
         &:active {
             transform: scale(0.96) !important;
-            background-color: rgba(0, 240, 255, 0.15) !important;
+            background-color: rgba(0, 240, 255, 0.12) !important;
         }
     }
 
     .kl-button-primary {
-        background: rgba(255, 0, 127, 0.15) !important;
-        border: 1px solid rgba(255, 0, 127, 0.35) !important;
+        background: rgba(255, 0, 127, 0.12) !important;
+        border: 1px solid rgba(255, 0, 127, 0.28) !important;
         color: #fff !important;
-        box-shadow: 0 0 12px rgba(255, 0, 127, 0.2) !important;
+        box-shadow: 0 0 12px rgba(255, 0, 127, 0.15) !important;
 
         &:hover {
-            background: rgba(255, 0, 127, 0.28) !important;
+            background: rgba(255, 0, 127, 0.22) !important;
             border-color: var(--kl-color) !important;
-            box-shadow: 0 0 18px rgba(255, 0, 127, 0.4) !important;
+            box-shadow: 0 0 18px rgba(255, 0, 127, 0.3) !important;
         }
         &:active {
-            background: rgba(255, 0, 127, 0.4) !important;
+            background: rgba(255, 0, 127, 0.32) !important;
         }
     }
 
     .kl-button-delete:not(:disabled) {
-        background: rgba(239, 68, 68, 0.1) !important;
-        border: 1px solid rgba(239, 68, 68, 0.35) !important;
+        background: rgba(239, 68, 68, 0.08) !important;
+        border: 1px solid rgba(239, 68, 68, 0.28) !important;
         color: #fca5a5 !important;
 
         &:hover {
-            background: rgba(239, 68, 68, 0.25) !important;
+            background: rgba(239, 68, 68, 0.2) !important;
             border-color: #f87171 !important;
             color: #fff !important;
-            box-shadow: 0 0 12px rgba(239, 68, 68, 0.3) !important;
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.25) !important;
         }
     }
 
     // Sliders (Thin laser beams)
     .slider-wrapper {
-        background: rgba(255, 255, 255, 0.05) !important;
+        background: rgba(255, 255, 255, 0.03) !important;
         box-shadow: none !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        color: #94a3b8 !important;
-        height: 24px !important;
-        line-height: 24px !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        color: #cbd5e1 !important;
+        height: 28px !important;
+        line-height: 28px !important;
         border-radius: 6px !important;
 
         .slider-inner {
-            background: linear-gradient(90deg, #9d00ff, #00f0ff) !important;
-            box-shadow: 0 0 10px rgba(0, 240, 255, 0.35) !important;
+            background: linear-gradient(90deg, #7c3aed, #06b6d4) !important;
+            box-shadow: 0 0 8px rgba(6, 182, 212, 0.28) !important;
             border-radius: 5px 0 0 5px !important;
-            border-right: 1px solid #00f0ff !important;
+            border-right: 1px solid #06b6d4 !important;
         }
     }
 
@@ -686,8 +686,8 @@
 
     // Custom Layer Stack Item
     .kl-layer {
-        background: rgba(255, 255, 255, 0.02) !important;
-        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        background: rgba(255, 255, 255, 0.015) !important;
+        border: 1px solid rgba(255, 255, 255, 0.04) !important;
         border-radius: 8px !important;
         margin-bottom: 5px !important;
         height: 38px !important;
@@ -696,16 +696,16 @@
         transition: all 0.2s ease !important;
 
         .kl-layer__label, .kl-layer__opacity-label {
-            color: #94a3b8 !important;
+            color: #cbd5e1 !important;
             font-size: 11px !important;
-            font-weight: 600 !important;
+            font-weight: 500 !important;
         }
     }
 
     .kl-layer--selected {
-        background: rgba(157, 0, 255, 0.1) !important;
+        background: rgba(124, 58, 237, 0.08) !important;
         border: 1px solid var(--kl-note-3) !important;
-        box-shadow: 0 0 12px rgba(157, 0, 255, 0.2) !important;
+        box-shadow: 0 0 10px rgba(124, 58, 237, 0.15) !important;
 
         .kl-layer__label {
             color: #fff !important;
@@ -715,7 +715,7 @@
     // Tabs
     .tabrow {
         background: transparent !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
     }
 
     .tabrow__tab {
@@ -728,14 +728,14 @@
         margin: 0 2px !important;
 
         &:hover {
-            background-color: rgba(255, 255, 255, 0.03) !important;
+            background-color: rgba(255, 255, 255, 0.02) !important;
             opacity: 0.8;
         }
     }
 
     .tabrow__tab--opened-accented, .tabrow__tab--opened {
-        background-color: rgba(255, 255, 255, 0.05) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        background-color: rgba(255, 255, 255, 0.04) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
         border-bottom: 1px solid #06060a !important;
         opacity: 1;
         box-shadow: none !important;
@@ -747,45 +747,45 @@
 
     // Options, dropdowns, and checkboxes
     .kl-option, .kl-box-toggle {
-        background: rgba(255, 255, 255, 0.03) !important;
+        background: rgba(255, 255, 255, 0.02) !important;
         box-shadow: none !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
         border-radius: 6px !important;
-        color: #94a3b8 !important;
+        color: #cbd5e1 !important;
 
         &:not(.kl-option-selected):hover, &:not(.kl-box-toggle--active):hover {
-            background: rgba(255, 255, 255, 0.06) !important;
+            background: rgba(255, 255, 255, 0.05) !important;
             color: #fff !important;
         }
     }
 
     .kl-option-selected, .kl-box-toggle--active {
-        background: rgba(0, 240, 255, 0.08) !important;
+        background: rgba(6, 182, 212, 0.06) !important;
         color: #fff !important;
         border-color: var(--active-highlight-color) !important;
-        box-shadow: 0 0 10px rgba(0, 240, 255, 0.15) !important;
+        box-shadow: 0 0 8px rgba(6, 182, 212, 0.12) !important;
     }
 
     // Color Pickers
     .kl-color-picker__h, .kl-color-picker__sv, .kl-color-picker__preview, .kl-color-picker__secondary {
         border-radius: 6px !important;
         box-shadow: none !important;
-        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
     }
 
     // Form controls
     input, textarea, select, .kl-select {
-        background: rgba(0, 0, 0, 0.3) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        background: rgba(0, 0, 0, 0.25) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
         border-radius: 8px !important;
         color: #fff !important;
         padding: 6px 10px !important;
         font-family: inherit;
 
         &:focus {
-            background: rgba(0, 0, 0, 0.5) !important;
+            background: rgba(0, 0, 0, 0.45) !important;
             border-color: var(--active-highlight-color) !important;
-            box-shadow: 0 0 10px rgba(0, 240, 255, 0.15) !important;
+            box-shadow: 0 0 8px rgba(6, 182, 212, 0.12) !important;
             color: #fff !important;
         }
     }
@@ -793,7 +793,7 @@
     // Typo alignment
     .kl-floating-window-header {
         background: rgba(10, 10, 15, 0.9) !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
         color: #fff !important;
         font-weight: 700 !important;
         letter-spacing: 0.05em !important;
@@ -801,34 +801,33 @@
 
     // Presets UI overrides
     .kl-presets-header {
-        border-bottom-color: rgba(255, 255, 255, 0.12) !important;
-        color: #94a3b8 !important;
+        border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+        color: #cbd5e1 !important;
     }
 
     .kl-preset-btn {
-        background-color: rgba(255, 255, 255, 0.03) !important;
-        color: #94a3b8 !important;
-        border-color: rgba(255, 255, 255, 0.08) !important;
+        background-color: rgba(255, 255, 255, 0.02) !important;
+        color: #cbd5e1 !important;
+        border-color: rgba(255, 255, 255, 0.05) !important;
 
         &:hover {
-            background-color: rgba(255, 255, 255, 0.06) !important;
+            background-color: rgba(255, 255, 255, 0.05) !important;
             border-color: var(--active-highlight-color) !important;
             color: #fff !important;
-            box-shadow: 0 0 10px rgba(0, 240, 255, 0.15) !important;
+            box-shadow: 0 0 8px rgba(6, 182, 212, 0.12) !important;
         }
 
         &.kl-preset-btn--reset {
-            background-color: rgba(239, 68, 68, 0.06) !important;
+            background-color: rgba(239, 68, 68, 0.04) !important;
             color: #ff8888 !important;
-            border-color: rgba(239, 68, 68, 0.15) !important;
+            border-color: rgba(239, 68, 68, 0.12) !important;
 
             &:hover {
                 border-color: #ff4d4d !important;
-                background-color: rgba(239, 68, 68, 0.15) !important;
+                background-color: rgba(239, 68, 68, 0.12) !important;
                 color: #fff !important;
-                box-shadow: 0 0 10px rgba(239, 68, 68, 0.25) !important;
+                box-shadow: 0 0 8px rgba(239, 68, 68, 0.2) !important;
             }
         }
     }
 }
-

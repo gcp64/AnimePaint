@@ -73,7 +73,7 @@ html {
 .g-root {
     /* some browsers like to overwrite body */
     font-size: 16px;
-    font-family: system-ui, sans-serif;
+    font-family: 'Cairo', 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 a:link,
@@ -1263,7 +1263,25 @@ clip-path seems the cleanest.
     bottom: 20px !important;
     height: calc(100vh - 40px) !important;
     border-radius: 20px !important;
-    overflow: hidden !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+
+    &::-webkit-scrollbar {
+        width: 5px;
+    }
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.12);
+        border-radius: 10px;
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.25);
+        }
+    }
     
     // Glassmorphism panel styling
     backdrop-filter: blur(30px) saturate(140%) !important;
@@ -1297,7 +1315,7 @@ clip-path seems the cleanest.
         padding: 8px 16px !important;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 15px rgba(0, 240, 255, 0.1) !important;
         color: #fff !important;
-        font-family: 'Inter', 'Roboto', sans-serif !important;
+        font-family: 'Cairo', 'Outfit', sans-serif !important;
         font-weight: 500 !important;
         letter-spacing: 0.05em !important;
     }
@@ -1319,7 +1337,7 @@ clip-path seems the cleanest.
     z-index: 9999;
     user-select: none;
     -webkit-app-region: drag;
-    font-family: 'Inter', 'Roboto', sans-serif;
+    font-family: 'Cairo', 'Outfit', sans-serif;
     color: #94a3b8;
     padding: 0 12px;
 }
@@ -1413,7 +1431,7 @@ svg, img, .toolspace-row-button, .kl-button, .kl-option {
     position: absolute !important;
     bottom: 24px !important;
     left: 24px !important;
-    font-family: 'Inter', 'Roboto', 'Segoe UI', sans-serif !important;
+    font-family: 'Cairo', 'Outfit', sans-serif !important;
     font-size: 10px !important;
     font-weight: 700 !important;
     letter-spacing: 0.18em !important;
@@ -1462,7 +1480,7 @@ svg, img, .toolspace-row-button, .kl-button, .kl-option {
                 inset 0 0 20px rgba(255, 0, 127, 0.05);
     text-align: center;
     direction: rtl;
-    font-family: 'Inter', 'Roboto', 'Segoe UI', sans-serif;
+    font-family: 'Cairo', 'Outfit', sans-serif;
     transform: scale(1);
     transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
