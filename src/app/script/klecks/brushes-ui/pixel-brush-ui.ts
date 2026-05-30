@@ -148,23 +148,11 @@ export const pixelBrushUi = (function () {
 
             const presetsHeader = BB.el({
                 content: 'نماذج البكسل الجاهزة',
-                css: {
-                    marginTop: '20px',
-                    marginBottom: '10px',
-                    fontWeight: 'bold',
-                    fontSize: '12px',
-                    borderBottom: '1px solid #333',
-                    paddingBottom: '5px',
-                    color: '#999',
-                }
+                className: 'kl-presets-header',
             });
 
             const presetsGrid = BB.el({
-                css: {
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(2, 1fr)',
-                    gap: '8px',
-                }
+                className: 'kl-presets-grid',
             });
 
             const presets = [
@@ -181,34 +169,16 @@ export const pixelBrushUi = (function () {
                 const btn = BB.el({
                     tagName: 'button',
                     content: preset.name,
-                    css: {
-                        padding: '6px 8px',
-                        fontSize: '11px',
-                        backgroundColor: isReset ? '#2a2222' : '#141419',
-                        color: isReset ? '#ff8888' : '#ddd',
-                        border: isReset ? '1px solid #4f3333' : '1px solid #2a2a35',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        textAlign: 'center',
-                    }
+                    className: 'kl-preset-btn' + (isReset ? ' kl-preset-btn--reset' : ''),
                 });
-
-                btn.onmouseover = () => {
-                    btn.style.borderColor = '#00e5ff';
-                    btn.style.backgroundColor = isReset ? '#3a2d2d' : '#22222d';
-                };
-                btn.onmouseout = () => {
-                    btn.style.borderColor = isReset ? '#4f3333' : '#2a2a35';
-                    btn.style.backgroundColor = isReset ? '#2a2222' : '#141419';
-                };
 
                 btn.onclick = () => {
                     setSize(preset.size);
-                    sizeSlider.setValue(preset.size * 2);
+                    sizeSlider.setValue(preset.size);
                     p.onSizeChange(preset.size);
 
                     brush.setOpacity(preset.opacity);
-                    opacitySlider.setValue(preset.opacity * 100);
+                    opacitySlider.setValue(preset.opacity);
                     p.onOpacityChange(preset.opacity);
 
                     brush.setUseDither(preset.dither);

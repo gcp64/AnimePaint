@@ -1645,3 +1645,57 @@ html[dir="rtl"] {
     }
 }
 
+/* --- Presets UI Styling --- */
+.kl-presets-header {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-weight: bold;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+    padding-bottom: 5px;
+    color: #666;
+}
+
+.kl-presets-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.kl-preset-btn {
+    padding: 6px 8px;
+    font-size: 11px;
+    background-color: rgba(0, 0, 0, 0.03);
+    color: #555;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+    outline: none;
+    font-family: inherit;
+
+    &:hover {
+        border-color: var(--active-highlight-color);
+        background-color: #fff;
+        color: #000;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    &.kl-preset-btn--reset {
+        background-color: rgba(239, 68, 68, 0.04);
+        color: #c5221f;
+        border-color: rgba(239, 68, 68, 0.15);
+
+        &:hover {
+            border-color: #d93025;
+            background-color: rgba(239, 68, 68, 0.08);
+            color: #b00020;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.1);
+        }
+    }
+}
+
+

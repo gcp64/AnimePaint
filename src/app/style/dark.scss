@@ -798,5 +798,37 @@
         font-weight: 700 !important;
         letter-spacing: 0.05em !important;
     }
+
+    // Presets UI overrides
+    .kl-presets-header {
+        border-bottom-color: rgba(255, 255, 255, 0.12) !important;
+        color: #94a3b8 !important;
+    }
+
+    .kl-preset-btn {
+        background-color: rgba(255, 255, 255, 0.03) !important;
+        color: #94a3b8 !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.06) !important;
+            border-color: var(--active-highlight-color) !important;
+            color: #fff !important;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.15) !important;
+        }
+
+        &.kl-preset-btn--reset {
+            background-color: rgba(239, 68, 68, 0.06) !important;
+            color: #ff8888 !important;
+            border-color: rgba(239, 68, 68, 0.15) !important;
+
+            &:hover {
+                border-color: #ff4d4d !important;
+                background-color: rgba(239, 68, 68, 0.15) !important;
+                color: #fff !important;
+                box-shadow: 0 0 10px rgba(239, 68, 68, 0.25) !important;
+            }
+        }
+    }
 }
 
