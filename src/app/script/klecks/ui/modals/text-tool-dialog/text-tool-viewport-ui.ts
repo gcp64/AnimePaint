@@ -300,7 +300,7 @@ export class TextToolViewportUI {
             },
         });
 
-        this.inputsRootEl = c(',flex,gap-5', [
+        this.inputsRootEl = c(',flex,gap-5,items-center', [
             this.rotationSlider.getElement(),
             c(),
             this.zoomInBtn,
