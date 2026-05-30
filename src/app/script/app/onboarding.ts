@@ -3,7 +3,7 @@ import { animate, stagger } from 'animejs';
 export function initOnboarding(parentEl: HTMLElement): void {
     let completed = false;
     try {
-        completed = localStorage.getItem('maria_core_onboarding_completed') === 'true';
+        completed = localStorage.getItem('maria_core_onboarding_completed_v4') === 'true';
     } catch (e) {
         completed = true; // Fallback: bypass overlay to guarantee app loads
     }
@@ -99,7 +99,7 @@ export function initOnboarding(parentEl: HTMLElement): void {
     finishBtn.style.display = 'none';
     finishBtn.onclick = () => {
         try {
-            localStorage.setItem('maria_core_onboarding_completed', 'true');
+            localStorage.setItem('maria_core_onboarding_completed_v4', 'true');
         } catch (e) {
             console.error('Failed to write to localStorage:', e);
         }
