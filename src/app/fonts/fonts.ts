@@ -14,6 +14,9 @@ import fontQuicksandLight from 'url:./Quicksand-Light.woff2';
 import fontSilkscreen from 'url:./Silkscreen-Regular.woff2';
 import fontTehroc from 'url:./Tehroc-Regular.woff2';
 import fontYunga from 'url:./YUNGA-Display.woff2';
+import fontCairo from 'url:./Cairo-Regular.woff2';
+import fontAmiri from 'url:./Amiri-Regular.woff2';
+import fontTajawal from 'url:./Tajawal-Regular.woff2';
 
 export const FONTS: {
     name: string;
@@ -35,4 +38,7 @@ export const FONTS: {
     { name: 'Silkscreen', url: fontSilkscreen },
     { name: 'Tehroc', url: fontTehroc },
     { name: 'YUNGA', url: fontYunga },
+    { name: 'Cairo', url: fontCairo },
+    { name: 'Amiri', url: fontAmiri },
+    { name: 'Tajawal', url: fontTajawal },
 ];

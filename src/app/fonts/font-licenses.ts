@@ -1577,4 +1577,25 @@ not met.
     FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
     OTHER DEALINGS IN THE FONT SOFTWARE.`,
     },
+    {
+        title: 'Cairo by Mohamed Gaber',
+        full: `Copyright 2016 The Cairo Project Authors (https://github.com/Guzistan/Cairo), with Reserved Font Name "Cairo".
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is available with a FAQ at: http://scripts.sil.org/OFL`,
+    },
+    {
+        title: 'Amiri by Khaled Hosny',
+        full: `Copyright (c) 2010-2022 Khaled Hosny (khaledhosny@eglint.org), with Reserved Font Name "Amiri".
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is available with a FAQ at: http://scripts.sil.org/OFL`,
+    },
+    {
+        title: 'Tajawal by Boutros Fonts',
+        full: `Copyright 2017 The Tajawal Project Authors (https://github.com/googlefonts/tajawal), with Reserved Font Name "Tajawal".
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is available with a FAQ at: http://scripts.sil.org/OFL`,
+    },
 ];

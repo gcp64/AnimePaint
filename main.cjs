@@ -23,7 +23,11 @@ function createWindow () {
   // Clear cache on startup to avoid memory bloat
   win.webContents.session.clearCache();
 
-  const isDev = process.env.NODE_ENV === 'development';
+  win.webContents.on('console-message', (event, level, message, line, sourceId) => {
+    console.log(`[RENDERER] ${message} (at ${sourceId}:${line})`);
+  });
+
+  const isDev = !app.isPackaged;
   if (isDev) {
     win.loadURL('http://localhost:1234');
   } else {
