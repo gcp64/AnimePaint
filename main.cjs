@@ -1,5 +1,6 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, dialog } = require('electron');
 const path = require('path');
+const fs = require('fs');
 
 // Performance & Memory Tuning: Append command line flags for Chrome engine
 app.commandLine.appendSwitch('js-flags', '--max-old-space-size=512');
@@ -77,3 +78,78 @@ ipcMain.on('window-close', (event) => {
   }
   app.quit();
 });
+
+// Create application menu for standard shortcut keys (Copy/Paste, Zoom, DevTools)
+const template = [
+  {
+    label: 'File',
+    submenu: [
+      { role: 'quit' }
+    ]
+  },
+  {
+    label: 'Edit',
+    submenu: [
+      { role: 'undo' },
+      { role: 'redo' },
+      { type: 'separator' },
+      { role: 'cut' },
+      { role: 'copy' },
+      { role: 'paste' },
+      { role: 'selectAll' }
+    ]
+  },
+  {
+    label: 'View',
+    submenu: [
+      { role: 'reload' },
+      { role: 'forceReload' },
+      { role: 'toggleDevTools' },
+      { type: 'separator' },
+      { role: 'resetZoom' },
+      { role: 'zoomIn' },
+      { role: 'zoomOut' },
+      { type: 'separator' },
+      { role: 'togglefullscreen' }
+    ]
+  }
+];
+
+const menu = Menu.buildFromTemplate(template);
+Menu.setApplicationMenu(menu);
+
+// Local file save handler
+ipcMain.handle('save-file-dialog', async (event, dataUrl, defaultName) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  const { filePath } = await dialog.showSaveDialog(win, {
+    defaultPath: defaultName || 'drawing.png',
+    filters: [
+      { name: 'PNG Image', extensions: ['png'] },
+      { name: 'JPEG Image', extensions: ['jpg', 'jpeg'] },
+      { name: 'All Files', extensions: ['*'] }
+    ]
+  });
+
+  if (filePath) {
+    try {
+      const base64Data = dataUrl.replace(/^data:image\/\w+;base64,/, "");
+      const buffer = Buffer.from(base64Data, 'base64');
+      fs.writeFileSync(filePath, buffer);
+      return { success: true, filePath };
+    } catch (err) {
+      console.error('Failed to save file:', err);
+      return { success: false, error: err.message };
+    }
+  }
+  return { success: false };
+});
+
+// System info handler
+ipcMain.handle('get-system-info', () => {
+  return {
+    platform: process.platform,
+    arch: process.arch,
+    version: app.getVersion()
+  };
+});
+

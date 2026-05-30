@@ -50,11 +50,33 @@ async function saveViaFilePicker(blob: Blob, fileName: string): Promise<boolean>
     }
 }
 
+function blobToDataUrl(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+}
+
 export async function saveAs(
     blob: Blob,
     fileName: string,
     showDialog: boolean = false,
 ): Promise<void> {
+    if ((window as any).electronAPI && (window as any).electronAPI.saveFile) {
+        try {
+            const dataUrl = await blobToDataUrl(blob);
+            const res = await (window as any).electronAPI.saveFile(dataUrl, fileName);
+            if (res && res.success) {
+                console.log('Saved successfully to:', res.filePath);
+            }
+        } catch (err) {
+            console.error('Electron save failed:', err);
+        }
+        return;
+    }
+
     if (showDialog && (await saveViaFilePicker(blob, fileName))) {
         return;
     }
