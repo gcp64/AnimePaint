@@ -213,6 +213,118 @@ export class SettingsUi {
             );
         });
 
+        // ---- About & Contributions Section ----
+        const aboutCard = BB.el({
+            className: 'kl-toolspace-note',
+            css: {
+                marginTop: '20px',
+                padding: '12px',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '8px',
+                background: 'rgba(255, 255, 255, 0.02)',
+                lineHeight: '1.4',
+                fontSize: '11px',
+                fontFamily: 'Cairo, Outfit, sans-serif',
+            }
+        });
+
+        const aboutTitle = BB.el({
+            content: 'عن التطبيق | ABOUT ANIMEPAINT',
+            css: {
+                fontWeight: '700',
+                fontSize: '12px',
+                color: '#ff007f', // Neon Magenta
+                marginBottom: '8px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+            }
+        });
+
+        const aboutDesc = BB.el({
+            content: 'منصة احترافية متطورة للرسم الرقمي وتعديل الصور، مجهزة بنواة معالجة فائقة ومحرك رسوم تفاعلية وحركات ميكروية سينمائية تضمن كفاءة تشغيل استثنائية وسرعة استجابة فائقة على جميع الأجهزة.',
+            css: {
+                color: '#cbd5e1',
+                marginBottom: '10px',
+            }
+        });
+
+        const techTitle = BB.el({
+            content: 'التقنيات وبنية النظام:',
+            css: {
+                fontWeight: '700',
+                color: '#00f0ff', // Neon Cyan
+                marginBottom: '4px',
+            }
+        });
+
+        const techList = BB.el({
+            tagName: 'ul',
+            css: {
+                margin: '0 0 10px 0',
+                paddingLeft: '15px',
+                listStyleType: 'square',
+                color: '#cbd5e1',
+            }
+        });
+
+        const techItems = [
+            'محرك الحركات التفاعلية: Anime.js v4 (Premium Motion Engine)',
+            'بيئة التطوير والتشغيل: Electron Core مع حزم ومجمع Parcel Bundler المتطور',
+            'تسريع الأداء والمعالجة: رسوم مدعومة بالكامل بواسطة بطاقة الشاشة (GPU Accelerated)',
+            'أنظمة معالجة البكسل: خوارزميات Bilinear و Nearest Neighbor لتعديل وتكبير وتصغير اللوحات بدقة',
+            'دعم ملفات التصميم: مكتبة Ag-PSD المدمجة لقراءة وحفظ ملفات الفوتوشوب بطبقاتها الكاملة'
+        ];
+
+        techItems.forEach(text => {
+            const li = BB.el({
+                tagName: 'li',
+                content: text,
+                css: {
+                    marginBottom: '3px',
+                }
+            });
+            techList.append(li);
+        });
+
+        const contribTitle = BB.el({
+            content: 'المساهمات والائتمان:',
+            css: {
+                fontWeight: '700',
+                color: '#00f0ff',
+                marginBottom: '4px',
+            }
+        });
+
+        const contribList = BB.el({
+            tagName: 'ul',
+            css: {
+                margin: '0',
+                paddingLeft: '15px',
+                listStyleType: 'square',
+                color: '#cbd5e1',
+            }
+        });
+
+        const contribItems = [
+            'التطوير البرمجي ونظام الحركات الميكروية وتثبيت المكتبات الحديثة: Mr.bob (Mustafa Muthanaa)',
+            'التعريب الشامل للواجهات وتكييف أنماط وتنسيقات الخطوط: فريق التعريب والمساهمون في التطوير',
+            'النواة البرمجية للمشروع: مستوحاة من محرك الرسم المفتوح المصدر Klecks، مع تحسينات هيكلية وبصرية فائقة'
+        ];
+
+        contribItems.forEach(text => {
+            const li = BB.el({
+                tagName: 'li',
+                content: text,
+                css: {
+                    marginBottom: '3px',
+                }
+            });
+            contribList.append(li);
+        });
+
+        aboutCard.append(aboutTitle, aboutDesc, techTitle, techList, contribTitle, contribList);
+        this.rootEl.append(aboutCard);
+
         // ---- Updates / Changelog Section ----
         const changelogCard = BB.el({
             className: 'kl-toolspace-note',
@@ -229,7 +341,7 @@ export class SettingsUi {
         });
 
         const changelogTitle = BB.el({
-            content: 'سجل التحديثات | MARIA CORE v1.0',
+            content: 'سجل التحديثات | MARIA CORE v1.1.0',
             css: {
                 fontWeight: '700',
                 fontSize: '12px',
@@ -252,10 +364,10 @@ export class SettingsUi {
 
         const updates = [
             'دمج محرك الرسوم العالمي Anime.js لإضافة حركات بصرية مرنة ارتدادية للنوافذ وأدلة التعليمات',
-            'إضافة تأثير النبض الليزري عند الضغط واختيار الأدوات لتأكيد التفعيل بصرياً للمستخدم',
+            'إضافة تأثير النبض الليزري عند الضغط واختيار الأدوات لتأكيد التفعيل بصريا للمستخدم',
             'حقن تأثيرات تكبير ميكروية ناعمة وتوهج نيون سيان وفوشي عند حط المؤشر على الأزرار والأيقونات',
             'تحسين حركة الدخول المتتابعة للألواح واللوحة الجانبية ومساحة الرسم لتنزلق بمرونة فائقة',
-            'حقن حركة تبويب سلسة وتلاشٍ ناعم للقوائم الجانبية عند التنقل بين الخيارات',
+            'حقن حركة تبويب سلسة وتلاش ناعم للقوائم الجانبية عند التنقل بين الخيارات',
             'تسريع الأداء بالاعتماد الكلي على المعالجة الرسومية للكرت وعزل حركات الصندوق لمنع بطء الإطارات',
             'تحقيق ضغط فائق للملفات البرمجية لتصغير حجم التطبيق النهائي إلى 52.80 ميجابايت وحفظ كفاءة التشغيل'
         ];
