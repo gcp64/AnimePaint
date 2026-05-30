@@ -123,8 +123,10 @@ export function textToolDialog(p: {
     tabs.getElement().classList.add(classes.tab);
     rootEl.append(
         c('', [
-            c(viewportWrapper, [viewportUI.getElement()]),
-            c('.' + classes.viewportInputs, [viewportUI.getInputsElement()]),
+            c(viewportWrapper, [
+                viewportUI.getElement(),
+                c('.' + classes.viewportInputs, [viewportUI.getInputsElement()]),
+            ]),
             c('.tabrow.' + classes.tabWrapper, [c(',w-240,h-40'), tabs.getElement()]),
 
             c('.' + classes.inputs, [
