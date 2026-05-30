@@ -16,7 +16,7 @@
   "scripts": {
     "start": "parcel serve src/index.html --no-cache",
     "electron": "electron .",
-    "build": "parcel build src/index.html --public-url . --no-cache",
+    "build": "parcel build src/index.html --public-url . --no-cache --no-source-maps",
     "build:embed": "parcel build src/embed.ts",
     "build:help": "parcel build src/help.html --public-url .",
     "lang:add": "node src/languages/generate.js add",

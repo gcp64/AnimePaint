@@ -45,6 +45,20 @@ execSync('npm run lang:build', { stdio: 'inherit' });
 console.log('Building frontend production bundle via Parcel...');
 execSync('npm run build', { stdio: 'inherit' });
 
+// Prune source maps (*.map) in dist folder before packaging to save space inside ASAR
+console.log('Pruning source maps (*.map) in dist directory...');
+if (fs.existsSync(distDir)) {
+    const files = fs.readdirSync(distDir);
+    let deletedCount = 0;
+    files.forEach(file => {
+        if (file.endsWith('.map')) {
+            fs.unlinkSync(path.join(distDir, file));
+            deletedCount++;
+        }
+    });
+    console.log(`Deleted ${deletedCount} source map files from dist.`);
+}
+
 // 4. Run electron-packager with ASAR enabled to optimize file sizes and structure
 console.log('Packaging application with electron-packager (ASAR enabled)...');
 const ignorePattern = '/(\\.git|\\.github|\\.npm-cache|\\.electron-cache|\\.parcel-cache|node_modules|dist-app|src|examples|build_pack\\.js|task\\.md|implementation_plan\\.md|walkthrough\\.md|Dockerfile|docker-compose\\.yml|\\.dockerignore|\\.gitattributes|\\.gitignore|\\.npmrc|make_ico\\.py|app\\.ico|app_logo\\.jpg|upx\\.exe)($|/)';
