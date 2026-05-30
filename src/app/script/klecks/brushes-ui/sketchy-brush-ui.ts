@@ -105,11 +105,89 @@ export const sketchyBrushUi = (function () {
             opacitySlider.getElement().style.marginTop = '10px';
             blendSlider.getElement().style.marginTop = '10px';
             scaleSlider.getElement().style.marginTop = '10px';
+
+            const presetsHeader = BB.el({
+                content: 'نماذج الفرشاة الجاهزة',
+                css: {
+                    marginTop: '20px',
+                    marginBottom: '10px',
+                    fontWeight: 'bold',
+                    fontSize: '12px',
+                    borderBottom: '1px solid #333',
+                    paddingBottom: '5px',
+                    color: '#999',
+                }
+            });
+
+            const presetsGrid = BB.el({
+                css: {
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: '8px',
+                }
+            });
+
+            const presets = [
+                { name: 'مسودة خفيفة', size: 1, opacity: 0.2, blending: 0.5, scale: 1 },
+                { name: 'خربشة داكنة', size: 2.5, opacity: 0.4, blending: 0.3, scale: 2 },
+                { name: 'تظليل متقاطع', size: 1.5, opacity: 0.15, blending: 0.7, scale: 5 },
+                { name: 'مسودة عريضة', size: 4, opacity: 0.3, blending: 0.4, scale: 8 },
+                { name: 'شبكة كثيفة', size: 1, opacity: 0.2, blending: 0.9, scale: 12 },
+                { name: 'إعادة الضبط', size: 1, opacity: 0.2, blending: 0.5, scale: 1 }
+            ];
+
+            presets.forEach((preset) => {
+                const isReset = preset.name === 'إعادة الضبط';
+                const btn = BB.el({
+                    tagName: 'button',
+                    content: preset.name,
+                    css: {
+                        padding: '6px 8px',
+                        fontSize: '11px',
+                        backgroundColor: isReset ? '#2a2222' : '#141419',
+                        color: isReset ? '#ff8888' : '#ddd',
+                        border: isReset ? '1px solid #4f3333' : '1px solid #2a2a35',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                    }
+                });
+
+                btn.onmouseover = () => {
+                    btn.style.borderColor = '#00e5ff';
+                    btn.style.backgroundColor = isReset ? '#3a2d2d' : '#22222d';
+                };
+                btn.onmouseout = () => {
+                    btn.style.borderColor = isReset ? '#4f3333' : '#2a2a35';
+                    btn.style.backgroundColor = isReset ? '#2a2222' : '#141419';
+                };
+
+                btn.onclick = () => {
+                    brush.setSize(preset.size);
+                    sizeSlider.setValue(preset.size);
+                    p.onSizeChange(preset.size);
+
+                    brush.setOpacity(preset.opacity);
+                    opacitySlider.setValue(preset.opacity);
+                    p.onOpacityChange(preset.opacity);
+
+                    brush.setBlending(preset.blending);
+                    blendSlider.setValue(preset.blending);
+
+                    brush.setScale(preset.scale);
+                    scaleSlider.setValue(preset.scale);
+                };
+
+                presetsGrid.append(btn);
+            });
+
             div.append(
                 sizeSlider.getElement(),
                 opacitySlider.getElement(),
                 blendSlider.getElement(),
                 scaleSlider.getElement(),
+                presetsHeader,
+                presetsGrid
             );
         }
 

@@ -145,6 +145,83 @@ export const pixelBrushUi = (function () {
                 eraserToggle.getElement(),
                 ditherToggle.getElement(),
             );
+
+            const presetsHeader = BB.el({
+                content: 'نماذج البكسل الجاهزة',
+                css: {
+                    marginTop: '20px',
+                    marginBottom: '10px',
+                    fontWeight: 'bold',
+                    fontSize: '12px',
+                    borderBottom: '1px solid #333',
+                    paddingBottom: '5px',
+                    color: '#999',
+                }
+            });
+
+            const presetsGrid = BB.el({
+                css: {
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: '8px',
+                }
+            });
+
+            const presets = [
+                { name: 'بكسل دقيق', size: 0.5, opacity: 1.0, dither: false, eraser: false },
+                { name: 'بكسل عريض', size: 4.0, opacity: 1.0, dither: false, eraser: false },
+                { name: 'تنقيط متدرج', size: 10.0, opacity: 0.8, dither: true, eraser: false },
+                { name: 'ممحاة بكسل', size: 2.0, opacity: 1.0, dither: false, eraser: true },
+                { name: 'مظلل خفيف', size: 15.0, opacity: 0.3, dither: true, eraser: false },
+                { name: 'إعادة الضبط', size: 0.5, opacity: 1.0, dither: false, eraser: false }
+            ];
+
+            presets.forEach((preset) => {
+                const isReset = preset.name === 'إعادة الضبط';
+                const btn = BB.el({
+                    tagName: 'button',
+                    content: preset.name,
+                    css: {
+                        padding: '6px 8px',
+                        fontSize: '11px',
+                        backgroundColor: isReset ? '#2a2222' : '#141419',
+                        color: isReset ? '#ff8888' : '#ddd',
+                        border: isReset ? '1px solid #4f3333' : '1px solid #2a2a35',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                    }
+                });
+
+                btn.onmouseover = () => {
+                    btn.style.borderColor = '#00e5ff';
+                    btn.style.backgroundColor = isReset ? '#3a2d2d' : '#22222d';
+                };
+                btn.onmouseout = () => {
+                    btn.style.borderColor = isReset ? '#4f3333' : '#2a2a35';
+                    btn.style.backgroundColor = isReset ? '#2a2222' : '#141419';
+                };
+
+                btn.onclick = () => {
+                    setSize(preset.size);
+                    sizeSlider.setValue(preset.size * 2);
+                    p.onSizeChange(preset.size);
+
+                    brush.setOpacity(preset.opacity);
+                    opacitySlider.setValue(preset.opacity * 100);
+                    p.onOpacityChange(preset.opacity);
+
+                    brush.setUseDither(preset.dither);
+                    ditherToggle.setValue(preset.dither);
+
+                    brush.setIsEraser(preset.eraser);
+                    eraserToggle.setValue(preset.eraser);
+                };
+
+                presetsGrid.append(btn);
+            });
+
+            div.append(presetsHeader, presetsGrid);
         }
 
         init();

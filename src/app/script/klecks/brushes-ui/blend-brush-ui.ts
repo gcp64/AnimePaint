@@ -133,6 +133,80 @@ export const blendBrushUi = (function () {
                 blendingSlider.getElement(),
                 lockAlphaToggle.getElement(),
             );
+
+            const presetsHeader = BB.el({
+                content: 'نماذج الدمج الجاهزة',
+                css: {
+                    marginTop: '20px',
+                    marginBottom: '10px',
+                    fontWeight: 'bold',
+                    fontSize: '12px',
+                    borderBottom: '1px solid #333',
+                    paddingBottom: '5px',
+                    color: '#999',
+                }
+            });
+
+            const presetsGrid = BB.el({
+                css: {
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: '8px',
+                }
+            });
+
+            const presets = [
+                { name: 'دمج ناعم', size: 50, opacity: 0.6, blending: 0.7 },
+                { name: 'دمج قوي', size: 30, opacity: 0.8, blending: 0.95 },
+                { name: 'تأثير مائي', size: 40, opacity: 0.4, blending: 0.5 },
+                { name: 'تنعيم الحواف', size: 15, opacity: 0.5, blending: 0.8 },
+                { name: 'مزج خفيف', size: 60, opacity: 0.25, blending: 0.4 },
+                { name: 'إعادة الضبط', size: 29, opacity: 0.6, blending: 0.7 }
+            ];
+
+            presets.forEach((preset) => {
+                const isReset = preset.name === 'إعادة الضبط';
+                const btn = BB.el({
+                    tagName: 'button',
+                    content: preset.name,
+                    css: {
+                        padding: '6px 8px',
+                        fontSize: '11px',
+                        backgroundColor: isReset ? '#2a2222' : '#141419',
+                        color: isReset ? '#ff8888' : '#ddd',
+                        border: isReset ? '1px solid #4f3333' : '1px solid #2a2a35',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                    }
+                });
+
+                btn.onmouseover = () => {
+                    btn.style.borderColor = '#00e5ff';
+                    btn.style.backgroundColor = isReset ? '#3a2d2d' : '#22222d';
+                };
+                btn.onmouseout = () => {
+                    btn.style.borderColor = isReset ? '#4f3333' : '#2a2a35';
+                    btn.style.backgroundColor = isReset ? '#2a2222' : '#141419';
+                };
+
+                btn.onclick = () => {
+                    setSize(preset.size);
+                    sizeSlider.setValue(preset.size);
+                    p.onSizeChange(preset.size);
+
+                    brush.setOpacity(preset.opacity);
+                    opacitySlider.setValue(preset.opacity * 100);
+                    p.onOpacityChange(preset.opacity);
+
+                    brush.setBlending(preset.blending);
+                    blendingSlider.setValue(preset.blending * 100);
+                };
+
+                presetsGrid.append(btn);
+            });
+
+            div.append(presetsHeader, presetsGrid);
         }
 
         init();
