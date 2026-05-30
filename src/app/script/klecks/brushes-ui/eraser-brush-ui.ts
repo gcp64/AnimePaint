@@ -123,6 +123,47 @@ export const eraserBrushUi = (function () {
                 name: 'transparency-toggle',
             });
             div.append(transparencyToggle.getElement());
+
+            const presetsHeader = BB.el({
+                content: 'نماذج الممحاة الجاهزة',
+                className: 'kl-presets-header',
+            });
+
+            const presetsGrid = BB.el({
+                className: 'kl-presets-grid',
+            });
+
+            const presets = [
+                { name: 'ممحاة ناعمة', size: 15, opacity: 0.5 },
+                { name: 'ممحاة حادة', size: 5, opacity: 1.0 },
+                { name: 'ممحاة كبيرة', size: 80, opacity: 1.0 },
+                { name: 'مسح خفيف', size: 40, opacity: 0.2 },
+                { name: 'تفريغ واسع', size: 100, opacity: 0.7 },
+                { name: 'إعادة الضبط', size: 30, opacity: 1.0 }
+            ];
+
+            presets.forEach((preset) => {
+                const isReset = preset.name === 'إعادة الضبط';
+                const btn = BB.el({
+                    tagName: 'button',
+                    content: preset.name,
+                    className: 'kl-preset-btn' + (isReset ? ' kl-preset-btn--reset' : ''),
+                });
+
+                btn.onclick = () => {
+                    setSize(preset.size);
+                    sizeSlider.setValue(preset.size);
+                    p.onSizeChange(preset.size);
+
+                    brush.setOpacity(preset.opacity);
+                    opacitySlider.setValue(preset.opacity);
+                    p.onOpacityChange(preset.opacity);
+                };
+
+                presetsGrid.append(btn);
+            });
+
+            div.append(presetsHeader, presetsGrid);
         }
 
         init();

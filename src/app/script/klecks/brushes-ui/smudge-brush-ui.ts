@@ -145,6 +145,47 @@ export const smudgeBrushUi = (function () {
                 },
             });
             bottomRow.append(lockAlphaToggle.getElement());
+
+            const presetsHeader = BB.el({
+                content: 'نماذج التمويه الجاهزة',
+                className: 'kl-presets-header',
+            });
+
+            const presetsGrid = BB.el({
+                className: 'kl-presets-grid',
+            });
+
+            const presets = [
+                { name: 'تمويه خفيف', size: 20, opacity: 0.3 },
+                { name: 'مزج قوي', size: 40, opacity: 0.8 },
+                { name: 'تنعيم البشرة', size: 30, opacity: 0.5 },
+                { name: 'دمج ناعم', size: 60, opacity: 0.2 },
+                { name: 'تمويه دقيق', size: 8, opacity: 0.6 },
+                { name: 'إعادة الضبط', size: 14, opacity: 0.5 }
+            ];
+
+            presets.forEach((preset) => {
+                const isReset = preset.name === 'إعادة الضبط';
+                const btn = BB.el({
+                    tagName: 'button',
+                    content: preset.name,
+                    className: 'kl-preset-btn' + (isReset ? ' kl-preset-btn--reset' : ''),
+                });
+
+                btn.onclick = () => {
+                    setSize(preset.size);
+                    sizeSlider.setValue(preset.size);
+                    p.onSizeChange(preset.size);
+
+                    brush.setOpacity(preset.opacity);
+                    opacitySlider.setValue(preset.opacity);
+                    p.onOpacityChange(preset.opacity);
+                };
+
+                presetsGrid.append(btn);
+            });
+
+            div.append(presetsHeader, presetsGrid);
         }
 
         init();
