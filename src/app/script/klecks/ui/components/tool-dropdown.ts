@@ -11,6 +11,7 @@ import { TToolType } from '../../kl-types';
 import { PointerListener } from '../../../bb/input/pointer-listener';
 import { c } from '../../../bb/base/c';
 import { css } from '../../../bb/base/base';
+import { createLaserPulse } from './laser-pulse';
 
 type TDropdownButton = {
     wrapper: HTMLElement;
@@ -364,6 +365,7 @@ export class ToolDropdown {
             }
             this.activeButton.classList.add('toolspace-row-button-activated');
             this.updateButton();
+            createLaserPulse(this.activeButton);
         } else {
             this.isActive = false;
             this.activeButton.classList.remove('toolspace-row-button-activated');

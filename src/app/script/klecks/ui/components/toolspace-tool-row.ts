@@ -8,6 +8,7 @@ import { LANG } from '../../../language/language';
 import { PointerListener } from '../../../bb/input/pointer-listener';
 import { TToolType } from '../../kl-types';
 import { css } from '../../../bb/base/base';
+import { createLaserPulse } from './laser-pulse';
 
 type TBaseToolRowButton = {
     el: HTMLElement;
@@ -478,6 +479,10 @@ export class ToolspaceToolRow {
             'toolspace-row-button-activated',
             this.currentActiveStr === 'hand',
         );
+
+        if (this.currentActiveStr === 'hand') {
+            createLaserPulse(this.handButton.el);
+        }
 
         if (doEmit) {
             this.onActivate(this.currentActiveStr);

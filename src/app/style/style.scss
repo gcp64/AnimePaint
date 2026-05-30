@@ -152,17 +152,21 @@ a:not([href]):hover {
 }
 
 .toolspace-row-button-hover {
-    background: rgba(255, 255, 255, 0.7);
+    transform: scale(1.08) !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 0 12px rgba(0, 240, 255, 0.75), 0 0 20px rgba(255, 0, 127, 0.5) !important;
+    border-color: rgba(0, 240, 255, 0.6) !important;
 }
 
 .toolspace-row-button:active,
 .toolspace-triangle-button:active {
-    background-color: #ddd;
+    background-color: rgba(255, 255, 255, 0.25);
     box-shadow: inset 2px 2px 10px rgba(0, 0, 0, 0.2) !important;
 }
 
 .toolspace-svg-triangle-button-hover {
-    fill: rgba(255, 255, 255, 0.7);
+    fill: rgba(0, 240, 255, 0.25) !important;
+    filter: drop-shadow(0 0 5px rgba(0, 240, 255, 0.65)) drop-shadow(0 0 10px rgba(255, 0, 127, 0.4)) !important;
 }
 
 .toolspace-svg-triangle-button:active {
@@ -1416,10 +1420,19 @@ body.is-electron {
 }
 
 /* Touch & Hover dynamic neon lighting for SVG icons */
-svg, img, .toolspace-row-button, .kl-button, .kl-option {
-    transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1) !important;
+svg, img {
+    transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1) !important;
+}
+
+.toolspace-row-button, .tool-dropdown-button, .kl-tooldropdown-caret, .kl-button, .kl-option, .kl-tool-button--hover {
+    transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease !important;
     
-    &:hover, &:active {
+    &:hover, &:active, &.kl-tool-button--hover {
+        transform: scale(1.08) !important;
+        background-color: rgba(255, 255, 255, 0.12) !important;
+        box-shadow: 0 0 12px rgba(0, 240, 255, 0.75), 0 0 20px rgba(255, 0, 127, 0.5) !important;
+        border-color: rgba(0, 240, 255, 0.6) !important;
+        
         svg, img {
             filter: drop-shadow(0 0 5px rgba(0, 240, 255, 0.65)) drop-shadow(0 0 10px rgba(255, 0, 127, 0.4)) !important;
         }
@@ -1427,6 +1440,17 @@ svg, img, .toolspace-row-button, .kl-button, .kl-option {
 }
 
 /* Floating Watermark OS Branding */
+@keyframes watermarkBreathe {
+    0%, 100% {
+        opacity: 0.18 !important;
+        text-shadow: 0 0 4px rgba(0, 240, 255, 0.1), 0 0 10px rgba(255, 0, 127, 0.05) !important;
+    }
+    50% {
+        opacity: 0.35 !important;
+        text-shadow: 0 0 15px rgba(0, 240, 255, 0.5), 0 0 25px rgba(255, 0, 127, 0.3) !important;
+    }
+}
+
 .maria-watermark {
     position: absolute !important;
     bottom: 24px !important;
@@ -1436,12 +1460,17 @@ svg, img, .toolspace-row-button, .kl-button, .kl-option {
     font-weight: 700 !important;
     letter-spacing: 0.18em !important;
     color: #ffffff !important;
-    opacity: 0.25 !important;
     z-index: 0 !important;
     pointer-events: none !important;
     user-select: none !important;
     text-transform: uppercase !important;
-    text-shadow: 0 0 8px rgba(0, 240, 255, 0.2) !important;
+    animation: watermarkBreathe 8s ease-in-out infinite !important;
+}
+
+/* Premium tab panel container styles */
+.maria-tab-panel {
+    will-change: transform, opacity !important;
+    backface-visibility: hidden !important;
 }
 
 /* --- Maria Premium Onboarding Styles --- */

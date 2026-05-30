@@ -1,6 +1,6 @@
 import { animate, stagger } from 'animejs';
 
-export function initOnboarding(parentEl: HTMLElement): void {
+export function initOnboarding(parentEl: HTMLElement, onComplete?: () => void): void {
     let completed = false;
     try {
         completed = localStorage.getItem('maria_core_onboarding_completed_v4') === 'true';
@@ -9,6 +9,7 @@ export function initOnboarding(parentEl: HTMLElement): void {
     }
     
     if (completed) {
+        if (onComplete) onComplete();
         return;
     }
     
@@ -118,6 +119,7 @@ export function initOnboarding(parentEl: HTMLElement): void {
             ease: 'linear',
             onComplete: () => {
                 overlay.remove();
+                if (onComplete) onComplete();
             },
         });
     };

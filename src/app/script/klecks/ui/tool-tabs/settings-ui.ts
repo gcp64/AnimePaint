@@ -212,6 +212,67 @@ export class SettingsUi {
                 ),
             );
         });
+
+        // ---- Updates / Changelog Section ----
+        const changelogCard = BB.el({
+            className: 'kl-toolspace-note',
+            css: {
+                marginTop: '20px',
+                padding: '12px',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '8px',
+                background: 'rgba(255, 255, 255, 0.02)',
+                lineHeight: '1.4',
+                fontSize: '11px',
+                fontFamily: 'Cairo, Outfit, sans-serif',
+            }
+        });
+
+        const changelogTitle = BB.el({
+            content: 'سجل التحديثات | MARIA CORE v1.0',
+            css: {
+                fontWeight: '700',
+                fontSize: '12px',
+                color: '#00f0ff',
+                marginBottom: '8px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+            }
+        });
+
+        const changelogList = BB.el({
+            tagName: 'ul',
+            css: {
+                margin: '0',
+                paddingLeft: '15px',
+                listStyleType: 'square',
+                color: '#cbd5e1',
+            }
+        });
+
+        const updates = [
+            'دمج محرك الرسوم العالمي Anime.js لإضافة حركات بصرية مرنة ارتدادية للنوافذ وأدلة التعليمات',
+            'إضافة تأثير النبض الليزري عند الضغط واختيار الأدوات لتأكيد التفعيل بصرياً للمستخدم',
+            'حقن تأثيرات تكبير ميكروية ناعمة وتوهج نيون سيان وفوشي عند حط المؤشر على الأزرار والأيقونات',
+            'تحسين حركة الدخول المتتابعة للألواح واللوحة الجانبية ومساحة الرسم لتنزلق بمرونة فائقة',
+            'حقن حركة تبويب سلسة وتلاشٍ ناعم للقوائم الجانبية عند التنقل بين الخيارات',
+            'تسريع الأداء بالاعتماد الكلي على المعالجة الرسومية للكرت وعزل حركات الصندوق لمنع بطء الإطارات',
+            'تحقيق ضغط فائق للملفات البرمجية لتصغير حجم التطبيق النهائي إلى 52.80 ميجابايت وحفظ كفاءة التشغيل'
+        ];
+
+        updates.forEach(text => {
+            const li = BB.el({
+                tagName: 'li',
+                content: text,
+                css: {
+                    marginBottom: '5px',
+                }
+            });
+            changelogList.append(li);
+        });
+
+        changelogCard.append(changelogTitle, changelogList);
+        this.rootEl.append(changelogCard);
     }
 
     getElement(): HTMLElement {

@@ -31,6 +31,7 @@ import { ToolspaceScroller } from '../klecks/ui/components/toolspace-scroller';
 import { translateSmoothing } from '../klecks/utils/translate-smoothing';
 import { KlAppImportHandler } from './kl-app-import-handler';
 import { initOnboarding } from './onboarding';
+import { animate, stagger } from 'animejs';
 import toolPaintImg from 'url:/src/app/img/ui/tool-paint.svg';
 import toolHandImg from 'url:/src/app/img/ui/tool-hand.svg';
 import toolFillImg from 'url:/src/app/img/ui/tool-fill.svg';
@@ -2152,6 +2153,56 @@ export class KlApp {
             this.bottomBarWrapper ? this.bottomBarWrapper : undefined,
         ]);
 
+        // Animate tab panels on display change (Maria Premium Motions)
+        const tabPanels = [
+            brushDiv,
+            handUi.getElement(),
+            fillUi.getElement(),
+            gradientUi.getElement(),
+            textUi.getElement(),
+            shapeUi.getElement(),
+            klAppSelect.getSelectUi().getElement(),
+            this.layersUi.getElement(),
+            editUi.getElement(),
+            fileUi ? fileUi.getElement() : null,
+            settingsUi.getElement(),
+        ].filter(Boolean) as HTMLElement[];
+
+        tabPanels.forEach(panel => {
+            panel.classList.add('maria-tab-panel');
+        });
+
+        const panelObserver = new MutationObserver((mutations) => {
+            mutations.forEach(mutation => {
+                if (mutation.attributeName === 'style' || mutation.attributeName === 'class') {
+                    const target = mutation.target as HTMLElement;
+                    const isVisible = window.getComputedStyle(target).display !== 'none';
+                    const wasVisible = target.getAttribute('data-maria-visible') === 'true';
+
+                    if (isVisible && !wasVisible) {
+                        target.setAttribute('data-maria-visible', 'true');
+                        target.style.opacity = '0';
+                        target.style.transform = 'translateY(12px)';
+                        
+                        animate(target, {
+                            opacity: [0, 1],
+                            translateY: [12, 0],
+                            duration: 300,
+                            ease: 'outCubic',
+                        });
+                    } else if (!isVisible && wasVisible) {
+                        target.setAttribute('data-maria-visible', 'false');
+                    }
+                }
+            });
+        });
+
+        tabPanels.forEach(panel => {
+            const isVisible = window.getComputedStyle(panel).display !== 'none';
+            panel.setAttribute('data-maria-visible', isVisible ? 'true' : 'false');
+            panelObserver.observe(panel, { attributes: true, attributeFilter: ['style', 'class'] });
+        });
+
         this.toolspaceScroller = new KL.ToolspaceScroller({
             toolspace: this.toolspace,
             uiState: this.uiLayout,
@@ -2299,12 +2350,75 @@ export class KlApp {
             });
         }
         this.saveReminder?.init();
+
+        // Hide panels initially to prevent jar/flash before entry animation
+        const titlebarEl = document.querySelector('.anime-paint-titlebar');
+        if (titlebarEl) {
+            (titlebarEl as HTMLElement).style.transform = 'translateY(-50px)';
+            (titlebarEl as HTMLElement).style.opacity = '0';
+        }
+        if (this.toolspace) {
+            const isLeft = this.toolspace.classList.contains('kl-toolspace--left');
+            this.toolspace.style.transform = `translateX(${isLeft ? -350 : 350}px)`;
+            this.toolspace.style.opacity = '0';
+        }
+        const watermarkEl = document.querySelector('.maria-watermark');
+        if (watermarkEl) {
+            (watermarkEl as HTMLElement).style.transform = 'translateY(30px)';
+            (watermarkEl as HTMLElement).style.opacity = '0';
+        }
+        const easelEl = this.easel.getElement();
+        if (easelEl) {
+            easelEl.style.transform = 'scale(0.98)';
+            easelEl.style.opacity = '0';
+        }
+
         setTimeout(() => {
-            initOnboarding(document.body);
+            initOnboarding(document.body, () => {
+                this.triggerPanelEntryAnimation();
+            });
         }, 100);
     }
 
     // -------- interface --------
+
+    triggerPanelEntryAnimation(): void {
+        const titlebar = document.querySelector('.anime-paint-titlebar');
+        const toolspace = this.toolspace;
+        const watermark = document.querySelector('.maria-watermark');
+        const easel = this.easel.getElement();
+        
+        const targets: HTMLElement[] = [];
+        if (titlebar) targets.push(titlebar as HTMLElement);
+        if (toolspace) targets.push(toolspace);
+        if (watermark) targets.push(watermark as HTMLElement);
+        if (easel) targets.push(easel);
+
+        if (targets.length === 0) return;
+
+        animate(targets, {
+            translateY: (el) => {
+                if (el === titlebar) return [-50, 0];
+                if (el === watermark) return [30, 0];
+                return 0;
+            },
+            translateX: (el) => {
+                if (el === toolspace) {
+                    const isLeft = el.classList.contains('kl-toolspace--left');
+                    return [isLeft ? -350 : 350, 0];
+                }
+                return 0;
+            },
+            scale: (el) => {
+                if (el === easel) return [0.98, 1];
+                return 1;
+            },
+            opacity: [0, 1],
+            duration: 800,
+            ease: 'outElastic(1, 0.6)',
+            delay: stagger(40), // 40ms stagger offset!
+        });
+    }
 
     getElement(): HTMLElement {
         return this.rootEl;
