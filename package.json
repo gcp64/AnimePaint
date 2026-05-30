@@ -28,6 +28,7 @@
     "@parcel/transformer-sass": "2.16.4",
     "@swc/helpers": "^0.5.23",
     "ag-psd": "28.3.1",
+    "animejs": "^4.4.1",
     "buffer": "6.0.3",
     "js-beautify": "1.15.4",
     "json5": "2.2.3",
@@ -37,6 +38,7 @@
     "transformation-matrix": "3.1.0"
   },
   "devDependencies": {
+    "@types/animejs": "^3.1.13",
     "electron": "^19.0.0",
     "electron-packager": "^17.1.2"
   }

@@ -2,6 +2,7 @@ import { TKeyString } from '../../../../bb/bb-types';
 import { DIALOG_COUNTER } from '../modal-count';
 import { BB } from '../../../../bb/bb';
 import { LANG } from '../../../../language/language';
+import { animate } from 'animejs';
 import './scroll-fix';
 import cancelImg from 'url:/src/app/img/ui/cancel.svg';
 import checkImg from 'url:/src/app/img/ui/check.svg';
@@ -142,6 +143,34 @@ export function showModal(p: {
         }),
     );
 
+    // Entrance Animations using animejs for smooth, elastic scale and fade
+    const isDark = document.documentElement.classList.contains('kl-theme-dark');
+    const targetBg = isDark ? 'rgba(6, 6, 10, 0.65)' : 'rgba(50, 50, 50, 0.5)';
+    
+    // Set initial transparent states
+    BB.css(boxEl, {
+        opacity: '0',
+        transform: 'translateY(25px) scale(0.85)',
+        transformOrigin: 'center center',
+    });
+    BB.css(rootEl, {
+        backgroundColor: 'rgba(0, 0, 0, 0)',
+    });
+
+    animate(boxEl, {
+        scale: [0.85, 1],
+        opacity: [0, 1],
+        translateY: [25, 0],
+        duration: 450,
+        ease: 'outElastic(1, .85)',
+    });
+
+    animate(rootEl, {
+        backgroundColor: targetBg,
+        duration: 300,
+        ease: 'outQuad',
+    });
+
     const keyListener = new BB.KeyListener({
         onDown: function (keyStr, e, comboStr): void {
             if (isClosed) {
@@ -266,20 +295,37 @@ export function showModal(p: {
         isClosed = true;
         BB.clearSelection();
         BB.unfocusAnyInput();
-        rootRootEl.remove();
-        DIALOG_COUNTER.decrease();
-        BB.destroyEl(xButton);
-        BB.destroyEl(bgEl);
-        keyListener.destroy();
-        rootEl.removeEventListener('wheel', wheelPrevent);
-        // (disabled) eslint-disable-next-line no-null/no-null
-        rootEl.onclick = null;
-        btnElArr.forEach((item) => BB.destroyEl(item));
-        btnElArr.splice(0, btnElArr.length);
 
-        if (p.callback) {
-            p.callback(value);
-        }
+        // Exit Animations using animejs for smooth scale-down and fade-out
+        animate(boxEl, {
+            scale: 0.9,
+            opacity: 0,
+            translateY: -15,
+            duration: 200,
+            ease: 'inQuad',
+        });
+
+        animate(rootEl, {
+            backgroundColor: 'rgba(0, 0, 0, 0)',
+            duration: 200,
+            ease: 'linear',
+            onComplete: () => {
+                rootRootEl.remove();
+                DIALOG_COUNTER.decrease();
+                BB.destroyEl(xButton);
+                BB.destroyEl(bgEl);
+                keyListener.destroy();
+                rootEl.removeEventListener('wheel', wheelPrevent);
+                // (disabled) eslint-disable-next-line no-null/no-null
+                rootEl.onclick = null;
+                btnElArr.forEach((item) => BB.destroyEl(item));
+                btnElArr.splice(0, btnElArr.length);
+
+                if (p.callback) {
+                    p.callback(value);
+                }
+            },
+        });
     }
 
     if (p.closeFunc) {

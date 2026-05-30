@@ -1,3 +1,5 @@
+import { animate, stagger } from 'animejs';
+
 export function initOnboarding(parentEl: HTMLElement): void {
     let completed = false;
     try {
@@ -101,25 +103,53 @@ export function initOnboarding(parentEl: HTMLElement): void {
         } catch (e) {
             console.error('Failed to write to localStorage:', e);
         }
-        overlay.classList.add('maria-onboarding-overlay--fadeout');
-        setTimeout(() => {
-            overlay.remove();
-        }, 400);
+        
+        animate(container, {
+            scale: 0.92,
+            opacity: 0,
+            translateY: -20,
+            duration: 250,
+            ease: 'inQuad',
+        });
+
+        animate(overlay, {
+            opacity: 0,
+            duration: 300,
+            ease: 'linear',
+            onComplete: () => {
+                overlay.remove();
+            },
+        });
     };
     
     function showSlide(index: number): void {
+        const isNext = index > currentSlide;
         currentSlide = index;
         const data = slidesData[currentSlide];
         
-        // Update content with fade effect
-        slideTitle.style.opacity = '0';
-        slideDesc.style.opacity = '0';
-        setTimeout(() => {
-            slideTitle.textContent = data.title;
-            slideDesc.textContent = data.desc;
-            slideTitle.style.opacity = '1';
-            slideDesc.style.opacity = '1';
-        }, 150);
+        // Staggered slide transition using animejs v4
+        animate([slideTitle, slideDesc], {
+            opacity: 0,
+            translateX: isNext ? -20 : 20,
+            duration: 180,
+            ease: 'inQuad',
+            onComplete: () => {
+                slideTitle.textContent = data.title;
+                slideDesc.textContent = data.desc;
+                
+                // Reset positions to opposite side before entry
+                slideTitle.style.transform = `translateX(${isNext ? 20 : -20}px)`;
+                slideDesc.style.transform = `translateX(${isNext ? 20 : -20}px)`;
+                
+                animate([slideTitle, slideDesc], {
+                    opacity: [0, 1],
+                    translateX: 0,
+                    duration: 400,
+                    ease: 'outCubic',
+                    delay: stagger(80), // gorgeous staggered entry!
+                });
+            },
+        });
         
         // Update dots
         dots.forEach((dot, idx) => {
@@ -138,10 +168,32 @@ export function initOnboarding(parentEl: HTMLElement): void {
         }
     }
     
-    showSlide(0);
-    
+    // Setup elements
     actions.append(prevBtn, dotsContainer, nextBtn, finishBtn);
     container.append(slideTitle, slideDesc, actions);
     overlay.append(container);
+    
+    // Set initial animation states
+    overlay.style.opacity = '0';
+    container.style.opacity = '0';
+    container.style.transform = 'translateY(30px) scale(0.9)';
+    
     parentEl.appendChild(overlay);
+    showSlide(0);
+
+    // Entrance animations
+    animate(overlay, {
+        opacity: [0, 1],
+        duration: 350,
+        ease: 'outQuad',
+    });
+
+    animate(container, {
+        scale: [0.9, 1],
+        opacity: [0, 1],
+        translateY: [30, 0],
+        duration: 700,
+        ease: 'outElastic(1, .85)',
+        delay: 100,
+    });
 }
