@@ -79,6 +79,7 @@ import { KL_INDEXED_DB } from '../klecks/storage/kl-indexed-db';
 import { showModal } from '../klecks/ui/modals/base/showModal';
 import { runBrowserStorageBanner } from '../klecks/ui/components/browser-storage-banner';
 import { requestPersistentStorage } from '../klecks/storage/request-persistent-storage';
+import { saveDialog } from '../klecks/ui/modals/save-dialog';
 import { CrossTabChannel } from '../bb/base/cross-tab-channel';
 import { MobileColorUi } from '../klecks/ui/mobile/mobile-color-ui';
 import { getSelectionPath2d } from '../bb/multi-polygon/get-selection-path-2d';
@@ -882,7 +883,14 @@ export class KlApp {
                     if (['ctrl+s', 'cmd+s'].includes(comboStr)) {
                         event.preventDefault();
                         applyUncommitted();
-                        this.saveToComputer.save();
+                        saveDialog({
+                            klCanvas: this.klCanvas,
+                            initialFormat: exportType,
+                            onConfirm: (format, quality) => {
+                                exportType = format;
+                                this.saveToComputer.save(format, quality);
+                            }
+                        });
                     }
                     if (['ctrl+shift+s', 'cmd+shift+s'].includes(comboStr)) {
                         event.preventDefault();
@@ -1252,7 +1260,14 @@ export class KlApp {
                     fileUi!.triggerImport();
                 },
                 onSave: () => {
-                    this.saveToComputer.save();
+                    saveDialog({
+                        klCanvas: this.klCanvas,
+                        initialFormat: exportType,
+                        onConfirm: (format, quality) => {
+                            exportType = format;
+                            this.saveToComputer.save(format, quality);
+                        }
+                    });
                 },
                 onShare: () => {
                     shareImage();
@@ -1840,7 +1855,14 @@ export class KlApp {
                       importHandler.handleFileSelect(files, optionsStr),
                   onSaveImageToComputer: () => {
                       applyUncommitted();
-                      this.saveToComputer.save();
+                      saveDialog({
+                          klCanvas: this.klCanvas,
+                          initialFormat: exportType,
+                          onConfirm: (format, quality) => {
+                              exportType = format;
+                              this.saveToComputer.save(format, quality);
+                          }
+                      });
                   },
                   onNewImage: showNewImageDialog,
                   onShareImage: (callback) => {

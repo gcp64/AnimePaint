@@ -15,8 +15,9 @@ export class SaveToComputer {
         filename: string,
         mimeType: string,
         showDialog: boolean = false,
+        quality?: number,
     ): Promise<void> {
-        const blob = await canvasToBlob(canvas, mimeType);
+        const blob = await canvasToBlob(canvas, mimeType, quality);
         await saveAs(blob, filename, showDialog);
     }
 
@@ -27,7 +28,7 @@ export class SaveToComputer {
         private onSaved: () => void,
     ) {}
 
-    async save(format?: 'psd' | 'layers' | 'png' | 'jpg'): Promise<void> {
+    async save(format?: 'psd' | 'layers' | 'png' | 'jpg', quality?: number): Promise<void> {
         if (!format) {
             format = this.getExportType();
         }
@@ -50,7 +51,7 @@ export class SaveToComputer {
             const filename = BB.getDate() + KL_CONFIG.filenameBase + '.' + extension;
             const fullCanvas = this.klCanvas.getCompleteCanvas(1);
             try {
-                await this.saveImage(fullCanvas, filename, mimeType, this.showSaveDialog);
+                await this.saveImage(fullCanvas, filename, mimeType, this.showSaveDialog, quality);
             } catch (error) {
                 alert('could not save');
                 throw new Error('failed jpg export');
