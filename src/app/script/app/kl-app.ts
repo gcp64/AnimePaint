@@ -258,6 +258,9 @@ export class KlApp {
     // ----------------------------------- public -----------------------------------
 
     constructor(p: TKlAppParams) {
+        let fileUi: any = null;
+        let brushTabRow: any = null;
+        let showNewImageDialog: any = null;
         const savedAccent = localStorage.getItem('maria_core_theme_accent');
         if (savedAccent) {
             document.documentElement.style.setProperty('--active-highlight-color', savedAccent);
@@ -1257,6 +1260,86 @@ export class KlApp {
                 this.updateCollapse();
             },
             toolUis: [this.mobileBrushUi.getElement(), this.mobileColorUi.getElement()],
+            onUndo: () => undo(true),
+            onRedo: () => redo(true),
+            onSetTool: (toolId) => {
+                applyUncommitted();
+                this.easel.setTool(toolId as any);
+                if (['brush', 'paintBucket', 'gradient', 'text', 'shape', 'select', 'hand'].includes(toolId)) {
+                    this.toolspaceToolRow.setActive(toolId as any);
+                    mainTabRow?.open(toolId);
+                    updateMainTabVisibility();
+                }
+                this.klColorSlider.setIsEyedropping(false);
+                this.mobileColorUi.setIsEyedropping(false);
+            },
+            onGetTool: () => this.easel.getTool(),
+            onSetSize: (size) => brushSettingService.setSize(size),
+            onGetSize: () => brushSettingService.getSize(),
+            onSetOpacity: (opacity) => brushSettingService.setOpacity(opacity),
+            onGetOpacity: () => brushSettingService.getOpacity(),
+            onSetColor: (color) => brushSettingService.setColor(color),
+            onGetColor: () => brushSettingService.getColor(),
+            onGetLayersElement: () => this.layersUi.getElement(),
+            onTriggerSavePng: () => {
+                applyUncommitted();
+                saveDialog({
+                    klCanvas: this.klCanvas,
+                    initialFormat: exportType,
+                    onConfirm: (format, quality) => {
+                        exportType = format;
+                        this.saveToComputer.save(format, quality);
+                    }
+                });
+            },
+            onTriggerSavePsd: () => {
+                if (!this.embed) {
+                    this.saveAsPsd();
+                }
+            },
+            onTriggerImport: () => {
+                if (fileUi) {
+                    fileUi.triggerImport();
+                }
+            },
+            onTriggerClear: () => clearLayer(true),
+            onTriggerNew: () => {
+                if (showNewImageDialog) {
+                    showNewImageDialog();
+                }
+            },
+            onTriggerColorPicker: () => {
+                const colorCircleEl = this.mobileColorUi.getElement().firstElementChild as HTMLElement;
+                if (colorCircleEl) {
+                    colorCircleEl.click();
+                }
+            },
+            onTriggerEyedropper: (active) => {
+                this.mobileColorUi.setIsEyedropping(active);
+                if (active) {
+                    this.klColorSlider.setIsEyedropping(true);
+                    this.easel.setTool('eyedropper');
+                } else {
+                    this.klColorSlider.setIsEyedropping(false);
+                    this.easel.setTool(this.toolspaceToolRow.getActive());
+                }
+            },
+            onTriggerBrushType: (type: 'brush' | 'eraser') => {
+                if (type === 'brush') {
+                    brushTabRow.open(lastNonEraserBrushId);
+                } else {
+                    brushTabRow.open('eraserBrush');
+                }
+            },
+            onSetBrushId: (brushId) => {
+                brushTabRow.open(brushId);
+            },
+            onGetBrushId: () => {
+                return brushTabRow.getActive();
+            },
+            onFitView: () => {
+                this.easel.resetOrFitTransform(true);
+            }
         });
 
         this.updateCollapse(true);
@@ -1521,7 +1604,7 @@ export class KlApp {
             toolspaceStabilizerRow.getElement(),
         ]);
 
-        const brushTabRow = new KL.TabRow({
+        brushTabRow = new KL.TabRow({
             initialId: 'penBrush',
             useAccent: true,
             tabArr: (() => {
@@ -1755,7 +1838,7 @@ export class KlApp {
             },
         });
 
-        const showNewImageDialog = () => {
+        showNewImageDialog = () => {
             applyUncommitted();
             KL.newImageDialog({
                 currentColor: currentColor,
@@ -1945,7 +2028,7 @@ export class KlApp {
             closeLoader?.();
         };
 
-        const fileUi = this.embed
+        fileUi = this.embed
             ? null
             : new KL.FileUi({
                   klRootEl: this.rootEl,
