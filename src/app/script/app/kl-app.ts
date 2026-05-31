@@ -509,15 +509,51 @@ export class KlApp {
             chainArr: [this.lineSanitizer as any, lineSmoothing as any],
         });
 
+        let simLastX = 0;
+        let simLastY = 0;
+        let simLastTime = 0;
+        let smoothedPressure = 0.5;
+
         drawEventChain.setChainOut(((event: TDrawEvent) => {
+            let pressure = event.pressure;
+            
+            const isPressureSimEnabled = localStorage.getItem('maria_core_pressure_sim') === 'true';
+            if (isPressureSimEnabled) {
+                const now = Date.now();
+                if (event.type === 'down') {
+                    simLastX = event.x;
+                    simLastY = event.y;
+                    simLastTime = now;
+                    smoothedPressure = 0.6; // start at a comfortable thickness
+                    pressure = smoothedPressure;
+                } else if (event.type === 'move') {
+                    const dx = event.x - simLastX;
+                    const dy = event.y - simLastY;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const dt = Math.max(1, now - simLastTime);
+                    
+                    const speed = dist / dt; // pixels per ms
+                    // Calibrate: speed of 0.0 => 1.0 pressure, speed of 3.5 => 0.15 pressure
+                    const rawSimPressure = Math.max(0.15, Math.min(1.0, 1.15 - (speed * 0.28)));
+                    
+                    // Smooth transitions
+                    smoothedPressure = smoothedPressure + 0.16 * (rawSimPressure - smoothedPressure);
+                    pressure = smoothedPressure;
+                    
+                    simLastX = event.x;
+                    simLastY = event.y;
+                    simLastTime = now;
+                }
+            }
+
             if (event.type === 'down') {
                 this.toolspace.style.pointerEvents = 'none';
-                currentBrushUi.startLine(event.x, event.y, event.pressure);
+                currentBrushUi.startLine(event.x, event.y, pressure);
                 this.easelBrush.setLastDrawEvent({ x: event.x, y: event.y });
                 this.easel.requestRender();
             }
             if (event.type === 'move') {
-                currentBrushUi.goLine(event.x, event.y, event.pressure, event.isCoalesced);
+                currentBrushUi.goLine(event.x, event.y, pressure, event.isCoalesced);
                 this.easelBrush.setLastDrawEvent({ x: event.x, y: event.y });
                 this.easel.requestRender();
             }
@@ -1386,6 +1422,32 @@ export class KlApp {
                         }
                     }
                 }, 100);
+            },
+            onSetStabilizer: (enabled, strength) => {
+                const smoothVal = !enabled ? 0.0 : (
+                    strength <= 2 ? translateSmoothing(1) :
+                    strength <= 4 ? translateSmoothing(2) :
+                    strength <= 6 ? translateSmoothing(3) :
+                    strength <= 8 ? translateSmoothing(4) :
+                    translateSmoothing(5)
+                );
+                lineSmoothing.setSmoothing(smoothVal);
+            },
+            onSetGridOverlay: (value) => {
+                this.easel.requestRender();
+            },
+            onSetPressureSim: (enabled) => {
+                // pressure simulation is read inside drawEventChain, so just repaint easel
+                this.easel.requestRender();
+            },
+            onAutoSave: async () => {
+                try {
+                    const currentProj = this.klCanvas.getProject();
+                    await this.galleryStore.saveProject(currentProj, this.currentProjectTitle);
+                    this.mobilePortal.refreshGalleryList();
+                } catch (e) {
+                    console.error('Auto save project failed:', e);
+                }
             }
         });
 

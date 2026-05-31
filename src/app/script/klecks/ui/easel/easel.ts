@@ -332,6 +332,39 @@ export class Easel<GToolId extends string> {
             renderAfter: (ctx, renderedTransform) => {
                 const tool = this.getActiveTool();
                 tool.renderAfterViewport?.(ctx, renderedTransform);
+
+                // Draw helper grid overlay
+                const gridSetting = localStorage.getItem('maria_core_grid_overlay') || 'off';
+                if (gridSetting !== 'off') {
+                    const match = gridSetting.match(/^(\d+)x(\d+)$/);
+                    if (match) {
+                        const cols = parseInt(match[1]);
+                        const rows = parseInt(match[2]);
+                        
+                        ctx.save();
+                        ctx.strokeStyle = 'rgba(128, 128, 128, 0.35)'; // subtle semi-transparent grid
+                        ctx.lineWidth = 1 / renderedTransform.scaleX; // screen pixel width
+                        
+                        const projWidth = this.project.width;
+                        const projHeight = this.project.height;
+                        
+                        ctx.beginPath();
+                        // Draw columns
+                        for (let i = 1; i < cols; i++) {
+                            const x = (projWidth / cols) * i;
+                            ctx.moveTo(x, 0);
+                            ctx.lineTo(x, projHeight);
+                        }
+                        // Draw rows
+                        for (let j = 1; j < rows; j++) {
+                            const y = (projHeight / rows) * j;
+                            ctx.moveTo(0, y);
+                            ctx.lineTo(projWidth, y);
+                        }
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                }
             },
         });
 

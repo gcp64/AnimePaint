@@ -30,6 +30,10 @@ export type TMobileUiParams = {
     onGetBrushId?: () => string;
     onFitView?: () => void;
     onBackToGallery?: () => void;
+    onSetStabilizer?: (enabled: boolean, strength: number) => void;
+    onSetGridOverlay?: (value: string) => void;
+    onSetPressureSim?: (enabled: boolean) => void;
+    onAutoSave?: () => Promise<void>;
 };
 
 // SVG icon constants
@@ -59,6 +63,9 @@ const ICONS = {
     rotate: '<svg viewBox="0 0 24 24"><path d="M15.55 5.55L11 1v4.07C7.06 5.56 4 8.93 4 13c0 4.42 3.58 8 8 8s8-3.58 8-8c0-2.14-.84-4.08-2.2-5.52l-1.42 1.42C17.44 9.92 18 11.39 18 13c0 3.31-2.69 6-6 6s-6-2.69-6-6c0-2.97 2.16-5.43 5-5.91V11l4.55-4.55z"/></svg>',
     zoom: '<svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>',
     close: '<svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>',
+    settings: '<svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>',
+    grid: '<svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM8 20H4v-4h4v4zm0-6H4v-4h4v4zm0-6H4V4h4v4zm6 12h-4v-4h4v4zm0-6h-4v-4h4v4zm0-6h-4V4h4v4zm6 12h-4v-4h4v4zm0-6h-4v-4h4v4zm0-6h-4V4h4v4z"/></svg>',
+    back: '<svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6-6-6z"/></svg>',
 };
 
 const TOOLS_LIST = [
@@ -82,6 +89,74 @@ const BRUSH_TYPES = [
     { id: 'smudgeBrush', name: 'تلطيخ (Smudge)' },
 ];
 
+// ===================== TOAST NOTIFICATION SYSTEM =====================
+class MobileToast {
+    private static container: HTMLElement | null = null;
+
+    static init(): void {
+        if (this.container) return;
+        this.container = document.createElement('div');
+        this.container.id = 'mp-toast-container';
+        this.container.style.cssText = `
+            position: fixed;
+            top: calc(70px + env(safe-area-inset-top, 0px));
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            pointer-events: none;
+            width: 90%;
+            max-width: 360px;
+        `;
+        document.body.appendChild(this.container);
+    }
+
+    static show(message: string, type: 'success' | 'info' | 'warning' | 'error' = 'info', duration: number = 2500): void {
+        this.init();
+        const toast = document.createElement('div');
+
+        const colors: Record<string, { bg: string; border: string; icon: string }> = {
+            success: { bg: 'rgba(34,197,94,0.15)', border: 'rgba(34,197,94,0.3)', icon: '✓' },
+            info: { bg: 'rgba(99,102,241,0.15)', border: 'rgba(99,102,241,0.3)', icon: 'ℹ' },
+            warning: { bg: 'rgba(234,179,8,0.15)', border: 'rgba(234,179,8,0.3)', icon: '⚠' },
+            error: { bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.3)', icon: '✕' },
+        };
+        const c = colors[type];
+
+        toast.style.cssText = `
+            background: ${c.bg};
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid ${c.border};
+            border-radius: 14px;
+            padding: 10px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #e2e8f0;
+            font-family: 'Cairo', 'Outfit', system-ui, sans-serif;
+            direction: rtl;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            pointer-events: auto;
+            animation: mp-toast-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            max-width: 100%;
+        `;
+        toast.innerHTML = `<span style="font-size: 14px; flex-shrink: 0;">${c.icon}</span><span>${message}</span>`;
+
+        this.container!.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.animation = 'mp-toast-out 0.25s ease-in forwards';
+            setTimeout(() => toast.remove(), 260);
+        }, duration);
+    }
+}
+
 export class MobileUi {
     private readonly rootEl: HTMLElement;
     private toolspaceIsOpen: boolean = true;
@@ -98,6 +173,11 @@ export class MobileUi {
     private toolsGrid: HTMLElement | null = null;
     private brushesMenu: HTMLElement | null = null;
     private backdropEl: HTMLElement | null = null;
+    private settingsPanel: HTMLElement | null = null;
+    private brushPreview: HTMLElement | null = null;
+
+    // References to named buttons for state syncing
+    private layersBtn: HTMLElement | null = null;
 
     // Control elements
     private sizeSlider: HTMLInputElement | null = null;
@@ -143,6 +223,22 @@ export class MobileUi {
     private sizeDebounce: ReturnType<typeof setTimeout> | null = null;
     private opacityDebounce: ReturnType<typeof setTimeout> | null = null;
 
+    // Color history
+    private colorHistory: string[] = [];
+
+    // Drawing settings state
+    private drawingSettings = {
+        stabilizer: false,
+        stabilizerStrength: 5,
+        rotationLock: false,
+        gridOverlay: 'off' as 'off' | '8x8' | '16x16' | '32x32',
+        pressureSim: false,
+        autoSave: 'off' as 'off' | '30s' | '1min' | '5min',
+    };
+ 
+    private autoSaveTimer: ReturnType<typeof setInterval> | null = null;
+
+
     constructor(p: TMobileUiParams) {
         this.onShowToolspace = p.onShowToolspace;
 
@@ -170,6 +266,19 @@ export class MobileUi {
         this.onGetBrushId = p.onGetBrushId;
         this.onFitView = p.onFitView;
         this.onBackToGallery = p.onBackToGallery;
+        this.onSetStabilizer = p.onSetStabilizer;
+        this.onSetGridOverlay = p.onSetGridOverlay;
+        this.onSetPressureSim = p.onSetPressureSim;
+        this.onAutoSave = p.onAutoSave;
+ 
+        // Load persistent settings
+        this.drawingSettings.stabilizer = localStorage.getItem('maria_core_stabilizer_enabled') === 'true';
+        this.drawingSettings.stabilizerStrength = parseInt(localStorage.getItem('maria_core_stabilizer_strength') || '5');
+        this.drawingSettings.rotationLock = localStorage.getItem('maria_core_disable_touch_rotation') === 'true';
+        this.drawingSettings.gridOverlay = (localStorage.getItem('maria_core_grid_overlay') || 'off') as any;
+        this.drawingSettings.pressureSim = localStorage.getItem('maria_core_pressure_sim') === 'true';
+        this.drawingSettings.autoSave = (localStorage.getItem('maria_core_auto_save') || 'off') as any;
+
 
         // Inject styles
         this.injectStyles();
@@ -219,6 +328,8 @@ export class MobileUi {
         this.createSlidersDeck();
         this.createLayersWindow();
         this.createMenus();
+        this.createSettingsPanel();
+        this.createBrushPreview();
 
         // Hide initially
         this.rootEl.style.display = 'none';
@@ -239,7 +350,8 @@ export class MobileUi {
             const target = e.target as HTMLElement;
             if (target && target.closest && (
                 target.closest('.mp-popup-menu') ||
-                target.closest('.mp-tools-grid')
+                target.closest('.mp-tools-grid') ||
+                target.closest('.mp-settings-overlay')
             )) {
                 return;
             }
@@ -268,12 +380,17 @@ export class MobileUi {
         if (this.fileMenu) preventCanvasLeak(this.fileMenu);
         if (this.toolsGrid) preventCanvasLeak(this.toolsGrid);
         if (this.brushesMenu) preventCanvasLeak(this.brushesMenu);
+        if (this.settingsPanel) preventCanvasLeak(this.settingsPanel);
     }
 
     // ===================== STYLES =====================
     private injectStyles(): void {
-        const styleId = 'mp-mobile-styles-v2';
+        const styleId = 'mp-mobile-styles-v3';
         if (document.getElementById(styleId)) return;
+
+        // Remove old style sheets
+        const oldStyle = document.getElementById('mp-mobile-styles-v2');
+        if (oldStyle) oldStyle.remove();
 
         const style = document.createElement('style');
         style.id = styleId;
@@ -281,16 +398,17 @@ export class MobileUi {
             :root {
                 --mp-accent: #6366f1;
                 --mp-accent-glow: rgba(99, 102, 241, 0.4);
-                --mp-bg: rgba(15, 15, 27, 0.85);
+                --mp-bg: rgba(15, 15, 27, 0.88);
                 --mp-border: rgba(255, 255, 255, 0.08);
                 --mp-text: #e2e8f0;
                 --mp-text-dim: #94a3b8;
                 --mp-danger: #ef4444;
+                --mp-success: #22c55e;
             }
 
             /* Light theme overrides */
             html:not(.kl-theme-dark) {
-                --mp-bg: rgba(255, 255, 255, 0.90);
+                --mp-bg: rgba(255, 255, 255, 0.92);
                 --mp-border: rgba(0, 0, 0, 0.1);
                 --mp-text: #1e293b;
                 --mp-text-dim: #64748b;
@@ -312,6 +430,22 @@ export class MobileUi {
             @keyframes mp-fadeIn {
                 from { opacity: 0; }
                 to   { opacity: 1; }
+            }
+            @keyframes mp-toast-in {
+                from { opacity: 0; transform: translateY(-16px) scale(0.95); }
+                to   { opacity: 1; transform: translateY(0) scale(1); }
+            }
+            @keyframes mp-toast-out {
+                from { opacity: 1; transform: translateY(0) scale(1); }
+                to   { opacity: 0; transform: translateY(-10px) scale(0.95); }
+            }
+            @keyframes mp-pulse {
+                0%, 100% { box-shadow: 0 0 0 0 var(--mp-accent-glow); }
+                50% { box-shadow: 0 0 0 6px transparent; }
+            }
+            @keyframes mp-settingsSlide {
+                from { opacity: 0; transform: translateX(100%); }
+                to   { opacity: 1; transform: translateX(0); }
             }
 
             /* === Shared glass panel === */
@@ -571,24 +705,31 @@ export class MobileUi {
                 position: fixed;
                 bottom: calc(92px + env(safe-area-inset-bottom, 0px));
                 left: calc(8px + env(safe-area-inset-left, 0px));
-                width: 220px;
+                width: 230px;
                 border-radius: 14px;
                 display: flex;
                 flex-direction: column;
-                gap: 6px;
-                padding: 10px 12px;
+                gap: 8px;
+                padding: 10px 14px;
                 box-sizing: border-box;
                 animation: mp-fadeIn 0.25s ease-out;
                 z-index: 10001;
             }
             .mp-sliders-header {
                 display: flex;
-                justify-content: flex-end;
+                justify-content: space-between;
+                align-items: center;
                 margin-bottom: 2px;
             }
+            .mp-sliders-title {
+                font-size: 10px;
+                font-weight: 700;
+                color: var(--mp-text-dim);
+                letter-spacing: 0.5px;
+            }
             .mp-sliders-close {
-                width: 22px; height: 22px;
-                border-radius: 6px;
+                width: 24px; height: 24px;
+                border-radius: 8px;
                 display: flex; align-items: center; justify-content: center;
                 cursor: pointer;
                 color: var(--mp-text-dim);
@@ -614,9 +755,9 @@ export class MobileUi {
             }
             .mp-range {
                 flex-grow: 1;
-                height: 6px;
-                background: rgba(255,255,255,0.08) !important;
-                border-radius: 3px;
+                height: 14px;
+                background: rgba(255,255,255,0.06) !important;
+                border-radius: 7px;
                 outline: none;
                 -webkit-appearance: none;
                 appearance: none;
@@ -625,16 +766,32 @@ export class MobileUi {
             }
             .mp-range::-webkit-slider-thumb {
                 -webkit-appearance: none;
-                width: 20px; height: 20px;
+                width: 24px; height: 24px;
                 border-radius: 50%;
                 background: linear-gradient(135deg, var(--mp-accent), #8b5cf6);
-                box-shadow: 0 0 10px var(--mp-accent-glow);
+                box-shadow: 0 0 12px var(--mp-accent-glow), 0 2px 6px rgba(0,0,0,0.3);
                 cursor: pointer;
-                border: 2px solid #fff;
+                border: 2.5px solid #fff;
                 transition: transform 0.1s;
             }
             .mp-range::-webkit-slider-thumb:active {
-                transform: scale(1.2);
+                transform: scale(1.25);
+            }
+            .mp-range::-webkit-slider-runnable-track {
+                height: 14px;
+                border-radius: 7px;
+            }
+
+            /* === Brush Size Preview === */
+            .mp-brush-preview {
+                position: fixed;
+                pointer-events: none;
+                border: 2px solid rgba(255,255,255,0.5);
+                border-radius: 50%;
+                z-index: 9998;
+                display: none;
+                transition: width 0.1s, height 0.1s;
+                box-shadow: 0 0 4px rgba(0,0,0,0.3);
             }
 
             /* === Layers Window === */
@@ -728,6 +885,142 @@ export class MobileUi {
                 border-radius: 6px !important;
             }
 
+            /* === Settings Panel === */
+            .mp-settings-overlay {
+                position: fixed;
+                top: 0; right: 0; bottom: 0;
+                width: 280px;
+                max-width: 85vw;
+                z-index: 10003;
+                display: none;
+                flex-direction: column;
+                animation: mp-settingsSlide 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+                overflow-y: auto;
+                padding: 0;
+            }
+            .mp-settings-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: calc(16px + env(safe-area-inset-top, 0px)) 16px 12px;
+                border-bottom: 1px solid rgba(255,255,255,0.06);
+                flex-shrink: 0;
+            }
+            .mp-settings-title {
+                font-size: 15px;
+                font-weight: 800;
+            }
+            .mp-settings-body {
+                padding: 12px 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                overflow-y: auto;
+                flex-grow: 1;
+            }
+            .mp-settings-group-title {
+                font-size: 10px;
+                font-weight: 700;
+                color: var(--mp-accent);
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                margin-top: 8px;
+                margin-bottom: 4px;
+            }
+            .mp-setting-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 10px 0;
+                border-bottom: 1px solid rgba(255,255,255,0.04);
+                gap: 12px;
+            }
+            .mp-setting-label {
+                font-size: 12px;
+                font-weight: 600;
+                flex-grow: 1;
+            }
+            .mp-setting-desc {
+                font-size: 9px;
+                color: var(--mp-text-dim);
+                margin-top: 2px;
+            }
+            /* Toggle Switch */
+            .mp-toggle {
+                position: relative;
+                display: inline-block;
+                width: 44px;
+                height: 24px;
+                flex-shrink: 0;
+            }
+            .mp-toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+            .mp-toggle-track {
+                position: absolute;
+                cursor: pointer;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(255,255,255,0.1);
+                transition: .3s;
+                border-radius: 24px;
+            }
+            html:not(.kl-theme-dark) .mp-toggle-track {
+                background: rgba(0,0,0,0.1);
+            }
+            .mp-toggle-track:before {
+                position: absolute;
+                content: "";
+                height: 18px; width: 18px;
+                left: 3px; bottom: 3px;
+                background-color: white;
+                transition: .3s;
+                border-radius: 50%;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            }
+            .mp-toggle input:checked + .mp-toggle-track {
+                background: var(--mp-accent);
+            }
+            .mp-toggle input:checked + .mp-toggle-track:before {
+                transform: translateX(20px);
+            }
+            /* Select Dropdown */
+            .mp-setting-select {
+                background: rgba(255,255,255,0.06);
+                border: 1px solid rgba(255,255,255,0.08);
+                color: var(--mp-text);
+                padding: 6px 10px;
+                border-radius: 8px;
+                font-size: 11px;
+                font-weight: 600;
+                font-family: inherit;
+                outline: none;
+                flex-shrink: 0;
+                min-width: 80px;
+            }
+            html:not(.kl-theme-dark) .mp-setting-select {
+                background: rgba(0,0,0,0.04);
+                border-color: rgba(0,0,0,0.1);
+            }
+
+            /* === Color History === */
+            .mp-color-history {
+                position: fixed;
+                z-index: 10002;
+                display: none;
+                flex-direction: row;
+                gap: 6px;
+                padding: 8px;
+                border-radius: 14px;
+                animation: mp-scaleIn 0.2s ease-out;
+            }
+            .mp-color-swatch {
+                width: 32px; height: 32px;
+                border-radius: 50%;
+                border: 2px solid rgba(255,255,255,0.3);
+                cursor: pointer;
+                transition: transform 0.1s;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            }
+            .mp-color-swatch:active { transform: scale(0.85); }
+
             /* === Small Screens Responsive Scale === */
             @media (max-width: 400px) {
                 .mp-btn {
@@ -780,6 +1073,9 @@ export class MobileUi {
                     min-width: 60px;
                     font-size: 9px;
                 }
+                .mp-settings-overlay {
+                    width: 260px;
+                }
             }
         `;
         document.head.appendChild(style);
@@ -787,48 +1083,50 @@ export class MobileUi {
 
     // ===================== HELPERS =====================
     private addTouchButton(el: HTMLElement, callback: () => void): void {
-        let isTouching = false;
-        let lastTouchTime = 0;
+        let isPressing = false;
+        let lastPointerTime = 0;
 
-        el.addEventListener('touchstart', (e: TouchEvent) => {
+        el.addEventListener('pointerdown', (e: PointerEvent) => {
             e.stopPropagation();
-            isTouching = true;
+            isPressing = true;
             el.classList.add('mp-pressing');
-        }, { passive: true });
-
-        el.addEventListener('touchend', (e: TouchEvent) => {
-            e.preventDefault();
-            e.stopPropagation();
-            el.classList.remove('mp-pressing');
-            if (isTouching) {
-                isTouching = false;
-                lastTouchTime = Date.now();
-                // Haptic feedback
-                if (navigator.vibrate) {
-                    try { navigator.vibrate(8); } catch (_) {}
-                }
-                callback();
+            // Responsive micro-haptic
+            if (navigator.vibrate) {
+                try { navigator.vibrate(8); } catch (_) {}
             }
         });
 
-        el.addEventListener('touchcancel', () => {
-            isTouching = false;
+        el.addEventListener('pointerup', (e: PointerEvent) => {
+            if (!isPressing) return;
+            isPressing = false;
+            el.classList.remove('mp-pressing');
+            e.stopPropagation();
+            lastPointerTime = Date.now();
+            callback();
+        });
+
+        el.addEventListener('pointercancel', () => {
+            isPressing = false;
             el.classList.remove('mp-pressing');
         });
 
         el.addEventListener('click', (e: MouseEvent) => {
             e.stopPropagation();
-            if (Date.now() - lastTouchTime < 500) {
+            if (Date.now() - lastPointerTime < 500) {
                 return;
             }
             callback();
         });
     }
 
-    private createBtn(svgContent: string): HTMLElement {
+    private createBtn(svgContent: string, ariaLabel?: string): HTMLElement {
         const btn = document.createElement('div');
         btn.className = 'mp-btn';
         btn.innerHTML = svgContent.trim();
+        if (ariaLabel) {
+            btn.setAttribute('aria-label', ariaLabel);
+            btn.setAttribute('role', 'button');
+        }
         return btn;
     }
 
@@ -837,6 +1135,9 @@ export class MobileUi {
         if (this.toolsGrid) this.toolsGrid.style.display = 'none';
         if (this.brushesMenu) this.brushesMenu.style.display = 'none';
         if (this.backdropEl) this.backdropEl.style.display = 'none';
+        // Hide color history
+        const colorHist = document.getElementById('mp-color-history-panel');
+        if (colorHist) colorHist.style.display = 'none';
     }
 
     private positionMenuAtAnchor(menu: HTMLElement, anchor: HTMLElement): void {
@@ -883,30 +1184,116 @@ export class MobileUi {
         }
     }
 
+    // ===================== BRUSH PREVIEW =====================
+    private createBrushPreview(): void {
+        this.brushPreview = BB.el({
+            className: 'mp-brush-preview',
+        });
+        this.rootEl.append(this.brushPreview);
+    }
+
+    private updateBrushPreview(): void {
+        if (!this.brushPreview || !this.isVisible) return;
+        const size = this.onGetSize();
+        const px = Math.max(4, Math.min(200, size));
+        this.brushPreview.style.width = px + 'px';
+        this.brushPreview.style.height = px + 'px';
+        // Position at center of the viewport
+        this.brushPreview.style.left = `calc(50% - ${px / 2}px)`;
+        this.brushPreview.style.top = `calc(50% - ${px / 2}px)`;
+    }
+
+    // ===================== TOAST HELPER =====================
+    private toast(message: string, type: 'success' | 'info' | 'warning' | 'error' = 'info'): void {
+        MobileToast.show(message, type);
+    }
+
+    // ===================== COLOR HISTORY =====================
+    private addToColorHistory(color: any): void {
+        const hex = BB.ColorConverter.toHexString(color);
+        // Remove duplicate
+        this.colorHistory = this.colorHistory.filter(c => c !== hex);
+        // Add to front
+        this.colorHistory.unshift(hex);
+        // Keep max 8
+        if (this.colorHistory.length > 8) {
+            this.colorHistory = this.colorHistory.slice(0, 8);
+        }
+    }
+
+    private showColorHistory(anchor: HTMLElement): void {
+        if (this.colorHistory.length === 0) {
+            this.toast('لا يوجد سجل ألوان بعد', 'info');
+            return;
+        }
+
+        let panel = document.getElementById('mp-color-history-panel');
+        if (panel) panel.remove();
+
+        panel = BB.el({
+            className: 'mp-color-history mp-glass',
+            id: 'mp-color-history-panel',
+        });
+
+        this.colorHistory.forEach(hex => {
+            const swatch = BB.el({
+                className: 'mp-color-swatch',
+                css: { backgroundColor: hex },
+            });
+            this.addTouchButton(swatch, () => {
+                // Parse hex and apply
+                const r = parseInt(hex.slice(1, 3), 16);
+                const g = parseInt(hex.slice(3, 5), 16);
+                const b = parseInt(hex.slice(5, 7), 16);
+                this.onSetColor({ r, g, b });
+                panel!.style.display = 'none';
+                this.toast(`تم اختيار اللون ${hex}`, 'success');
+            });
+            panel!.append(swatch);
+        });
+
+        document.body.append(panel);
+
+        // Position above anchor
+        const rect = anchor.getBoundingClientRect();
+        panel.style.display = 'flex';
+        panel.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
+        let left = rect.left + rect.width / 2 - panel.offsetWidth / 2;
+        left = Math.max(8, Math.min(window.innerWidth - panel.offsetWidth - 8, left));
+        panel.style.left = left + 'px';
+
+        // Auto-close after 4s
+        setTimeout(() => {
+            if (panel && panel.parentElement) {
+                panel.style.display = 'none';
+            }
+        }, 4000);
+    }
+
     // ===================== TOP BAR =====================
     private createTopBar(): void {
         this.topBar = BB.el({ className: 'mp-top-bar mp-glass' });
 
         // 1. Hamburger menu
-        const menuBtn = this.createBtn(ICONS.menu);
+        const menuBtn = this.createBtn(ICONS.menu, 'القائمة');
         this.addTouchButton(menuBtn, () => this.toggleMenu(this.fileMenu, menuBtn));
 
         // 2. Tool indicator
-        this.toolIndicatorBtn = this.createBtn(ICONS.palette);
+        this.toolIndicatorBtn = this.createBtn(ICONS.palette, 'الأدوات');
         this.addTouchButton(this.toolIndicatorBtn, () => this.toggleMenu(this.toolsGrid, this.toolIndicatorBtn));
 
         // Separator
         const sep1 = BB.el({ className: 'mp-top-sep' });
 
         // 3. Undo
-        const undoBtn = this.createBtn(ICONS.undo);
+        const undoBtn = this.createBtn(ICONS.undo, 'تراجع');
         this.addTouchButton(undoBtn, () => {
             this.hideAllMenus();
             this.onUndo();
         });
 
         // 4. Redo
-        const redoBtn = this.createBtn(ICONS.redo);
+        const redoBtn = this.createBtn(ICONS.redo, 'إعادة');
         this.addTouchButton(redoBtn, () => {
             this.hideAllMenus();
             this.onRedo();
@@ -916,12 +1303,12 @@ export class MobileUi {
         const sep2 = BB.el({ className: 'mp-top-sep' });
 
         // 5. Layers
-        const layersBtn = this.createBtn(ICONS.layers);
-        this.addTouchButton(layersBtn, () => {
+        this.layersBtn = this.createBtn(ICONS.layers, 'الطبقات');
+        this.addTouchButton(this.layersBtn, () => {
             this.hideAllMenus();
             const isShown = this.layersWindow!.style.display === 'flex';
             this.layersWindow!.style.display = isShown ? 'none' : 'flex';
-            layersBtn.classList.toggle('mp-active', !isShown);
+            this.layersBtn!.classList.toggle('mp-active', !isShown);
 
             if (!isShown) {
                 const body = this.layersWindow!.querySelector('.mp-layers-body');
@@ -932,28 +1319,28 @@ export class MobileUi {
             }
         });
 
-        // 6. Fit view
-        const fitBtn = this.createBtn(ICONS.fitScreen);
+        // 6. Settings (Drawing Settings Panel)
+        const settingsBtn = this.createBtn(ICONS.settings, 'إعدادات الرسم');
+        this.addTouchButton(settingsBtn, () => {
+            this.hideAllMenus();
+            this.toggleSettingsPanel();
+        });
+
+        // 7. Fit view
+        const fitBtn = this.createBtn(ICONS.fitScreen, 'ملائمة الشاشة');
         this.addTouchButton(fitBtn, () => {
             this.hideAllMenus();
             if (this.onFitView) this.onFitView();
         });
 
-        // 7. Desktop mode
-        const desktopBtn = this.createBtn(ICONS.desktop);
-        this.addTouchButton(desktopBtn, () => {
-            this.hideAllMenus();
-            this.onShowToolspace(true);
-        });
-
         // 8. Back to gallery
-        const backBtn = this.createBtn('<svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6-6-6z"/></svg>');
+        const backBtn = this.createBtn(ICONS.back, 'العودة للمعرض');
         this.addTouchButton(backBtn, () => {
             this.hideAllMenus();
             if (this.onBackToGallery) this.onBackToGallery();
         });
 
-        this.topBar.append(menuBtn, this.toolIndicatorBtn, sep1, undoBtn, redoBtn, sep2, layersBtn, fitBtn, desktopBtn, backBtn);
+        this.topBar.append(menuBtn, this.toolIndicatorBtn, sep1, undoBtn, redoBtn, sep2, this.layersBtn, settingsBtn, fitBtn, backBtn);
         this.rootEl.append(this.topBar);
     }
 
@@ -961,19 +1348,76 @@ export class MobileUi {
     private createBottomBar(): void {
         this.bottomBar = BB.el({ className: 'mp-bottom-bar mp-glass' });
 
-        // 1. Color circle
+        // 1. Color circle with long-press support
         this.colorPreview = BB.el({
             className: 'mp-color-circle',
             css: { backgroundColor: '#000000' }
         });
-        this.addTouchButton(this.colorPreview, () => {
+
+        let colorLongTimer: ReturnType<typeof setTimeout> | null = null;
+        let colorWasLong = false;
+        let colorLastPointerTime = 0;
+
+        this.colorPreview.addEventListener('pointerdown', (e: PointerEvent) => {
+            e.stopPropagation();
+            colorWasLong = false;
+            colorLongTimer = setTimeout(() => {
+                colorWasLong = true;
+                // Long-press: copy color hex
+                const color = this.onGetColor();
+                const hex = BB.ColorConverter.toHexString(color);
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(hex).then(() => {
+                        this.toast(`تم نسخ اللون ${hex}`, 'success');
+                    }).catch(() => {
+                        this.toast(`اللون: ${hex}`, 'info');
+                    });
+                } else {
+                    this.toast(`اللون: ${hex}`, 'info');
+                }
+                if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+            }, 600);
+        });
+
+        this.colorPreview.addEventListener('pointerup', (e: PointerEvent) => {
+            e.stopPropagation();
+            if (colorLongTimer) clearTimeout(colorLongTimer);
+            if (!colorWasLong) {
+                colorLastPointerTime = Date.now();
+                if (navigator.vibrate) try { navigator.vibrate(8); } catch (_) {}
+                this.hideAllMenus();
+                // Save current color to history
+                this.addToColorHistory(this.onGetColor());
+                if (this.onTriggerColorPicker) this.onTriggerColorPicker();
+            }
+        });
+
+        this.colorPreview.addEventListener('pointercancel', () => {
+            if (colorLongTimer) clearTimeout(colorLongTimer);
+        });
+
+        this.colorPreview.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (Date.now() - colorLastPointerTime < 500) return;
             this.hideAllMenus();
+            this.addToColorHistory(this.onGetColor());
             if (this.onTriggerColorPicker) this.onTriggerColorPicker();
         });
 
-        // 2. Eyedropper
-        const eyedropperBtn = this.createBtn(ICONS.eyedropper);
+        // 2. Eyedropper with double-tap for color history
+        const eyedropperBtn = this.createBtn(ICONS.eyedropper, 'أداة القطارة');
+        let eyedropperLastTap = 0;
         this.addTouchButton(eyedropperBtn, () => {
+            const now = Date.now();
+            if (now - eyedropperLastTap < 350) {
+                // Double-tap: show color history
+                this.hideAllMenus();
+                this.showColorHistory(eyedropperBtn);
+                eyedropperLastTap = 0;
+                return;
+            }
+            eyedropperLastTap = now;
+
             this.hideAllMenus();
             const isActive = !eyedropperBtn.classList.contains('mp-active');
             eyedropperBtn.classList.toggle('mp-active', isActive);
@@ -981,13 +1425,13 @@ export class MobileUi {
         });
 
         // 3. Brush (tap = activate brush, long-press = brush menu)
-        const brushBtn = this.createBtn(ICONS.brush);
+        const brushBtn = this.createBtn(ICONS.brush, 'فرشاة');
         brushBtn.classList.add('mp-active');
         let brushLongTimer: ReturnType<typeof setTimeout> | null = null;
         let brushWasLong = false;
-        let brushLastTouchTime = 0;
+        let brushLastPointerTime = 0;
 
-        brushBtn.addEventListener('touchstart', (e) => {
+        brushBtn.addEventListener('pointerdown', (e: PointerEvent) => {
             e.stopPropagation();
             brushBtn.classList.add('mp-pressing');
             brushWasLong = false;
@@ -996,15 +1440,14 @@ export class MobileUi {
                 this.toggleMenu(this.brushesMenu, brushBtn);
                 if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
             }, 400);
-        }, { passive: true });
+        });
 
-        brushBtn.addEventListener('touchend', (e) => {
-            e.preventDefault();
+        brushBtn.addEventListener('pointerup', (e: PointerEvent) => {
             e.stopPropagation();
             brushBtn.classList.remove('mp-pressing');
             if (brushLongTimer) clearTimeout(brushLongTimer);
             if (!brushWasLong) {
-                brushLastTouchTime = Date.now();
+                brushLastPointerTime = Date.now();
                 if (navigator.vibrate) try { navigator.vibrate(8); } catch (_) {}
                 const currentTool = this.onGetTool();
                 const currentBrushId = this.onGetBrushId ? this.onGetBrushId() : '';
@@ -1023,14 +1466,14 @@ export class MobileUi {
             }
         });
 
-        brushBtn.addEventListener('touchcancel', () => {
+        brushBtn.addEventListener('pointercancel', () => {
             brushBtn.classList.remove('mp-pressing');
             if (brushLongTimer) clearTimeout(brushLongTimer);
         });
 
         brushBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (Date.now() - brushLastTouchTime < 500) {
+            if (Date.now() - brushLastPointerTime < 500) {
                 return;
             }
             const currentTool = this.onGetTool();
@@ -1046,16 +1489,19 @@ export class MobileUi {
             }
         });
 
-        // 4. Eraser
-        const eraserBtn = this.createBtn(ICONS.eraser);
+        // 4. Eraser — fix: properly update currentBrushId state
+        const eraserBtn = this.createBtn(ICONS.eraser, 'ممحاة');
         this.addTouchButton(eraserBtn, () => {
             this.hideAllMenus();
             if (this.onTriggerBrushType) this.onTriggerBrushType('eraser');
             this.onSetTool('brush');
+            // Update eraser state properly
+            eraserBtn.classList.add('mp-active');
+            brushBtn.classList.remove('mp-active');
         });
 
         // 5. Size toggle / sliders toggle
-        this.sizeToggleBtn = this.createBtn(ICONS.size);
+        this.sizeToggleBtn = this.createBtn(ICONS.size, 'حجم/شفافية');
         this.sizeToggleBtn.style.fontSize = '10px';
         this.addTouchButton(this.sizeToggleBtn, () => {
             this.hideAllMenus();
@@ -1064,6 +1510,11 @@ export class MobileUi {
                 this.slidersDeck.style.display = this.slidersVisible ? 'flex' : 'none';
             }
             this.sizeToggleBtn!.classList.toggle('mp-active', this.slidersVisible);
+            // Show/hide brush preview
+            if (this.brushPreview) {
+                this.brushPreview.style.display = this.slidersVisible ? 'block' : 'none';
+                if (this.slidersVisible) this.updateBrushPreview();
+            }
         });
         this.sizeToggleBtn.classList.add('mp-active');
 
@@ -1075,16 +1526,18 @@ export class MobileUi {
     private createSlidersDeck(): void {
         this.slidersDeck = BB.el({ className: 'mp-sliders-deck mp-glass' });
 
-        // Close button
+        // Header with title + close button
         const header = BB.el({ className: 'mp-sliders-header' });
+        const titleEl = BB.el({ className: 'mp-sliders-title', content: 'أدوات الفرشاة' });
         const closeBtn = BB.el({ className: 'mp-sliders-close' });
         closeBtn.innerHTML = ICONS.close;
         this.addTouchButton(closeBtn, () => {
             this.slidersVisible = false;
             this.slidersDeck!.style.display = 'none';
             if (this.sizeToggleBtn) this.sizeToggleBtn.classList.remove('mp-active');
+            if (this.brushPreview) this.brushPreview.style.display = 'none';
         });
-        header.append(closeBtn);
+        header.append(titleEl, closeBtn);
 
         // Size slider
         const sizeRow = BB.el({ className: 'mp-slider-row' });
@@ -1095,11 +1548,30 @@ export class MobileUi {
         this.sizeSlider.min = '1';
         this.sizeSlider.max = '200';
         this.sizeSlider.value = '5';
+        this.sizeSlider.setAttribute('aria-label', 'حجم الفرشاة');
+
+        // Double-tap to reset size
+        let sizeLastTap = 0;
+        this.sizeSlider.addEventListener('pointerdown', () => {
+            const now = Date.now();
+            if (now - sizeLastTap < 300) {
+                this.sizeSlider!.value = '5';
+                this.onSetSize(5);
+                this.sizeLabel!.textContent = `${LANG('brush-size')}: 5px`;
+                this.updateBrushPreview();
+                this.toast('تم إعادة الحجم إلى الإعدادي', 'info');
+                sizeLastTap = 0;
+            } else {
+                sizeLastTap = now;
+            }
+        });
+
         this.sizeSlider.addEventListener('input', () => {
             const val = parseInt(this.sizeSlider!.value);
             this.sizeLabel!.textContent = `${LANG('brush-size')}: ${val}px`;
             if (this.sizeDebounce) clearTimeout(this.sizeDebounce);
             this.sizeDebounce = setTimeout(() => this.onSetSize(val), 16);
+            this.updateBrushPreview();
         });
         sizeRow.append(this.sizeSlider, this.sizeLabel);
 
@@ -1112,6 +1584,23 @@ export class MobileUi {
         this.opacitySlider.min = '0';
         this.opacitySlider.max = '100';
         this.opacitySlider.value = '100';
+        this.opacitySlider.setAttribute('aria-label', 'الشفافية');
+
+        // Double-tap to reset opacity
+        let opacityLastTap = 0;
+        this.opacitySlider.addEventListener('pointerdown', () => {
+            const now = Date.now();
+            if (now - opacityLastTap < 300) {
+                this.opacitySlider!.value = '100';
+                this.onSetOpacity(1);
+                this.opacityLabel!.textContent = `${LANG('opacity')}: 100%`;
+                this.toast('تم إعادة الشفافية إلى الإعدادي', 'info');
+                opacityLastTap = 0;
+            } else {
+                opacityLastTap = now;
+            }
+        });
+
         this.opacitySlider.addEventListener('input', () => {
             const val = parseInt(this.opacitySlider!.value);
             this.opacityLabel!.textContent = `${LANG('opacity')}: ${val}%`;
@@ -1136,9 +1625,8 @@ export class MobileUi {
         closeBtn.innerHTML = ICONS.close;
         this.addTouchButton(closeBtn, () => {
             this.layersWindow!.style.display = 'none';
-            // Remove active from layers button
-            const layersBtn = this.topBar?.querySelectorAll('.mp-btn')[6]; // 7th button (index 6, but separators shift it)
-            if (layersBtn) layersBtn.classList.remove('mp-active');
+            // Use stored reference instead of hardcoded index
+            if (this.layersBtn) this.layersBtn.classList.remove('mp-active');
         });
 
         header.append(title, closeBtn);
@@ -1152,6 +1640,320 @@ export class MobileUi {
         this.setupDrag(header, this.layersWindow);
     }
 
+    // ===================== SETTINGS PANEL =====================
+    private createSettingsPanel(): void {
+        this.settingsPanel = BB.el({ className: 'mp-settings-overlay mp-glass' });
+
+        // Header
+        const header = BB.el({ className: 'mp-settings-header' });
+        const title = BB.el({ className: 'mp-settings-title', content: 'إعدادات الرسم' });
+        const closeBtn = BB.el({ className: 'mp-layers-close' });
+        closeBtn.innerHTML = ICONS.close;
+        this.addTouchButton(closeBtn, () => {
+            this.settingsPanel!.style.display = 'none';
+            if (this.backdropEl) this.backdropEl.style.display = 'none';
+        });
+        header.append(title, closeBtn);
+
+        // == Drawing Group ==
+        const drawGroup = BB.el({ className: 'mp-settings-group-title', content: 'أدوات الرسم' });
+        body.append(drawGroup);
+
+        // Stabilizer Strength Slider Container
+        const stabStrengthRow = BB.el({
+            className: 'mp-setting-row',
+            css: {
+                display: this.drawingSettings.stabilizer ? 'flex' : 'none',
+                paddingTop: '4px',
+                borderBottom: 'none'
+            }
+        });
+        const stabStrengthInfo = BB.el({ tagName: 'div', css: { flexGrow: '1' } });
+        stabStrengthInfo.innerHTML = '<div class="mp-setting-label">قوة مثبت الخط</div><div class="mp-setting-desc">حركة أدق عند القيم الكبيرة</div>';
+        
+        const stabStrengthVal = BB.el({
+            tagName: 'div',
+            css: { fontSize: '11px', fontWeight: '800', color: 'var(--mp-accent)', minWidth: '24px', textAlign: 'center' },
+            content: this.drawingSettings.stabilizerStrength.toString()
+        });
+
+        const stabSlider = document.createElement('input');
+        stabSlider.type = 'range';
+        stabSlider.className = 'mp-setting-select';
+        stabSlider.style.min = '1';
+        stabSlider.style.max = '10';
+        stabSlider.style.width = '70px';
+        stabSlider.style.margin = '0 6px';
+        stabSlider.value = this.drawingSettings.stabilizerStrength.toString();
+        
+        stabSlider.addEventListener('input', () => {
+            const val = parseInt(stabSlider.value);
+            stabStrengthVal.textContent = val.toString();
+            this.drawingSettings.stabilizerStrength = val;
+            localStorage.setItem('maria_core_stabilizer_strength', val.toString());
+            this.updateStabilizer();
+        });
+        stabStrengthRow.append(stabStrengthInfo, stabSlider, stabStrengthVal);
+
+        // Stabilizer
+        const stabRow = this.createSettingToggle(
+            'مُثبت الخط (Stabilizer)',
+            'يُنعّم حركة الفرشاة لرسم خطوط أكثر دقة',
+            this.drawingSettings.stabilizer,
+            (val) => {
+                this.drawingSettings.stabilizer = val;
+                localStorage.setItem('maria_core_stabilizer_enabled', val ? 'true' : 'false');
+                this.updateStabilizer();
+                stabStrengthRow.style.display = val ? 'flex' : 'none';
+                this.toast(val ? 'تم تفعيل مُثبت الخط' : 'تم تعطيل مُثبت الخط', val ? 'success' : 'info');
+            }
+        );
+        body.append(stabRow, stabStrengthRow);
+
+        // Pressure Simulation
+        const pressRow = this.createSettingToggle(
+            'محاكاة الضغط (Pressure)',
+            'يحاكي حساسية الضغط تلقائياً للشاشات العادية',
+            this.drawingSettings.pressureSim,
+            (val) => {
+                this.drawingSettings.pressureSim = val;
+                this.updatePressureSim();
+                this.toast(val ? 'تم تفعيل محاكاة الضغط' : 'تم تعطيل محاكاة الضغط', val ? 'success' : 'info');
+            }
+        );
+        body.append(pressRow);
+
+        // == Canvas Group ==
+        const canvasGroup = BB.el({ className: 'mp-settings-group-title', content: 'اللوحة' });
+        body.append(canvasGroup);
+
+        // Rotation Lock
+        const rotRow = this.createSettingToggle(
+            'قفل تدوير اللوحة',
+            'يمنع تدوير اللوحة بالخطأ أثناء الرسم',
+            this.drawingSettings.rotationLock,
+            (val) => {
+                this.drawingSettings.rotationLock = val;
+                localStorage.setItem('maria_core_disable_touch_rotation', val ? 'true' : 'false');
+                this.toast(val ? 'تم قفل التدوير' : 'تم فتح التدوير', val ? 'success' : 'info');
+            }
+        );
+        body.append(rotRow);
+
+        // Finger Painting Lock
+        const disableFinger = localStorage.getItem('maria_core_disable_finger_painting') === 'true';
+        const fingerRow = this.createSettingToggle(
+            'قفل الرسم بالإصبع',
+            'يتجاهل لمسات الأصابع ويسمح بالرسم بالقلم فقط',
+            disableFinger,
+            (val) => {
+                localStorage.setItem('maria_core_disable_finger_painting', val ? 'true' : 'false');
+                this.toast(val ? 'تم قفل الرسم بالإصبع' : 'تم تفعيل الرسم بالإصبع', val ? 'success' : 'info');
+            }
+        );
+        body.append(fingerRow);
+
+        // Grid Overlay
+        const gridRow = this.createSettingSelect(
+            'شبكة مساعدة (Grid)',
+            'تعرض شبكة توجيهية على اللوحة',
+            [
+                { value: 'off', label: 'مغلقة' },
+                { value: '8x8', label: '8×8' },
+                { value: '16x16', label: '16×16' },
+                { value: '32x32', label: '32×32' },
+            ],
+            this.drawingSettings.gridOverlay,
+            (val) => {
+                this.drawingSettings.gridOverlay = val as any;
+                this.updateGridOverlay();
+                this.toast(val === 'off' ? 'تم إغلاق الشبكة' : `تم تفعيل الشبكة ${val}`, val === 'off' ? 'info' : 'success');
+            }
+        );
+        body.append(gridRow);
+
+        // == Save Group ==
+        const saveGroup = BB.el({ className: 'mp-settings-group-title', content: 'الحفظ' });
+        body.append(saveGroup);
+
+        // Auto-Save Interval
+        const autoSaveRow = this.createSettingSelect(
+            'حفظ تلقائي',
+            'يحفظ عملك تلقائياً على فترات',
+            [
+                { value: 'off', label: 'مغلق' },
+                { value: '30s', label: '30 ثانية' },
+                { value: '1min', label: 'دقيقة' },
+                { value: '5min', label: '5 دقائق' },
+            ],
+            this.drawingSettings.autoSave,
+            (val) => {
+                this.drawingSettings.autoSave = val as any;
+                localStorage.setItem('maria_core_auto_save', val);
+                this.updateAutoSaveTimer();
+                this.toast(val === 'off' ? 'تم تعطيل الحفظ التلقائي' : `حفظ تلقائي كل ${val === '30s' ? '30 ثانية' : val === '1min' ? 'دقيقة' : '5 دقائق'}`, val === 'off' ? 'info' : 'success');
+            }
+        );
+        body.append(autoSaveRow);
+
+        // == Display Group ==
+        const displayGroup = BB.el({ className: 'mp-settings-group-title', content: 'العرض' });
+        body.append(displayGroup);
+
+        // Desktop mode
+        const desktopRow = BB.el({ className: 'mp-setting-row' });
+        const desktopInfo = BB.el({ tagName: 'div' });
+        desktopInfo.innerHTML = '<div class="mp-setting-label">وضع سطح المكتب</div><div class="mp-setting-desc">يعرض واجهة الكمبيوتر الكاملة</div>';
+        const desktopBtn = BB.el({
+            css: {
+                padding: '6px 14px',
+                borderRadius: '8px',
+                background: 'rgba(99,102,241,0.12)',
+                color: '#6366f1',
+                fontSize: '11px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                flexShrink: '0',
+                border: '1px solid rgba(99,102,241,0.2)',
+            },
+            content: 'تفعيل'
+        });
+        this.addTouchButton(desktopBtn, () => {
+            this.settingsPanel!.style.display = 'none';
+            if (this.backdropEl) this.backdropEl.style.display = 'none';
+            this.onShowToolspace(true);
+        });
+        desktopRow.append(desktopInfo, desktopBtn);
+        body.append(desktopRow);
+
+        // Version info
+        const versionInfo = BB.el({
+            css: {
+                marginTop: '20px',
+                textAlign: 'center',
+                fontSize: '10px',
+                color: 'var(--mp-text-dim)',
+                opacity: '0.5',
+                paddingBottom: '20px',
+            },
+            content: 'AnimePaint Mobile v1.7.0'
+        });
+        body.append(versionInfo);
+
+        this.settingsPanel.append(header, body);
+        this.rootEl.append(this.settingsPanel);
+    }
+
+    private createSettingToggle(
+        label: string,
+        desc: string,
+        initialValue: boolean,
+        onChange: (val: boolean) => void
+    ): HTMLElement {
+        const row = BB.el({ className: 'mp-setting-row' });
+        const info = BB.el({ tagName: 'div' });
+        info.innerHTML = `<div class="mp-setting-label">${label}</div><div class="mp-setting-desc">${desc}</div>`;
+
+        const toggle = BB.el({ className: 'mp-toggle' });
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.checked = initialValue;
+        const track = BB.el({ className: 'mp-toggle-track' });
+        toggle.append(input, track);
+
+        input.addEventListener('change', () => {
+            onChange(input.checked);
+        });
+
+        row.append(info, toggle);
+        return row;
+    }
+
+    private createSettingSelect(
+        label: string,
+        desc: string,
+        options: { value: string; label: string }[],
+        initialValue: string,
+        onChange: (val: string) => void
+    ): HTMLElement {
+        const row = BB.el({ className: 'mp-setting-row' });
+        const info = BB.el({ tagName: 'div' });
+        info.innerHTML = `<div class="mp-setting-label">${label}</div><div class="mp-setting-desc">${desc}</div>`;
+
+        const select = document.createElement('select');
+        select.className = 'mp-setting-select';
+        options.forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt.value;
+            option.textContent = opt.label;
+            if (opt.value === initialValue) option.selected = true;
+            select.append(option);
+        });
+
+        select.addEventListener('change', () => {
+            onChange(select.value);
+        });
+
+        row.append(info, select);
+        return row;
+    }
+
+    private updateStabilizer(): void {
+        if (this.onSetStabilizer) {
+            this.onSetStabilizer(this.drawingSettings.stabilizer, this.drawingSettings.stabilizerStrength);
+        }
+    }
+ 
+    private updateGridOverlay(): void {
+        localStorage.setItem('maria_core_grid_overlay', this.drawingSettings.gridOverlay);
+        if (this.onSetGridOverlay) {
+            this.onSetGridOverlay(this.drawingSettings.gridOverlay);
+        }
+    }
+ 
+    private updatePressureSim(): void {
+        localStorage.setItem('maria_core_pressure_sim', this.drawingSettings.pressureSim ? 'true' : 'false');
+        if (this.onSetPressureSim) {
+            this.onSetPressureSim(this.drawingSettings.pressureSim);
+        }
+    }
+ 
+    private updateAutoSaveTimer(): void {
+        if (this.autoSaveTimer) {
+            clearInterval(this.autoSaveTimer);
+            this.autoSaveTimer = null;
+        }
+ 
+        if (!this.isVisible || this.drawingSettings.autoSave === 'off') return;
+ 
+        let ms = 30000;
+        if (this.drawingSettings.autoSave === '1min') ms = 60000;
+        if (this.drawingSettings.autoSave === '5min') ms = 300000;
+ 
+        this.autoSaveTimer = setInterval(async () => {
+            if (this.onAutoSave) {
+                try {
+                    await this.onAutoSave();
+                    this.toast('تم الحفظ التلقائي بنجاح ✓', 'success');
+                } catch (e) {
+                    console.error('Auto-save failed:', e);
+                }
+            }
+        }, ms);
+    }
+ 
+    private toggleSettingsPanel(): void {
+        if (!this.settingsPanel) return;
+        const isShown = this.settingsPanel.style.display === 'flex';
+        if (isShown) {
+            this.settingsPanel.style.display = 'none';
+            if (this.backdropEl) this.backdropEl.style.display = 'none';
+        } else {
+            this.settingsPanel.style.display = 'flex';
+            if (this.backdropEl) this.backdropEl.style.display = 'block';
+        }
+    }
+
     // ===================== MENUS =====================
     private createMenus(): void {
         // === File Menu ===
@@ -1160,8 +1962,14 @@ export class MobileUi {
         const fileItems = [
             { text: 'عمل جديد (New)', icon: ICONS.newImage, action: () => this.onTriggerNew(), danger: false },
             { text: 'استيراد صورة (Import)', icon: ICONS.importImg, action: () => this.onTriggerImport(), danger: false },
-            { text: 'تصدير PNG (Export)', icon: ICONS.exportPng, action: () => this.onTriggerSavePng(), danger: false },
-            { text: 'حفظ PSD (Save)', icon: ICONS.savePsd, action: () => this.onTriggerSavePsd(), danger: false },
+            { text: 'تصدير PNG (Export)', icon: ICONS.exportPng, action: () => {
+                this.onTriggerSavePng();
+                this.toast('جاري تصدير ملف PNG...', 'info');
+            }, danger: false },
+            { text: 'حفظ PSD (Save)', icon: ICONS.savePsd, action: () => {
+                this.onTriggerSavePsd();
+                this.toast('جاري حفظ ملف PSD...', 'info');
+            }, danger: false },
             { text: 'sep', icon: '', action: () => {}, danger: false },
             { text: 'مسح الطبقة (Clear)', icon: ICONS.clearLayer, action: () => this.onTriggerClear(), danger: true },
         ];
@@ -1215,6 +2023,7 @@ export class MobileUi {
                 }
 
                 this.onSetTool(tool.id);
+                this.toast(`تم اختيار: ${tool.name}`, 'info');
             });
 
             this.toolsGrid!.append(cell);
@@ -1250,6 +2059,8 @@ export class MobileUi {
                 this.brushesMenu!.querySelectorAll('.mp-check').forEach((c, i) => {
                     (c as HTMLElement).textContent = BRUSH_TYPES[i].id === brush.id ? '✓' : '';
                 });
+
+                this.toast(`فرشاة: ${brush.name}`, 'info');
             });
 
             this.brushesMenu!.append(el);
@@ -1382,6 +2193,9 @@ export class MobileUi {
                     (c as HTMLElement).textContent = BRUSH_TYPES[i].id === activeBrushId ? '✓' : '';
                 });
             }
+
+            // Update brush preview
+            this.updateBrushPreview();
         } catch (e) {
             console.error('Mobile UI sync error:', e);
         }
@@ -1403,6 +2217,15 @@ export class MobileUi {
             this.rootEl.style.display = 'block';
             this.syncValues();
 
+            // Initialize toast system
+            MobileToast.init();
+
+            // Fire settings updates
+            this.updateStabilizer();
+            this.updateGridOverlay();
+            this.updatePressureSim();
+            this.updateAutoSaveTimer();
+
             // Start sync interval
             if (this.syncIntervalId) clearInterval(this.syncIntervalId);
             this.syncIntervalId = setInterval(() => {
@@ -1417,9 +2240,15 @@ export class MobileUi {
             this.rootEl.remove();
             this.rootEl.style.display = 'none';
             if (this.layersWindow) this.layersWindow.style.display = 'none';
+            if (this.settingsPanel) this.settingsPanel.style.display = 'none';
+            if (this.brushPreview) this.brushPreview.style.display = 'none';
             if (this.syncIntervalId) {
                 clearInterval(this.syncIntervalId);
                 this.syncIntervalId = null;
+            }
+            if (this.autoSaveTimer) {
+                clearInterval(this.autoSaveTimer);
+                this.autoSaveTimer = null;
             }
         }
     }
