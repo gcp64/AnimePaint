@@ -142,7 +142,7 @@ export class KlApp {
     private readonly mobileColorUi: MobileColorUi;
     private readonly toolspace: HTMLElement;
     private readonly toolspaceInner: HTMLElement;
-    private readonly toolWidth: number = 271;
+    private toolWidth: number = 271;
     private readonly toolspaceTopRow: ToolspaceTopRow | EmbedToolspaceTopRow;
     private readonly bottomBar: HTMLElement | undefined;
     private readonly layersUi: LayersUi;
@@ -236,6 +236,23 @@ export class KlApp {
         this.toolspaceScroller.updateUiState(this.uiLayout);
     }
 
+    private updateSidebarWidth(width: number): void {
+        this.toolWidth = width;
+        if (!this.embed) {
+            localStorage.setItem('maria_core_sidebar_width', width.toString());
+        }
+        document.documentElement.style.setProperty('--maria-toolspace-width', width + 'px');
+        if (this.toolspace) {
+            this.toolspace.style.width = width + 'px';
+        }
+        if (this.bottomBarWrapper) {
+            this.bottomBarWrapper.style.width = (width - 1) + 'px';
+        }
+        this.updateCollapse();
+        this.updateBottomBar();
+        this.easel.setSize(Math.max(0, this.uiWidth), this.uiHeight);
+    }
+
     // ----------------------------------- public -----------------------------------
 
     constructor(p: TKlAppParams) {
@@ -243,6 +260,13 @@ export class KlApp {
         if (savedAccent) {
             document.documentElement.style.setProperty('--active-highlight-color', savedAccent);
         }
+        const savedWidth = localStorage.getItem('maria_core_sidebar_width') || '271';
+        this.toolWidth = parseInt(savedWidth);
+        document.documentElement.style.setProperty('--maria-toolspace-width', this.toolWidth + 'px');
+
+        const savedFontSize = localStorage.getItem('maria_core_font_size') || '16';
+        document.documentElement.style.setProperty('--maria-ui-font-size', savedFontSize + 'px');
+
         this.embed = p.embed;
         // default 2048, unless your screen is bigger than that (that computer then probably has the horsepower for that)
         // but not larger than 4096 - a fairly arbitrary decision
@@ -849,6 +873,12 @@ export class KlApp {
             }
         });
         this.easel.getElement().append(quickControls.getElement());
+
+        const hideFloating = localStorage.getItem('maria_core_hide_floating_controls') === 'true';
+        if (hideFloating) {
+            canvasHud.getElement().style.display = 'none';
+            quickControls.getElement().style.display = 'none';
+        }
 
         canvasHud.updateDimensions(this.klCanvas.getWidth(), this.klCanvas.getHeight());
         canvasHud.updateZoom(this.easel.getTransform().scale * 100);
@@ -1974,6 +2004,7 @@ export class KlApp {
             },
             saveReminder: this.saveReminder,
             customAbout: p.aboutEl,
+            onSidebarWidthChange: (width) => this.updateSidebarWidth(width),
         });
 
         mainTabRow = new KL.TabRow({
@@ -2167,7 +2198,7 @@ export class KlApp {
 
         this.bottomBarWrapper = BB.el({
             css: {
-                width: '270px',
+                width: (this.toolWidth - 1) + 'px',
                 position: 'absolute',
                 bottom: '0',
                 left: '0',

@@ -355,21 +355,26 @@ export class Easel<GToolId extends string> {
                         angleIsExtraSticky = this.pinchInitialTransform.angleDeg % 180 === 0;
                     }
 
-                    let newAngleDeg =
-                        this.pinchInitialTransform.angleDeg + (event.angleRad / Math.PI) * 180;
-                    newAngleDeg = minimizeAngleDeg(
-                        snapAngleDeg(newAngleDeg, 90, angleIsExtraSticky ? 12 : 4),
-                    );
-                    if (newAngleDeg % 90 !== 0) {
-                        angleIsExtraSticky = false;
+                    const disableTouchRot = localStorage.getItem('maria_core_disable_touch_rotation') === 'true';
+                    let newAngleDeg = this.pinchInitialTransform.angleDeg;
+                    if (!disableTouchRot) {
+                        newAngleDeg = this.pinchInitialTransform.angleDeg + (event.angleRad / Math.PI) * 180;
+                        newAngleDeg = minimizeAngleDeg(
+                            snapAngleDeg(newAngleDeg, 90, angleIsExtraSticky ? 12 : 4),
+                        );
+                        if (newAngleDeg % 90 !== 0) {
+                            angleIsExtraSticky = false;
+                        }
                     }
 
                     const metaTransform = toMetaTransform(this.pinchInitialTransform, {
                         x: event.downRelX,
                         y: event.downRelY,
                     });
+                    const zoomSensitivity = parseFloat(localStorage.getItem('maria_core_zoom_sensitivity') || '1.0');
+                    const scaledFactor = 1 + (event.scale - 1) * zoomSensitivity;
                     metaTransform.scale = BB.clamp(
-                        this.pinchInitialTransform.scale * event.scale,
+                        this.pinchInitialTransform.scale * scaledFactor,
                         EASEL_MIN_SCALE,
                         EASEL_MAX_SCALE,
                     );
@@ -392,13 +397,39 @@ export class Easel<GToolId extends string> {
                 }
             },
             onDoubleTap: (e) => {
-                if (this.fitTransform()) {
-                    this.requestRender();
-                } else {
-                    this.scale(2, e.relX, e.relY);
+                const action = localStorage.getItem('maria_core_touch_double_tap_action') || 'reset';
+                if (action === 'reset') {
+                    if (this.fitTransform()) {
+                        this.requestRender();
+                    } else {
+                        this.scale(2, e.relX, e.relY);
+                    }
+                } else if (action === 'undo') {
+                    this.onUndo();
+                } else if (action === 'redo') {
+                    this.onRedo();
+                } else if (action === 'toggle-hud') {
+                    const hudEl = document.querySelector('.maria-canvas-hud') as HTMLElement;
+                    const quickEl = document.querySelector('.maria-quick-controls') as HTMLElement;
+                    if (hudEl) {
+                        const isHidden = hudEl.style.display === 'none';
+                        hudEl.style.display = isHidden ? 'flex' : 'none';
+                        localStorage.setItem('maria_core_hide_floating_controls', isHidden ? 'false' : 'true');
+                        if (quickEl) quickEl.style.display = isHidden ? 'flex' : 'none';
+                        
+                        const checkbox = document.querySelector('input[name="hide-floating-controls"]') as HTMLInputElement;
+                        if (checkbox) {
+                            checkbox.checked = isHidden;
+                        }
+                    }
                 }
             },
             onChainOut: (e) => {
+                const disableFingerPaint = localStorage.getItem('maria_core_disable_finger_painting') === 'true';
+                if (disableFingerPaint && e.pointerType === 'touch' && this.getActiveToolId() !== 'hand') {
+                    return;
+                }
+
                 this.cursorPos = {
                     x: e.relX,
                     y: e.relY,

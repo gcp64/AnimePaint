@@ -15,13 +15,14 @@ export type TSettingsUiParams = {
     onLeftRight: () => void;
     saveReminder: SaveReminder | undefined;
     customAbout?: HTMLElement;
+    onSidebarWidthChange?: (width: number) => void;
 };
 
 export class SettingsUi {
     private readonly rootEl: HTMLElement;
 
     // ----------------------------------- public -----------------------------------
-    constructor({ onLeftRight, saveReminder, customAbout }: TSettingsUiParams) {
+    constructor({ onLeftRight, saveReminder, customAbout, onSidebarWidthChange }: TSettingsUiParams) {
         this.rootEl = BB.el({
             css: {
                 margin: '10px',
@@ -271,6 +272,153 @@ export class SettingsUi {
                 ]),
             );
         }
+
+        // ---- Custom Interface & Touch Customizations (Maria Premium Features) ----
+        if (onSidebarWidthChange) {
+            const savedWidth = localStorage.getItem('maria_core_sidebar_width') || '271';
+            const widthSelect = new KL.Select({
+                optionArr: [
+                    ['240', 'ضيق (240px)'],
+                    ['271', 'قياسي (271px)'],
+                    ['310', 'عريض (310px)'],
+                ],
+                initValue: savedWidth,
+                onChange: (val) => {
+                    const width = parseInt(val);
+                    onSidebarWidthChange(width);
+                },
+                name: 'sidebar-width',
+            });
+            widthSelect.getElement().style.flexGrow = '1';
+            this.rootEl.append(
+                c(',flex,items-center,gap-5,mt-15,flexWrap', [
+                    BB.el({ content: 'عرض شريط الأدوات:', css: { marginRight: '5px' } }),
+                    widthSelect.getElement(),
+                ])
+            );
+        }
+
+        // Touch Zoom Sensitivity
+        const savedZoomSens = localStorage.getItem('maria_core_zoom_sensitivity') || '1.0';
+        const zoomSensSelect = new KL.Select({
+            optionArr: [
+                ['0.5', 'منخفضة (0.5x)'],
+                ['1.0', 'قياسية (1.0x)'],
+                ['1.5', 'مرتفعة (1.5x)'],
+            ],
+            initValue: savedZoomSens,
+            onChange: (val) => {
+                localStorage.setItem('maria_core_zoom_sensitivity', val);
+            },
+            name: 'touch-zoom-sensitivity',
+        });
+        zoomSensSelect.getElement().style.flexGrow = '1';
+        this.rootEl.append(
+            c(',flex,items-center,gap-5,mt-15,flexWrap', [
+                BB.el({ content: 'حساسية تكبير اللمس:', css: { marginRight: '5px' } }),
+                zoomSensSelect.getElement(),
+            ])
+        );
+
+        // Touch Canvas Rotation Checkbox
+        const disableTouchRot = localStorage.getItem('maria_core_disable_touch_rotation') === 'true';
+        const touchRotCheckbox = new KL.Checkbox({
+            init: disableTouchRot,
+            label: 'تعطيل تدوير لوحة الرسم باللمس',
+            name: 'disable-touch-rotation',
+            callback: (checked) => {
+                localStorage.setItem('maria_core_disable_touch_rotation', checked ? 'true' : 'false');
+            },
+            css: {
+                marginTop: '12px',
+                display: 'block',
+            }
+        });
+        this.rootEl.append(touchRotCheckbox.getElement());
+
+        // Hide Floating HUD / Controls Checkbox
+        const hideFloating = localStorage.getItem('maria_core_hide_floating_controls') === 'true';
+        const hideControlsCheckbox = new KL.Checkbox({
+            init: hideFloating,
+            label: 'إخفاء عناصر التحكم العائمة (HUD / الأزرار السريعة)',
+            name: 'hide-floating-controls',
+            callback: (checked) => {
+                localStorage.setItem('maria_core_hide_floating_controls', checked ? 'true' : 'false');
+                const hudEl = document.querySelector('.maria-canvas-hud') as HTMLElement;
+                const quickEl = document.querySelector('.maria-quick-controls') as HTMLElement;
+                if (hudEl) hudEl.style.display = checked ? 'none' : 'flex';
+                if (quickEl) quickEl.style.display = checked ? 'none' : 'flex';
+            },
+            css: {
+                marginTop: '12px',
+                display: 'block',
+            }
+        });
+        this.rootEl.append(hideControlsCheckbox.getElement());
+        
+        // Disable Finger Painting Checkbox
+        const disableFingerPaint = localStorage.getItem('maria_core_disable_finger_painting') === 'true';
+        const fingerPaintCheckbox = new KL.Checkbox({
+            init: disableFingerPaint,
+            label: 'تعطيل الرسم بالإصبع (اللمس للتحريك والتكبير فقط)',
+            name: 'disable-finger-painting',
+            callback: (checked) => {
+                localStorage.setItem('maria_core_disable_finger_painting', checked ? 'true' : 'false');
+            },
+            css: {
+                marginTop: '12px',
+                display: 'block',
+            }
+        });
+        this.rootEl.append(fingerPaintCheckbox.getElement());
+
+        // Touch Double Tap Action Select
+        const savedDoubleTapAction = localStorage.getItem('maria_core_touch_double_tap_action') || 'reset';
+        const doubleTapActionSelect = new KL.Select({
+            optionArr: [
+                ['reset', 'ملاءمة وتكبير لوحة الرسم'],
+                ['undo', 'تراجع'],
+                ['redo', 'إعادة'],
+                ['toggle-hud', 'تبديل إظهار/إخفاء عناصر التحكم'],
+                ['none', 'بلا إجراء'],
+            ],
+            initValue: savedDoubleTapAction,
+            onChange: (val) => {
+                localStorage.setItem('maria_core_touch_double_tap_action', val);
+            },
+            name: 'touch-double-tap-action',
+        });
+        doubleTapActionSelect.getElement().style.flexGrow = '1';
+        this.rootEl.append(
+            c(',flex,items-center,gap-5,mt-15,flexWrap', [
+                BB.el({ content: 'إجراء النقر المزدوج باللمس:', css: { marginRight: '5px' } }),
+                doubleTapActionSelect.getElement(),
+            ])
+        );
+
+        // UI Font Size Select
+        const savedFontSize = localStorage.getItem('maria_core_font_size') || '16';
+        const fontSizeSelect = new KL.Select({
+            optionArr: [
+                ['14', 'صغير (14px)'],
+                ['16', 'قياسي (16px)'],
+                ['18', 'كبير (18px)'],
+                ['20', 'ضخم (20px)'],
+            ],
+            initValue: savedFontSize,
+            onChange: (val) => {
+                localStorage.setItem('maria_core_font_size', val);
+                document.documentElement.style.setProperty('--maria-ui-font-size', val + 'px');
+            },
+            name: 'ui-font-size',
+        });
+        fontSizeSelect.getElement().style.flexGrow = '1';
+        this.rootEl.append(
+            c(',flex,items-center,gap-5,mt-15,flexWrap', [
+                BB.el({ content: 'حجم خط واجهة المستخدم:', css: { marginRight: '5px' } }),
+                fontSizeSelect.getElement(),
+            ])
+        );
 
         // ---- flip ui ----
         BB.el({
