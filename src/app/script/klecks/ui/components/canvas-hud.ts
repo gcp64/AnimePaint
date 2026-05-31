@@ -117,8 +117,9 @@ export class CanvasHud {
     }
 
     updateColor(hex: string): void {
-        this.colorCircle.style.backgroundColor = hex;
-        this.colorText.textContent = hex.toUpperCase();
+        const formattedHex = hex.startsWith('#') ? hex : `#${hex}`;
+        this.colorCircle.style.backgroundColor = formattedHex;
+        this.colorText.textContent = formattedHex.toUpperCase();
     }
 
     getElement(): HTMLElement {

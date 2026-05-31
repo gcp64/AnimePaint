@@ -853,7 +853,7 @@ export class KlApp {
         canvasHud.updateDimensions(this.klCanvas.getWidth(), this.klCanvas.getHeight());
         canvasHud.updateZoom(this.easel.getTransform().scale * 100);
         canvasHud.updateLayers(this.klCanvas.getLayers().length);
-        canvasHud.updateColor(BB.ColorConverter.toHexString(brushSettingService.getColor()));
+        canvasHud.updateColor(BB.ColorConverter.toHexString(currentColor));
 
         brushSettingService.subscribe((emit) => {
             if (emit.type === 'color') {
