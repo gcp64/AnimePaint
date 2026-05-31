@@ -161,14 +161,15 @@ export class KlApp {
     }
 
     private updateCollapse(isInitial?: boolean): void {
+        const isMobileDevice = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
         if (isInitial) {
-            const isMobile = Boolean(LocalStorage.getItem('uiShowMobile') ?? false);
+            const isMobile = Boolean(LocalStorage.getItem('uiShowMobile') ?? false) || isMobileDevice;
             if (isMobile) {
                 this.mobileUi.setToolspaceIsOpen(false);
             }
         }
         this.mobileUi.setOrientation(this.uiLayout);
-        if (this.uiWidth < this.collapseThreshold) {
+        if (this.uiWidth < this.collapseThreshold || isMobileDevice) {
             this.mobileUi.setIsVisible(true);
             if (this.mobileUi.getToolspaceIsOpen()) {
                 css(this.easel.getElement(), {
