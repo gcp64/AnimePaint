@@ -3,7 +3,7 @@ import path from 'path';
 import { execSync } from 'child_process';
 
 const ART_DIR = 'd:\\المشاريع\\art';
-const ANDROID_DIR = 'd:\\المشاريع\\AnimePaint_Android';
+const ANDROID_DIR = 'd:\\AnimePaint_Android';
 const DESKTOP_DIR = 'C:\\Users\\Mr .bob\\Desktop';
 
 function findJavaHome() {
@@ -87,7 +87,7 @@ async function build() {
         }
 
         console.log('Step 5: Compiling APK using Gradle...');
-        execSync('.\\gradlew.bat assembleDebug', { cwd: ANDROID_DIR, stdio: 'inherit' });
+        execSync('.\\gradlew.bat clean assembleDebug --no-configuration-cache', { cwd: ANDROID_DIR, stdio: 'inherit' });
 
         console.log('Step 6: Copying output APK to Desktop...');
         const outputApkSrc = path.join(ANDROID_DIR, 'app', 'build', 'outputs', 'apk', 'debug', 'app-debug.apk');
