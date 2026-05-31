@@ -29,6 +29,7 @@ export type TMobileUiParams = {
     onSetBrushId?: (brushId: string) => void;
     onGetBrushId?: () => string;
     onFitView?: () => void;
+    onBackToGallery?: () => void;
 };
 
 // SVG icon constants
@@ -134,6 +135,7 @@ export class MobileUi {
     private readonly onSetBrushId?: (brushId: string) => void;
     private readonly onGetBrushId?: () => string;
     private readonly onFitView?: () => void;
+    private readonly onBackToGallery?: () => void;
 
     private currentBrushId: string = 'penBrush';
 
@@ -167,6 +169,7 @@ export class MobileUi {
         this.onSetBrushId = p.onSetBrushId;
         this.onGetBrushId = p.onGetBrushId;
         this.onFitView = p.onFitView;
+        this.onBackToGallery = p.onBackToGallery;
 
         // Inject styles
         this.injectStyles();
@@ -915,7 +918,14 @@ export class MobileUi {
             this.onShowToolspace(true);
         });
 
-        this.topBar.append(menuBtn, this.toolIndicatorBtn, sep1, undoBtn, redoBtn, sep2, layersBtn, fitBtn, desktopBtn);
+        // 8. Back to gallery
+        const backBtn = this.createBtn('<svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6-6-6z"/></svg>');
+        this.addTouchButton(backBtn, () => {
+            this.hideAllMenus();
+            if (this.onBackToGallery) this.onBackToGallery();
+        });
+
+        this.topBar.append(menuBtn, this.toolIndicatorBtn, sep1, undoBtn, redoBtn, sep2, layersBtn, fitBtn, desktopBtn, backBtn);
         this.rootEl.append(this.topBar);
     }
 

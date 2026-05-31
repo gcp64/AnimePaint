@@ -3,6 +3,7 @@ import { BB } from '../bb/bb';
 import { showIframeModal } from '../klecks/ui/modals/show-iframe-modal';
 import { EmbedToolspaceTopRow } from '../embed/embed-toolspace-top-row';
 import {
+    isLayerFill,
     TBrushUiInstance,
     TDeserializedKlStorageProject,
     TDrawEvent,
@@ -16,6 +17,8 @@ import { importFilters } from '../klecks/filters/filters-lazy';
 import { klCanvasToPsdBlob } from '../klecks/storage/kl-canvas-to-psd-blob';
 import { ProjectStore } from '../klecks/storage/project-store';
 import { SaveReminder } from '../klecks/ui/components/save-reminder';
+import { GalleryStore } from '../klecks/storage/gallery-store';
+import { MobilePortal } from '../klecks/ui/mobile/mobile-portal';
 import { KlCanvas, TKlCanvasLayer } from '../klecks/canvas/kl-canvas';
 import { LANG } from '../language/language';
 import { LocalStorage } from '../bb/base/local-storage';
@@ -141,6 +144,9 @@ export class KlApp {
     private readonly mobileUi: MobileUi;
     private readonly mobileBrushUi: MobileBrushUi;
     private readonly mobileColorUi: MobileColorUi;
+    private readonly galleryStore: GalleryStore;
+    private readonly mobilePortal: MobilePortal;
+    private currentProjectTitle: string = 'لوحة بدون عنوان';
     private readonly toolspace: HTMLElement;
     private readonly toolspaceInner: HTMLElement;
     private toolWidth: number = 271;
@@ -1358,6 +1364,28 @@ export class KlApp {
             },
             onFitView: () => {
                 this.easel.resetOrFitTransform(true);
+            },
+            onBackToGallery: () => {
+                const currentProj = this.klCanvas.getProject();
+                this.statusOverlay.out('جاري حفظ اللوحة...', false);
+                
+                setTimeout(async () => {
+                    try {
+                        await this.galleryStore.saveProject(currentProj, this.currentProjectTitle);
+                        this.statusOverlay.out('تم الحفظ بنجاح', true);
+                        this.rootEl.style.display = 'none';
+                        this.mobilePortal.setIsVisible(true);
+                        this.mobilePortal.refreshGalleryList();
+                    } catch (err) {
+                        console.error('Failed to save project:', err);
+                        this.statusOverlay.out('فشل في حفظ اللوحة', true);
+                        if (confirm('فشل حفظ اللوحة الفنية في المعرض المحلي. هل تود العودة للمعرض على أي حال؟ (قد تفقد التغييرات الأخيرة)')) {
+                            this.rootEl.style.display = 'none';
+                            this.mobilePortal.setIsVisible(true);
+                            this.mobilePortal.refreshGalleryList();
+                        }
+                    }
+                }, 100);
             }
         });
 
@@ -2585,6 +2613,97 @@ export class KlApp {
         if (easelEl) {
             easelEl.style.transform = 'scale(0.98)';
             easelEl.style.opacity = '0';
+        }
+        // Initialize Gallery Database and Portal UI
+        this.galleryStore = new GalleryStore();
+        this.mobilePortal = new MobilePortal({
+            galleryStore: this.galleryStore,
+            onLoadProject: async (projectId) => {
+                this.statusOverlay.out('جاري تحميل اللوحة...', false);
+                try {
+                    const project = await this.galleryStore.loadProject(projectId);
+                    if (project) {
+                        this.currentProjectTitle = (project as any).title || 'لوحة بدون عنوان';
+                        
+                        const layers = project.layers.map((layer, idx) => {
+                            let imageCanvas: HTMLCanvasElement;
+                            if (layer.image instanceof HTMLCanvasElement) {
+                                imageCanvas = layer.image;
+                            } else {
+                                imageCanvas = BB.canvas(project.width, project.height);
+                                const ctx = imageCanvas.getContext('2d')!;
+                                if (layer.image instanceof HTMLImageElement) {
+                                    ctx.drawImage(layer.image, 0, 0);
+                                } else if (isLayerFill(layer.image)) {
+                                    ctx.fillStyle = layer.image.fill;
+                                    ctx.fillRect(0, 0, project.width, project.height);
+                                }
+                            }
+                            return {
+                                id: idx,
+                                name: layer.name,
+                                isVisible: layer.isVisible,
+                                opacity: layer.opacity,
+                                mixModeStr: layer.mixModeStr || 'source-over',
+                                image: imageCanvas,
+                            };
+                        });
+
+                        this.klCanvas.reset({
+                            projectId: project.projectId,
+                            width: project.width,
+                            height: project.height,
+                            layers: layers,
+                        });
+                        
+                        this.klHistory.clear();
+                        this.layersUi.update(layers.length - 1);
+                        setCurrentLayer(this.klCanvas.getLayer(layers.length - 1));
+                        this.easelProjectUpdater.update();
+                        this.easel.resetOrFitTransform(true);
+                        
+                        this.statusOverlay.out('تم التحميل بنجاح', true);
+                        
+                        this.rootEl.style.display = 'block';
+                        this.updateCollapse();
+                    } else {
+                        this.statusOverlay.out('فشل في تحميل اللوحة', true);
+                        this.mobilePortal.setIsVisible(true);
+                    }
+                } catch (err) {
+                    console.error('Failed to load project:', err);
+                    this.statusOverlay.out('فشل في تحميل اللوحة', true);
+                    this.mobilePortal.setIsVisible(true);
+                }
+            },
+            onNewProject: (width, height, isTransparent) => {
+                this.currentProjectTitle = 'لوحة جديدة';
+                const newProjId = randomUuid();
+                
+                this.klCanvas.reset({
+                    projectId: newProjId,
+                    width: width,
+                    height: height,
+                    color: isTransparent ? undefined : { r: 255, g: 255, b: 255 },
+                });
+                
+                this.klHistory.clear();
+                this.layersUi.update(0);
+                setCurrentLayer(this.klCanvas.getLayer(0));
+                this.easelProjectUpdater.update();
+                this.easel.resetOrFitTransform(true);
+                
+                this.rootEl.style.display = 'block';
+                this.updateCollapse();
+            }
+        });
+
+        // Determine if we show portal first on mobile layout
+        const isMobileDevice = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+        const isMobile = this.uiWidth < this.collapseThreshold || isMobileDevice;
+        if (isMobile && !p.project) {
+            this.rootEl.style.display = 'none';
+            this.mobilePortal.setIsVisible(true);
         }
 
         setTimeout(() => {
