@@ -133,6 +133,106 @@ export class SettingsUi {
             },
         });
 
+        // ---- accent color ----
+        const savedAccent = localStorage.getItem('maria_core_theme_accent') || '#00f0ff';
+        
+        const accentRow = BB.el({
+            parent: this.rootEl,
+            css: {
+                marginTop: '15px',
+                display: 'flex',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+            }
+        });
+
+        const accentLabel = BB.el({
+            content: 'لون التوهج النشط (Accent):',
+            css: {
+                marginRight: '10px',
+                marginBottom: '2px',
+            }
+        });
+        accentRow.append(accentLabel);
+
+        const chipsContainer = BB.el({
+            css: {
+                display: 'flex',
+                gap: '8px',
+                alignItems: 'center',
+            }
+        });
+
+        const accents = [
+            { name: 'cyan', color: '#00f0ff' },
+            { name: 'magenta', color: '#ff007f' },
+            { name: 'green', color: '#39ff14' },
+            { name: 'yellow', color: '#e5ff00' }
+        ];
+
+        const chipElements: HTMLElement[] = [];
+
+        accents.forEach(item => {
+            const chip = BB.el({
+                css: {
+                    width: '18px',
+                    height: '18px',
+                    borderRadius: '50%',
+                    backgroundColor: item.color,
+                    cursor: 'pointer',
+                    border: item.color === savedAccent ? '2px solid #ffffff' : '2px solid rgba(255, 255, 255, 0.2)',
+                    boxShadow: item.color === savedAccent ? `0 0 8px ${item.color}` : 'none',
+                    transition: 'border 0.2s, box-shadow 0.2s, transform 0.2s',
+                },
+                onClick: () => {
+                    localStorage.setItem('maria_core_theme_accent', item.color);
+                    document.documentElement.style.setProperty('--active-highlight-color', item.color);
+                    
+                    // Update active styles on chips
+                    chipElements.forEach((el, index) => {
+                        const active = accents[index].color === item.color;
+                        css(el, {
+                            border: active ? '2px solid #ffffff' : '2px solid rgba(255, 255, 255, 0.2)',
+                            boxShadow: active ? `0 0 8px ${accents[index].color}` : 'none',
+                            transform: active ? 'scale(1.15)' : 'scale(1)',
+                        });
+                    });
+                }
+            });
+
+            // Initial scale
+            if (item.color === savedAccent) {
+                css(chip, { transform: 'scale(1.15)' });
+            }
+
+            // Hover effect
+            chip.addEventListener('mouseenter', () => {
+                const current = localStorage.getItem('maria_core_theme_accent') || '#00f0ff';
+                if (item.color !== current) {
+                    css(chip, {
+                        transform: 'scale(1.1)',
+                        boxShadow: `0 0 4px ${item.color}`,
+                    });
+                }
+            });
+
+            chip.addEventListener('mouseleave', () => {
+                const current = localStorage.getItem('maria_core_theme_accent') || '#00f0ff';
+                if (item.color !== current) {
+                    css(chip, {
+                        transform: 'scale(1)',
+                        boxShadow: 'none',
+                    });
+                }
+            });
+
+            chipElements.push(chip);
+            chipsContainer.append(chip);
+        });
+
+        accentRow.append(chipsContainer);
+
+
         // ---- save reminder ----
         if (saveReminder) {
             const reminderSelect = new KL.Select({

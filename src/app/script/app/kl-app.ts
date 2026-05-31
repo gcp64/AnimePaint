@@ -63,6 +63,8 @@ import { KlAppSelect } from './kl-app-select';
 import { KlTempHistory } from '../klecks/history/kl-temp-history';
 import { PinchZoomWatcher } from '../klecks/ui/components/pinch-zoom-watcher';
 import { EASEL_MAX_SCALE, EASEL_MIN_SCALE } from '../klecks/ui/easel/easel.config';
+import { CanvasHud } from '../klecks/ui/components/canvas-hud';
+import { QuickControls } from '../klecks/ui/components/quick-controls';
 import { THistoryEntryDataComposed } from '../klecks/history/history.types';
 import { KlHistoryExecutor, THistoryExecutionType } from '../klecks/history/kl-history-executor';
 import { KlHistory } from '../klecks/history/kl-history';
@@ -237,6 +239,10 @@ export class KlApp {
     // ----------------------------------- public -----------------------------------
 
     constructor(p: TKlAppParams) {
+        const savedAccent = localStorage.getItem('maria_core_theme_accent');
+        if (savedAccent) {
+            document.documentElement.style.setProperty('--active-highlight-color', savedAccent);
+        }
         this.embed = p.embed;
         // default 2048, unless your screen is bigger than that (that computer then probably has the horsepower for that)
         // but not larger than 4096 - a fairly arbitrary decision
@@ -665,6 +671,8 @@ export class KlApp {
         });
 
         let isFirstTransform = true;
+        let canvasHud: CanvasHud;
+        let quickControls: QuickControls;
         this.easel = new Easel({
             width: Math.max(0, this.uiWidth - this.toolWidth),
             height: this.uiHeight,
@@ -785,6 +793,10 @@ export class KlApp {
                 this.toolspaceToolRow.setEnableZoomIn(transform.scale !== EASEL_MAX_SCALE);
                 this.toolspaceToolRow.setEnableZoomOut(transform.scale !== EASEL_MIN_SCALE);
 
+                if (canvasHud) {
+                    canvasHud.updateZoom(transform.scale * 100);
+                }
+
                 if (isScaleOrAngleChanged && !isFirstTransform) {
                     this.statusOverlay.out({
                         type: 'transform',
@@ -812,8 +824,49 @@ export class KlApp {
             klCanvas: this.klCanvas,
             easel: this.easel,
         });
+        canvasHud = new CanvasHud();
+        this.easel.getElement().append(canvasHud.getElement());
+
+        quickControls = new QuickControls({
+            onUndo: () => {
+                undo(true);
+            },
+            onRedo: () => {
+                redo(true);
+            },
+            onZoomIn: () => {
+                const oldScale = this.easel.getTransform().scale;
+                const newScale = zoomByStep(oldScale, 1 / 2);
+                this.easel.scale(newScale / oldScale);
+            },
+            onZoomOut: () => {
+                const oldScale = this.easel.getTransform().scale;
+                const newScale = zoomByStep(oldScale, -1 / 2);
+                this.easel.scale(newScale / oldScale);
+            },
+            onReset: () => {
+                this.easel.resetOrFitTransform(true);
+            }
+        });
+        this.easel.getElement().append(quickControls.getElement());
+
+        canvasHud.updateDimensions(this.klCanvas.getWidth(), this.klCanvas.getHeight());
+        canvasHud.updateZoom(this.easel.getScale() * 100);
+        canvasHud.updateLayers(this.klCanvas.getLayers().length);
+        canvasHud.updateColor(BB.ColorConverter.toHexString(brushSettingService.getColor()));
+
+        brushSettingService.subscribe((emit) => {
+            if (emit.type === 'color') {
+                canvasHud.updateColor(BB.ColorConverter.toHexString(emit.value));
+            }
+        });
+
         this.klHistory.addListener(() => {
             this.easelProjectUpdater.update();
+            if (canvasHud) {
+                canvasHud.updateLayers(this.klCanvas.getLayers().length);
+                canvasHud.updateDimensions(this.klCanvas.getWidth(), this.klCanvas.getHeight());
+            }
         });
         KL.DIALOG_COUNTER.subscribe((count) => {
             this.easel.setIsFrozen(count > 0);
