@@ -220,6 +220,23 @@ export class MobileUi {
 
         // Resize handler
         window.addEventListener('resize', () => this.syncValues());
+
+        // Prevent touch/click event leakage to drawing canvas
+        const preventCanvasLeak = (el: HTMLElement) => {
+            ['pointerdown', 'touchstart', 'mousedown'].forEach(evtName => {
+                el.addEventListener(evtName, (e) => {
+                    e.stopPropagation();
+                }, { passive: true });
+            });
+        };
+        
+        if (this.topBar) preventCanvasLeak(this.topBar);
+        if (this.bottomBar) preventCanvasLeak(this.bottomBar);
+        if (this.slidersDeck) preventCanvasLeak(this.slidersDeck);
+        if (this.layersWindow) preventCanvasLeak(this.layersWindow);
+        if (this.fileMenu) preventCanvasLeak(this.fileMenu);
+        if (this.toolsGrid) preventCanvasLeak(this.toolsGrid);
+        if (this.brushesMenu) preventCanvasLeak(this.brushesMenu);
     }
 
     // ===================== STYLES =====================
@@ -238,6 +255,14 @@ export class MobileUi {
                 --mp-text: #e2e8f0;
                 --mp-text-dim: #94a3b8;
                 --mp-danger: #ef4444;
+            }
+
+            /* Light theme overrides */
+            html:not(.kl-theme-dark) {
+                --mp-bg: rgba(255, 255, 255, 0.88);
+                --mp-border: rgba(0, 0, 0, 0.09);
+                --mp-text: #1e293b;
+                --mp-text-dim: #64748b;
             }
 
             /* === Animations === */
@@ -296,7 +321,8 @@ export class MobileUi {
             .mp-bottom-bar {
                 position: fixed;
                 bottom: 24px;
-                left: 50%; transform: translateX(-50%);
+                left: 0; right: 0;
+                margin: 0 auto;
                 width: 88%; max-width: 360px;
                 height: 56px;
                 border-radius: 18px;
@@ -306,12 +332,12 @@ export class MobileUi {
                 padding: 0 8px;
                 animation: mp-slideUp 0.35s ease-out;
                 z-index: 10001;
+                touch-action: none !important;
             }
 
             /* === Button === */
             .mp-btn {
-                min-width: 44px; min-height: 44px;
-                width: 40px; height: 40px;
+                width: 44px; height: 44px;
                 border-radius: 12px;
                 border: 1px solid rgba(255,255,255,0.06);
                 background: rgba(255,255,255,0.03);
@@ -321,12 +347,18 @@ export class MobileUi {
                 justify-content: center;
                 cursor: pointer;
                 transition: background 0.15s, transform 0.1s, box-shadow 0.2s, border-color 0.2s;
-                touch-action: manipulation;
+                touch-action: none !important;
                 -webkit-tap-highlight-color: transparent;
                 user-select: none;
                 -webkit-user-select: none;
                 flex-shrink: 0;
                 position: relative;
+                pointer-events: auto !important;
+            }
+            .mp-btn::after {
+                content: '';
+                position: absolute;
+                top: -10px; left: -10px; right: -10px; bottom: -10px;
             }
             .mp-btn svg {
                 width: 20px; height: 20px;
@@ -353,10 +385,10 @@ export class MobileUi {
                 box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3);
                 cursor: pointer;
                 transition: transform 0.15s;
-                touch-action: manipulation;
+                touch-action: none !important;
                 -webkit-tap-highlight-color: transparent;
                 flex-shrink: 0;
-                pointer-events: auto;
+                pointer-events: auto !important;
             }
             .mp-color-circle:active { transform: scale(0.88); }
 
@@ -373,6 +405,8 @@ export class MobileUi {
                 gap: 2px;
                 z-index: 10002;
                 animation: mp-scaleIn 0.2s ease-out;
+                touch-action: none !important;
+                pointer-events: auto !important;
             }
             .mp-popup-menu::-webkit-scrollbar { width: 4px; }
             .mp-popup-menu::-webkit-scrollbar-thumb {
@@ -392,8 +426,9 @@ export class MobileUi {
                 align-items: center;
                 gap: 10px;
                 direction: rtl;
-                touch-action: manipulation;
+                touch-action: none !important;
                 -webkit-tap-highlight-color: transparent;
+                pointer-events: auto !important;
             }
             .mp-menu-item:active {
                 background: rgba(255,255,255,0.08);
@@ -437,8 +472,9 @@ export class MobileUi {
                 padding: 6px 4px;
                 border-radius: 10px;
                 transition: background 0.15s, box-shadow 0.2s;
-                touch-action: manipulation;
+                touch-action: none !important;
                 -webkit-tap-highlight-color: transparent;
+                pointer-events: auto !important;
             }
             .mp-tool-cell:active {
                 background: rgba(255,255,255,0.06);
@@ -495,7 +531,7 @@ export class MobileUi {
                 cursor: pointer;
                 color: var(--mp-text-dim);
                 transition: background 0.15s;
-                touch-action: manipulation;
+                touch-action: none !important;
                 -webkit-tap-highlight-color: transparent;
             }
             .mp-sliders-close:active { background: rgba(255,255,255,0.1); }
@@ -522,7 +558,7 @@ export class MobileUi {
                 outline: none;
                 -webkit-appearance: none;
                 appearance: none;
-                touch-action: manipulation;
+                touch-action: none !important;
             }
             .mp-range::-webkit-slider-thumb {
                 -webkit-appearance: none;
@@ -558,6 +594,7 @@ export class MobileUi {
                 color: #f1f5f9;
                 cursor: move;
                 flex-shrink: 0;
+                touch-action: none !important;
             }
             .mp-layers-close {
                 width: 26px; height: 26px;
@@ -566,7 +603,7 @@ export class MobileUi {
                 cursor: pointer;
                 color: var(--mp-text-dim);
                 transition: background 0.15s;
-                touch-action: manipulation;
+                touch-action: none !important;
             }
             .mp-layers-close:active { background: rgba(255,255,255,0.1); }
             .mp-layers-close svg { width: 16px; height: 16px; fill: currentColor; }
@@ -622,6 +659,56 @@ export class MobileUi {
                 padding: 3px 6px !important;
                 border-radius: 6px !important;
             }
+
+            /* === Small Screens Responsive Scale === */
+            @media (max-width: 400px) {
+                .mp-btn {
+                    width: 36px; height: 36px;
+                    border-radius: 10px;
+                }
+                .mp-btn::after {
+                    top: -6px; left: -6px; right: -6px; bottom: -6px;
+                }
+                .mp-top-bar {
+                    height: 40px;
+                    border-radius: 12px;
+                    gap: 2px;
+                    padding: 0 4px;
+                    top: 4px; left: 4px; right: 4px;
+                }
+                .mp-btn svg {
+                    width: 16px; height: 16px;
+                }
+                .mp-top-sep {
+                    height: 18px;
+                }
+                .mp-color-circle {
+                    width: 30px; height: 30px;
+                    border-width: 2px;
+                }
+                .mp-bottom-bar {
+                    height: 46px;
+                    bottom: 16px;
+                    border-radius: 14px;
+                    padding: 0 4px;
+                }
+                .mp-sliders-deck {
+                    bottom: 74px; left: 4px;
+                    width: 200px;
+                    padding: 8px 10px;
+                }
+                .mp-layers-window {
+                    bottom: 74px; right: 4px;
+                    width: 240px; height: 300px;
+                }
+                .mp-slider-row {
+                    gap: 6px;
+                }
+                .mp-slider-label {
+                    min-width: 60px;
+                    font-size: 9px;
+                }
+            }
         `;
         document.head.appendChild(style);
     }
@@ -629,6 +716,7 @@ export class MobileUi {
     // ===================== HELPERS =====================
     private addTouchButton(el: HTMLElement, callback: () => void): void {
         let isTouching = false;
+        let lastTouchTime = 0;
 
         el.addEventListener('touchstart', (e: TouchEvent) => {
             e.stopPropagation();
@@ -642,6 +730,7 @@ export class MobileUi {
             el.classList.remove('mp-pressing');
             if (isTouching) {
                 isTouching = false;
+                lastTouchTime = Date.now();
                 // Haptic feedback
                 if (navigator.vibrate) {
                     try { navigator.vibrate(8); } catch (_) {}
@@ -657,9 +746,10 @@ export class MobileUi {
 
         el.addEventListener('click', (e: MouseEvent) => {
             e.stopPropagation();
-            if (!isTouching) {
-                callback();
+            if (Date.now() - lastTouchTime < 500) {
+                return;
             }
+            callback();
         });
     }
 
@@ -803,6 +893,7 @@ export class MobileUi {
         brushBtn.classList.add('mp-active');
         let brushLongTimer: ReturnType<typeof setTimeout> | null = null;
         let brushWasLong = false;
+        let brushLastTouchTime = 0;
 
         brushBtn.addEventListener('touchstart', (e) => {
             e.stopPropagation();
@@ -821,6 +912,7 @@ export class MobileUi {
             brushBtn.classList.remove('mp-pressing');
             if (brushLongTimer) clearTimeout(brushLongTimer);
             if (!brushWasLong) {
+                brushLastTouchTime = Date.now();
                 if (navigator.vibrate) try { navigator.vibrate(8); } catch (_) {}
                 const currentTool = this.onGetTool();
                 const currentBrushId = this.onGetBrushId ? this.onGetBrushId() : '';
@@ -845,6 +937,9 @@ export class MobileUi {
 
         brushBtn.addEventListener('click', (e) => {
             e.stopPropagation();
+            if (Date.now() - brushLastTouchTime < 500) {
+                return;
+            }
             const currentTool = this.onGetTool();
             const currentBrushId = this.onGetBrushId ? this.onGetBrushId() : '';
             const isEraser = currentBrushId === 'eraserBrush';
