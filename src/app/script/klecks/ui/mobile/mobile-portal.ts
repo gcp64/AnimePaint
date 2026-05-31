@@ -688,6 +688,57 @@ export class MobilePortal {
             }
             .mp-online-title { font-size: 13px; font-weight: 700; }
             .mp-online-author { font-size: 10px; color: #6366f1; font-weight: 700; }
+
+            /* Additional enhancements for rankings and sync */
+            .mp-sync-banner {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: rgba(255,255,255,0.03);
+                border: 1px solid rgba(255,255,255,0.06);
+                padding: 10px 14px;
+                font-size: 11px;
+                font-weight: 700;
+                margin-bottom: 16px;
+                box-sizing: border-box;
+                border-radius: 12px;
+                gap: 8px;
+            }
+            html:not(.kl-theme-dark) .mp-sync-banner {
+                background: rgba(0,0,0,0.02);
+                border-color: rgba(0,0,0,0.05);
+            }
+            .mp-sync-text-1 {
+                opacity: 0.8;
+            }
+            .mp-rank-panel {
+                width: 100%;
+                max-width: 440px;
+                margin-top: 32px;
+                border-radius: 20px;
+                padding: 14px 18px;
+                box-sizing: border-box;
+                border: 1px solid rgba(255,255,255,0.06);
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
+            }
+            .mp-rank-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                font-size: 12px;
+                font-weight: 700;
+                padding: 4px 0;
+            }
+            .mp-rank-row:not(:last-child) {
+                border-bottom: 1px solid rgba(255,255,255,0.03);
+            }
+            html:not(.kl-theme-dark) .mp-rank-row:not(:last-child) {
+                border-bottom-color: rgba(0,0,0,0.03);
+            }
         `;
         document.head.appendChild(style);
     }
@@ -716,7 +767,7 @@ export class MobilePortal {
         helpBtn.className = 'mp-header-btn';
         helpBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.25z"/></svg>';
         helpBtn.addEventListener('click', () => {
-            alert('AnimePaint Mobile v1.5.3\nتصميم وبناء واجهة الهاتف الذكي وتنسيق الطبقات لحفظ أعمالك الفنية تلقائياً واستعراضها.');
+            alert('AnimePaint Mobile v1.6.1\nتصميم وبناء واجهة الهاتف الذكي وتنسيق الطبقات لحفظ أعمالك الفنية تلقائياً واستعراضها.');
         });
 
         const premiumBtn = document.createElement('div');
@@ -741,7 +792,7 @@ export class MobilePortal {
         imgWrap.append(wheel, brushIcon);
 
         const title = BB.el({ className: 'mp-logo-title', content: 'أنيمي باينت' });
-        const version = BB.el({ className: 'mp-logo-version', content: 'النسخة المحمولة Ver 1.5.3' });
+        const version = BB.el({ className: 'mp-logo-version', content: 'النسخة المحمولة Ver 1.6.1' });
         
         logoSec.append(imgWrap, title, version);
 
@@ -772,7 +823,57 @@ export class MobilePortal {
 
         actions.append(galleryCard, onlineCard);
 
-        this.welcomeContainer.append(header, logoSec, actions);
+        // Rating/Rankings Panel at the bottom to match ibisPaint screenshot
+        const rankPanel = BB.el({
+            className: 'mp-rank-panel mp-glass'
+        });
+
+        const rankHeader = BB.el({
+            css: {
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                paddingBottom: '8px',
+            }
+        });
+        rankHeader.innerHTML = `
+            <span style="font-size: 12px; font-weight: 800; color: #f59e0b; display: flex; align-items: center; gap: 6px; direction: rtl;">
+                🏆 التقييم الشهري للرسامين
+            </span>
+            <span style="font-size: 10px; opacity: 0.6; font-weight: 700;">مايو 2026</span>
+        `;
+
+        const rankList = BB.el({
+            css: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                marginTop: '6px',
+            }
+        });
+
+        const topArtists = [
+            { rank: 1, name: 'أحمد الياسري', points: '14,230 نقطة', avatar: '🥇' },
+            { rank: 2, name: 'سارة الخالدي', points: '12,850 نقطة', avatar: '🥈' },
+            { rank: 3, name: 'ميار آرت', points: '10,910 نقطة', avatar: '🥉' }
+        ];
+
+        topArtists.forEach(artist => {
+            const row = BB.el({ className: 'mp-rank-row' });
+            row.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 14px;">${artist.avatar}</span>
+                    <span style="font-size: 12px; font-weight: 700;">${artist.name}</span>
+                </div>
+                <span style="color: #6366f1; font-size: 11px; font-weight: 700;">${artist.points}</span>
+            `;
+            rankList.append(row);
+        });
+
+        rankPanel.append(rankHeader, rankList);
+
+        this.welcomeContainer.append(header, logoSec, actions, rankPanel);
     }
 
     // ===================== GALLERY VIEW =====================
@@ -797,6 +898,35 @@ export class MobilePortal {
 
         header.append(backBtn, title, selectBtn);
 
+        // Cloud Sync Banner to match ibisPaint screenshot
+        const syncBanner = BB.el({ className: 'mp-sync-banner' });
+        const syncText = BB.el({
+            className: 'mp-sync-text-1',
+            content: 'سهولة نقل البيانات عند تغيير الأجهزة'
+        });
+
+        const syncControlWrap = BB.el({
+            css: { display: 'flex', alignItems: 'center', gap: '8px' }
+        });
+        const syncLabel = BB.el({
+            tagName: 'span',
+            css: { opacity: '0.7', fontSize: '10px' },
+            content: 'مزامنة السحابية'
+        });
+
+        const syncSwitch = BB.el({ className: 'mp-switch' });
+        const syncInput = document.createElement('input');
+        syncInput.type = 'checkbox';
+        const syncSlider = BB.el({ className: 'mp-switch-slider' });
+        syncSwitch.append(syncInput, syncSlider);
+
+        syncInput.addEventListener('change', () => {
+            alert(syncInput.checked ? 'تم تفعيل المزامنة السحابية التجريبية لرسوماتك!' : 'تم تعطيل المزامنة السحابية.');
+        });
+
+        syncControlWrap.append(syncLabel, syncSwitch);
+        syncBanner.append(syncText, syncControlWrap);
+
         // Projects Grid
         const grid = BB.el({ className: 'mp-projects-grid', id: 'mp-gallery-grid' });
 
@@ -809,7 +939,7 @@ export class MobilePortal {
             this.showNewCanvasDialog(true);
         });
 
-        this.galleryContainer.append(header, grid, fab);
+        this.galleryContainer.append(header, syncBanner, grid, fab);
     }
 
     // ===================== ONLINE VIEW =====================
