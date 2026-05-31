@@ -805,6 +805,17 @@
         color: #cbd5e1 !important;
     }
 
+    .kl-presets-select {
+        background-color: rgba(255, 255, 255, 0.02) !important;
+        color: #cbd5e1 !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+        
+        option {
+            background-color: #1a1a24;
+            color: #cbd5e1;
+        }
+    }
+
     .kl-preset-btn {
         background-color: rgba(255, 255, 255, 0.02) !important;
         color: #cbd5e1 !important;

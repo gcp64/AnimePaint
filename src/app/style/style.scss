@@ -1693,10 +1693,32 @@ html[dir="rtl"] {
     color: #666;
 }
 
+.kl-presets-select {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 6px 10px;
+    font-family: inherit;
+    font-size: 12px;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    background-color: #fff;
+    color: #333;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+.kl-presets-select:focus {
+    border-color: var(--active-highlight-color);
+}
+
 .kl-presets-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
+    max-height: 180px;
+    overflow-y: auto;
+    padding-right: 4px;
+    scrollbar-width: thin;
 }
 
 .kl-preset-btn {

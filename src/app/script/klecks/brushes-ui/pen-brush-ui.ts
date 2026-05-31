@@ -246,52 +246,148 @@ export const penBrushUi = (function () {
             );
 
             const presetsHeader = BB.el({
-                content: 'نماذج القلم الجاهزة',
+                content: 'نماذج القلم الجاهزة (58 نوع)',
                 className: 'kl-presets-header',
+            });
+
+            const categorySelect = BB.el({
+                tagName: 'select',
+                className: 'kl-presets-select',
+            }) as HTMLSelectElement;
+
+            const categories = [
+                { id: 'pencils', name: 'أقلام رصاص وتخطيط' },
+                { id: 'ink', name: 'أقلام حبر ورسم هندسي' },
+                { id: 'painting', name: 'فرش رسم فني وزيتي' },
+                { id: 'spray', name: 'بخاخات وتأثيرات هوائية' },
+                { id: 'textures', name: 'طباشير ونقوش خشنة' },
+                { id: 'special', name: 'مؤثرات ورسم سريع' }
+            ];
+
+            categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.id;
+                opt.textContent = cat.name;
+                opt.style.backgroundColor = '#1a1a24';
+                opt.style.color = '#cbd5e1';
+                categorySelect.append(opt);
             });
 
             const presetsGrid = BB.el({
                 className: 'kl-presets-grid',
             });
 
-            const presets = [
-                { name: 'قلم تخطيط ناعم', size: 1.5, opacity: 1.0, scatter: 0, shape: 0 },
-                { name: 'قلم خط عربي', size: 12, opacity: 1.0, scatter: 0, shape: 2 },
-                { name: 'تباشير خشنة', size: 15, opacity: 0.8, scatter: 0, shape: 1 },
-                { name: 'بخاخ ناعم', size: 30, opacity: 0.35, scatter: 12, shape: 0 },
-                { name: 'قلم مربع', size: 6, opacity: 1.0, scatter: 0, shape: 3 },
-                { name: 'إعادة الضبط', size: 2, opacity: 1.0, scatter: 0, shape: 0 }
-            ];
+            const presets = {
+                pencils: [
+                    { name: 'قلم رصاص H (قاسٍ)', size: 1, opacity: 0.6, scatter: 0, shape: 1 },
+                    { name: 'قلم رصاص HB (متوسط)', size: 2, opacity: 0.85, scatter: 0, shape: 1 },
+                    { name: 'قلم رصاص 2B (ناعم)', size: 3, opacity: 0.9, scatter: 0, shape: 1 },
+                    { name: 'قلم رصاص 4B (داكن)', size: 4.5, opacity: 0.95, scatter: 0, shape: 1 },
+                    { name: 'قلم رصاص 6B (عريض)', size: 6, opacity: 1.0, scatter: 0, shape: 1 },
+                    { name: 'قلم تخطيط سريع', size: 1.5, opacity: 0.7, scatter: 0, shape: 0 },
+                    { name: 'قلم رصاص خشبي خشن', size: 8, opacity: 0.75, scatter: 0, shape: 1 },
+                    { name: 'قلم تظليل ناعم', size: 12, opacity: 0.5, scatter: 0, shape: 1 },
+                    { name: 'فحم رسم طبيعي', size: 15, opacity: 0.7, scatter: 1, shape: 1 },
+                    { name: 'فحم رسم عريض', size: 25, opacity: 0.8, scatter: 2, shape: 1 }
+                ],
+                ink: [
+                    { name: 'قلم حبر رفيع 0.1', size: 0.5, opacity: 1.0, scatter: 0, shape: 0 },
+                    { name: 'قلم حبر دقيق 0.3', size: 1.0, opacity: 1.0, scatter: 0, shape: 0 },
+                    { name: 'قلم حبر متوسط 0.5', size: 1.5, opacity: 1.0, scatter: 0, shape: 0 },
+                    { name: 'قلم حبر عريض 0.8', size: 2.5, opacity: 1.0, scatter: 0, shape: 0 },
+                    { name: 'قلم خط عربي كوفي', size: 10, opacity: 1.0, scatter: 0, shape: 2 },
+                    { name: 'قلم خط رقعة', size: 7, opacity: 1.0, scatter: 0, shape: 2 },
+                    { name: 'قلم خط فارسي', size: 5, opacity: 1.0, scatter: 0, shape: 2 },
+                    { name: 'قلم تحديد مانغا', size: 2.0, opacity: 1.0, scatter: 0, shape: 0 },
+                    { name: 'قلم توقيع سائل', size: 3.5, opacity: 0.95, scatter: 0, shape: 0 },
+                    { name: 'ريشة خط ديناميكية', size: 4.0, opacity: 1.0, scatter: 0, shape: 2 }
+                ],
+                painting: [
+                    { name: 'ريشة زيتية مسطحة', size: 20, opacity: 0.9, scatter: 0, shape: 3 },
+                    { name: 'ريشة زيتية رطبة', size: 15, opacity: 0.8, scatter: 0, shape: 0 },
+                    { name: 'ألوان أكريليك جافة', size: 18, opacity: 0.85, scatter: 0, shape: 1 },
+                    { name: 'ريشة دمج زيتية', size: 22, opacity: 0.45, scatter: 0, shape: 0 },
+                    { name: 'فرشاة رسم غواش', size: 14, opacity: 0.9, scatter: 0, shape: 1 },
+                    { name: 'ريشة مسطحة عريضة', size: 35, opacity: 0.9, scatter: 0, shape: 3 },
+                    { name: 'فرشاة ألوان مائية ناعمة', size: 25, opacity: 0.3, scatter: 0, shape: 0 },
+                    { name: 'فرشاة ألوان مائية حافة', size: 12, opacity: 0.4, scatter: 0, shape: 2 },
+                    { name: 'ريشة تفاصيل الألوان', size: 3.0, opacity: 0.9, scatter: 0, shape: 0 },
+                    { name: 'فرشاة مسح أكواريل', size: 40, opacity: 0.2, scatter: 0, shape: 1 }
+                ],
+                spray: [
+                    { name: 'بخاخ ناعم قياسي', size: 50, opacity: 0.25, scatter: 10, shape: 0 },
+                    { name: 'بخاخ كثيف وقوي', size: 35, opacity: 0.45, scatter: 5, shape: 0 },
+                    { name: 'رذاذ ناعم جداً', size: 80, opacity: 0.15, scatter: 20, shape: 0 },
+                    { name: 'رذاذ خشن ومتناثر', size: 60, opacity: 0.3, scatter: 40, shape: 1 },
+                    { name: 'بخاخ نقاط كبيرة', size: 45, opacity: 0.5, scatter: 60, shape: 0 },
+                    { name: 'تأثير غبار متناثر', size: 90, opacity: 0.2, scatter: 80, shape: 1 },
+                    { name: 'رذاذ ماء خفيف', size: 70, opacity: 0.1, scatter: 35, shape: 0 },
+                    { name: 'بخاخ تفاصيل دقيقة', size: 12, opacity: 0.35, scatter: 8, shape: 0 },
+                    { name: 'بخاخ توهج خلفي', size: 100, opacity: 0.1, scatter: 15, shape: 0 },
+                    { name: 'رذاذ نيون مشتت', size: 55, opacity: 0.3, scatter: 25, shape: 2 }
+                ],
+                textures: [
+                    { name: 'طبشور خشن للمدارس', size: 16, opacity: 0.85, scatter: 0, shape: 1 },
+                    { name: 'طبشور دمج ناعم', size: 24, opacity: 0.6, scatter: 0, shape: 1 },
+                    { name: 'قلم باستيل شمعي', size: 10, opacity: 0.8, scatter: 1, shape: 1 },
+                    { name: 'قلم باستيل جاف', size: 12, opacity: 0.75, scatter: 0, shape: 1 },
+                    { name: 'فرشاة جدار إسمنتي', size: 30, opacity: 0.65, scatter: 2, shape: 1 },
+                    { name: 'فرشاة إسفنجية خشنة', size: 28, opacity: 0.5, scatter: 10, shape: 1 },
+                    { name: 'نقش ورق رملي', size: 35, opacity: 0.4, scatter: 8, shape: 1 },
+                    { name: 'قلم رصاص كربوني', size: 8, opacity: 0.9, scatter: 0, shape: 1 },
+                    { name: 'فرشاة ضربات نسيجية', size: 20, opacity: 0.7, scatter: 0, shape: 2 },
+                    { name: 'طبشور زوايا حادة', size: 18, opacity: 0.8, scatter: 0, shape: 3 }
+                ],
+                special: [
+                    { name: 'قلم حبر بكسل', size: 5, opacity: 1.0, scatter: 0, shape: 3 },
+                    { name: 'قلم مانغا سريع', size: 3.0, opacity: 0.9, scatter: 0, shape: 2 },
+                    { name: 'قلم تحديد سميك', size: 8.0, opacity: 1.0, scatter: 0, shape: 3 },
+                    { name: 'فرشاة تظليل مربعة', size: 30, opacity: 0.4, scatter: 0, shape: 3 },
+                    { name: 'رذاذ مجرة ونجوم', size: 75, opacity: 0.7, scatter: 85, shape: 0 },
+                    { name: 'بخاخ دخان ناعم', size: 120, opacity: 0.15, scatter: 30, shape: 1 },
+                    { name: 'فرشاة خط عريض', size: 45, opacity: 0.95, scatter: 0, shape: 2 },
+                    { name: 'قلم تحديد فوسفوري', size: 22, opacity: 0.4, scatter: 0, shape: 3 }
+                ]
+            };
 
-            presets.forEach((preset) => {
-                const isReset = preset.name === 'إعادة الضبط';
-                const btn = BB.el({
-                    tagName: 'button',
-                    content: preset.name,
-                    className: 'kl-preset-btn' + (isReset ? ' kl-preset-btn--reset' : ''),
+            function updatePresetsList(catId: string) {
+                presetsGrid.innerHTML = '';
+                const list = presets[catId as keyof typeof presets] || [];
+                list.forEach((preset) => {
+                    const btn = BB.el({
+                        tagName: 'button',
+                        content: preset.name,
+                        className: 'kl-preset-btn',
+                    });
+
+                    btn.onclick = () => {
+                        setSize(preset.size);
+                        sizeSlider.setValue(preset.size);
+                        p.onSizeChange(preset.size);
+
+                        brush.setOpacity(preset.opacity);
+                        opacitySlider.setValue(preset.opacity);
+                        p.onOpacityChange(preset.opacity);
+
+                        brush.setScatter(preset.scatter);
+                        scatterSlider.setValue(preset.scatter);
+                        p.onScatterChange(preset.scatter);
+
+                        brush.setAlpha(preset.shape);
+                        alphaOptions.setValue(preset.shape);
+                    };
+
+                    presetsGrid.append(btn);
                 });
+            }
 
-                btn.onclick = () => {
-                    setSize(preset.size);
-                    sizeSlider.setValue(preset.size);
-                    p.onSizeChange(preset.size);
+            categorySelect.onchange = () => {
+                updatePresetsList(categorySelect.value);
+            };
 
-                    brush.setOpacity(preset.opacity);
-                    opacitySlider.setValue(preset.opacity);
-                    p.onOpacityChange(preset.opacity);
+            updatePresetsList('pencils');
 
-                    brush.setScatter(preset.scatter);
-                    scatterSlider.setValue(preset.scatter);
-                    p.onScatterChange(preset.scatter);
-
-                    brush.setAlpha(preset.shape);
-                    alphaOptions.setValue(preset.shape);
-                };
-
-                presetsGrid.append(btn);
-            });
-
-            div.append(presetsHeader, presetsGrid);
+            div.append(presetsHeader, categorySelect, presetsGrid);
         }
 
         init();
