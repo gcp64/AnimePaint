@@ -537,6 +537,34 @@ export class MobileUi {
             .mp-tool-cell.mp-active .mp-tool-label {
                 color: var(--mp-accent);
             }
+            .mp-tool-close-cell {
+                display: flex !important;
+                flex-direction: row !important;
+                justify-content: center !important;
+                align-items: center !important;
+                gap: 6px !important;
+                grid-column: 1 / -1 !important;
+                border-top: 1px solid rgba(255, 255, 255, 0.08);
+                margin-top: 4px;
+                padding: 10px 4px !important;
+                color: #ef4444 !important;
+                border-radius: 12px;
+                cursor: pointer;
+                transition: background 0.15s;
+                touch-action: none !important;
+                pointer-events: auto !important;
+            }
+            html:not(.kl-theme-dark) .mp-tool-close-cell {
+                border-top-color: rgba(0, 0, 0, 0.08);
+            }
+            .mp-tool-close-cell:active {
+                background: rgba(239, 68, 68, 0.08);
+            }
+            .mp-tool-close-cell svg {
+                width: 14px;
+                height: 14px;
+                fill: currentColor;
+            }
 
             /* === Sliders Deck === */
             .mp-sliders-deck {
@@ -1191,6 +1219,15 @@ export class MobileUi {
 
             this.toolsGrid!.append(cell);
         });
+
+        // Close button at the bottom of the tools grid
+        const closeCell = document.createElement('div');
+        closeCell.className = 'mp-tool-cell mp-tool-close-cell';
+        closeCell.innerHTML = `${ICONS.close}<span style="font-size: 10px; font-weight: 700; margin-right: 4px;">إغلاق القائمة</span>`;
+        this.addTouchButton(closeCell, () => {
+            this.hideAllMenus();
+        });
+        this.toolsGrid!.append(closeCell);
 
         // === Brushes Menu ===
         this.brushesMenu = BB.el({ className: 'mp-popup-menu mp-glass' });
