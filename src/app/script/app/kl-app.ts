@@ -151,8 +151,11 @@ export class KlApp {
     private readonly bottomBarWrapper: HTMLElement;
     private readonly saveReminder: SaveReminder | undefined;
     private readonly unloadWarningTrigger: UnloadWarningTrigger | undefined;
-    private lastSavedHistoryIndex: number = 0;
     private readonly klHistory: KlHistory;
+    private canvasHud: CanvasHud | undefined;
+    private quickControls: QuickControls | undefined;
+    private overlayToolspace: any;
+
 
     private updateLastSaved(): void {
         this.lastSavedHistoryIndex = this.klHistory.getTotalIndex();
@@ -169,8 +172,12 @@ export class KlApp {
             }
         }
         this.mobileUi.setOrientation(this.uiLayout);
-        if (this.uiWidth < this.collapseThreshold || isMobileDevice) {
+        const isMobile = this.uiWidth < this.collapseThreshold || isMobileDevice;
+        if (isMobile) {
             this.mobileUi.setIsVisible(true);
+            if (this.canvasHud) this.canvasHud.getElement().style.display = 'none';
+            if (this.quickControls) this.quickControls.getElement().style.display = 'none';
+            if (this.overlayToolspace) this.overlayToolspace.getElement().style.display = 'none';
             if (this.mobileUi.getToolspaceIsOpen()) {
                 css(this.easel.getElement(), {
                     left: '0',
@@ -189,6 +196,16 @@ export class KlApp {
         } else {
             this.mobileColorUi.closeColorPicker();
             this.mobileUi.setIsVisible(false);
+            const hideFloating = localStorage.getItem('maria_core_hide_floating_controls') === 'true';
+            if (this.canvasHud) {
+                this.canvasHud.getElement().style.display = hideFloating ? 'none' : 'flex';
+            }
+            if (this.quickControls) {
+                this.quickControls.getElement().style.display = hideFloating ? 'none' : 'flex';
+            }
+            if (this.overlayToolspace) {
+                this.overlayToolspace.getElement().style.display = 'block';
+            }
             css(this.easel.getElement(), {
                 left: '0',
             });
@@ -856,7 +873,8 @@ export class KlApp {
             klCanvas: this.klCanvas,
             easel: this.easel,
         });
-        canvasHud = new CanvasHud();
+        this.canvasHud = new CanvasHud();
+        canvasHud = this.canvasHud;
         this.easel.getElement().append(canvasHud.getElement());
 
         const referencePanel = new ReferencePanel();
@@ -867,7 +885,7 @@ export class KlApp {
         });
         this.easel.getElement().append(gridOverlay);
 
-        quickControls = new QuickControls({
+        this.quickControls = new QuickControls({
             onUndo: () => {
                 undo(true);
             },
@@ -895,6 +913,7 @@ export class KlApp {
                 gridOverlay.style.display = isHidden ? 'block' : 'none';
             }
         });
+        quickControls = this.quickControls;
         this.easel.getElement().append(quickControls.getElement());
 
         const hideFloating = localStorage.getItem('maria_core_hide_floating_controls') === 'true';
@@ -1352,7 +1371,15 @@ export class KlApp {
                 },
                 brushSettingService,
             });
+            this.overlayToolspace = overlayToolspace;
             this.rootEl.append(overlayToolspace.getElement());
+
+            // Sync initial visibility based on current collapse state
+            const isMobileDevice = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+            const isMobile = this.uiWidth < this.collapseThreshold || isMobileDevice;
+            if (isMobile) {
+                overlayToolspace.getElement().style.display = 'none';
+            }
         }, 0);
 
         BB.append(this.rootEl, [

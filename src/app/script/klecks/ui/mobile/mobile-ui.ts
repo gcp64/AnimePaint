@@ -96,6 +96,7 @@ export class MobileUi {
     private fileMenu: HTMLElement | null = null;
     private toolsGrid: HTMLElement | null = null;
     private brushesMenu: HTMLElement | null = null;
+    private backdropEl: HTMLElement | null = null;
 
     // Control elements
     private sizeSlider: HTMLInputElement | null = null;
@@ -183,6 +184,30 @@ export class MobileUi {
                 zIndex: '9999',
             }
         });
+
+        // Create backdrop element
+        this.backdropEl = BB.el({
+            css: {
+                position: 'fixed',
+                top: '0',
+                left: '0',
+                right: '0',
+                bottom: '0',
+                background: 'rgba(0,0,0,0)',
+                zIndex: '10000',
+                pointerEvents: 'auto',
+                display: 'none',
+            }
+        });
+        this.rootEl.append(this.backdropEl);
+
+        const dismissMenus = (e: Event) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.hideAllMenus();
+        };
+        this.backdropEl.addEventListener('touchstart', dismissMenus, { passive: false });
+        this.backdropEl.addEventListener('mousedown', dismissMenus);
 
         // Build all UI panels
         this.createTopBar();
@@ -299,7 +324,9 @@ export class MobileUi {
             /* === Top Bar === */
             .mp-top-bar {
                 position: fixed;
-                top: 8px; left: 8px; right: 8px;
+                top: calc(8px + env(safe-area-inset-top, 0px));
+                left: calc(8px + env(safe-area-inset-left, 0px));
+                right: calc(8px + env(safe-area-inset-right, 0px));
                 height: 48px;
                 border-radius: 16px;
                 display: flex;
@@ -320,7 +347,7 @@ export class MobileUi {
             /* === Bottom Bar === */
             .mp-bottom-bar {
                 position: fixed;
-                bottom: 24px;
+                bottom: calc(24px + env(safe-area-inset-bottom, 0px));
                 left: 0; right: 0;
                 margin: 0 auto;
                 width: 88%; max-width: 360px;
@@ -508,7 +535,8 @@ export class MobileUi {
             /* === Sliders Deck === */
             .mp-sliders-deck {
                 position: fixed;
-                bottom: 92px; left: 8px;
+                bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+                left: calc(8px + env(safe-area-inset-left, 0px));
                 width: 220px;
                 border-radius: 14px;
                 display: flex;
@@ -573,7 +601,8 @@ export class MobileUi {
             /* === Layers Window === */
             .mp-layers-window {
                 position: fixed;
-                bottom: 92px; right: 8px;
+                bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+                right: calc(8px + env(safe-area-inset-right, 0px));
                 width: 260px; height: 340px;
                 border-radius: 16px;
                 display: none;
@@ -674,7 +703,9 @@ export class MobileUi {
                     border-radius: 12px;
                     gap: 2px;
                     padding: 0 4px;
-                    top: 4px; left: 4px; right: 4px;
+                    top: calc(4px + env(safe-area-inset-top, 0px));
+                    left: calc(4px + env(safe-area-inset-left, 0px));
+                    right: calc(4px + env(safe-area-inset-right, 0px));
                 }
                 .mp-btn svg {
                     width: 16px; height: 16px;
@@ -688,17 +719,19 @@ export class MobileUi {
                 }
                 .mp-bottom-bar {
                     height: 46px;
-                    bottom: 16px;
+                    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
                     border-radius: 14px;
                     padding: 0 4px;
                 }
                 .mp-sliders-deck {
-                    bottom: 74px; left: 4px;
+                    bottom: calc(74px + env(safe-area-inset-bottom, 0px));
+                    left: calc(4px + env(safe-area-inset-left, 0px));
                     width: 200px;
                     padding: 8px 10px;
                 }
                 .mp-layers-window {
-                    bottom: 74px; right: 4px;
+                    bottom: calc(74px + env(safe-area-inset-bottom, 0px));
+                    right: calc(4px + env(safe-area-inset-right, 0px));
                     width: 240px; height: 300px;
                 }
                 .mp-slider-row {
@@ -764,6 +797,7 @@ export class MobileUi {
         if (this.fileMenu) this.fileMenu.style.display = 'none';
         if (this.toolsGrid) this.toolsGrid.style.display = 'none';
         if (this.brushesMenu) this.brushesMenu.style.display = 'none';
+        if (this.backdropEl) this.backdropEl.style.display = 'none';
     }
 
     private positionMenuAtAnchor(menu: HTMLElement, anchor: HTMLElement): void {
@@ -806,6 +840,7 @@ export class MobileUi {
         if (!isShown) {
             this.positionMenuAtAnchor(menu, anchor);
             menu.style.display = menu.classList.contains('mp-tools-grid') ? 'grid' : 'flex';
+            if (this.backdropEl) this.backdropEl.style.display = 'block';
         }
     }
 
