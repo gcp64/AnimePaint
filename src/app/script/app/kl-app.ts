@@ -268,6 +268,9 @@ export class KlApp {
         const savedFontSize = localStorage.getItem('maria_core_font_size') || '16';
         document.documentElement.style.setProperty('--maria-ui-font-size', savedFontSize + 'px');
 
+        const savedGridSize = localStorage.getItem('maria_core_grid_size') || '80';
+        document.documentElement.style.setProperty('--maria-grid-size', savedGridSize + 'px');
+
         this.embed = p.embed;
         // default 2048, unless your screen is bigger than that (that computer then probably has the horsepower for that)
         // but not larger than 4096 - a fairly arbitrary decision
@@ -855,6 +858,11 @@ export class KlApp {
         const referencePanel = new ReferencePanel();
         this.easel.getElement().append(referencePanel.getElement());
 
+        const gridOverlay = BB.el({
+            className: 'maria-grid-overlay',
+        });
+        this.easel.getElement().append(gridOverlay);
+
         quickControls = new QuickControls({
             onUndo: () => {
                 undo(true);
@@ -877,6 +885,10 @@ export class KlApp {
             },
             onToggleReference: () => {
                 referencePanel.toggle();
+            },
+            onToggleGrid: () => {
+                const isHidden = gridOverlay.style.display === 'none' || !gridOverlay.style.display;
+                gridOverlay.style.display = isHidden ? 'block' : 'none';
             }
         });
         this.easel.getElement().append(quickControls.getElement());

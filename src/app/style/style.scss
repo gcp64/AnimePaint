@@ -1755,4 +1755,19 @@ html[dir="rtl"] {
     }
 }
 
+.maria-grid-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5;
+    background-size: var(--maria-grid-size, 80px) var(--maria-grid-size, 80px);
+    background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+    display: none;
+}
+
 

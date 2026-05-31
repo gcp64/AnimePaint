@@ -8,6 +8,7 @@ export type TQuickControlsParams = {
     onZoomOut: () => void;
     onReset: () => void;
     onToggleReference?: () => void;
+    onToggleGrid?: () => void;
 };
 
 export class QuickControls {
@@ -45,6 +46,10 @@ export class QuickControls {
 
         if (p.onToggleReference) {
             actions.push({ label: 'مرجع', action: p.onToggleReference });
+        }
+
+        if (p.onToggleGrid) {
+            actions.push({ label: 'شبكة', action: p.onToggleGrid });
         }
 
         actions.forEach(item => {

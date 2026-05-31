@@ -173,6 +173,56 @@ export class SettingsUi {
 
         const chipElements: HTMLElement[] = [];
 
+        // Custom Color Picker logic
+        const customColorInput = document.createElement('input');
+        customColorInput.type = 'color';
+        customColorInput.value = savedAccent.startsWith('#') ? savedAccent : '#3b82f6';
+        customColorInput.style.display = 'none';
+
+        const customChip = BB.el({
+            css: {
+                width: '18px',
+                height: '18px',
+                borderRadius: '50%',
+                cursor: 'pointer',
+                transition: 'border 0.2s, transform 0.2s',
+            },
+            onClick: () => {
+                customColorInput.click();
+            }
+        });
+
+        const standardColors = ['#3b82f6', '#e11d48', '#10b981', '#d97706'];
+
+        const updateCustomChipState = () => {
+            const current = localStorage.getItem('maria_core_theme_accent') || '#3b82f6';
+            const isCustom = !standardColors.includes(current);
+            if (isCustom) {
+                customChip.style.background = current;
+                customChip.style.border = '2px solid #ffffff';
+                customChip.style.transform = 'scale(1.15)';
+            } else {
+                customChip.style.background = 'linear-gradient(45deg, #ff0000, #00ff00, #0000ff)';
+                customChip.style.border = '2px solid rgba(255, 255, 255, 0.2)';
+                customChip.style.transform = 'scale(1)';
+            }
+        };
+
+        customColorInput.onchange = () => {
+            const val = customColorInput.value;
+            localStorage.setItem('maria_core_theme_accent', val);
+            document.documentElement.style.setProperty('--active-highlight-color', val);
+
+            // Clear standard chips
+            chipElements.forEach((el) => {
+                css(el, {
+                    border: '2px solid rgba(255, 255, 255, 0.2)',
+                    transform: 'scale(1)',
+                });
+            });
+            updateCustomChipState();
+        };
+
         accents.forEach(item => {
             const chip = BB.el({
                 css: {
@@ -187,7 +237,7 @@ export class SettingsUi {
                 onClick: () => {
                     localStorage.setItem('maria_core_theme_accent', item.color);
                     document.documentElement.style.setProperty('--active-highlight-color', item.color);
-                    
+
                     // Update active styles on chips
                     chipElements.forEach((el, index) => {
                         const active = accents[index].color === item.color;
@@ -196,6 +246,7 @@ export class SettingsUi {
                             transform: active ? 'scale(1.15)' : 'scale(1)',
                         });
                     });
+                    updateCustomChipState();
                 }
             });
 
@@ -227,6 +278,8 @@ export class SettingsUi {
             chipsContainer.append(chip);
         });
 
+        updateCustomChipState();
+        chipsContainer.append(customColorInput, customChip);
         accentRow.append(chipsContainer);
 
 
@@ -417,6 +470,30 @@ export class SettingsUi {
             c(',flex,items-center,gap-5,mt-15,flexWrap', [
                 BB.el({ content: 'حجم خط واجهة المستخدم:', css: { marginRight: '5px' } }),
                 fontSizeSelect.getElement(),
+            ])
+        );
+
+        // Grid Size Select
+        const savedGridSize = localStorage.getItem('maria_core_grid_size') || '80';
+        const gridSizeSelect = new KL.Select({
+            optionArr: [
+                ['40', 'صغيرة (40px)'],
+                ['80', 'قياسية (80px)'],
+                ['120', 'كبيرة (120px)'],
+                ['160', 'ضخمة (160px)'],
+            ],
+            initValue: savedGridSize,
+            onChange: (val) => {
+                localStorage.setItem('maria_core_grid_size', val);
+                document.documentElement.style.setProperty('--maria-grid-size', val + 'px');
+            },
+            name: 'grid-size',
+        });
+        gridSizeSelect.getElement().style.flexGrow = '1';
+        this.rootEl.append(
+            c(',flex,items-center,gap-5,mt-15,flexWrap', [
+                BB.el({ content: 'حجم شبكة الرسم الإرشادية:', css: { marginRight: '5px' } }),
+                gridSizeSelect.getElement(),
             ])
         );
 
