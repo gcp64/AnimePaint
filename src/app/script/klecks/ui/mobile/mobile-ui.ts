@@ -208,6 +208,7 @@ export class MobileUi {
         };
         this.backdropEl.addEventListener('touchstart', dismissMenus, { passive: false });
         this.backdropEl.addEventListener('mousedown', dismissMenus);
+        this.backdropEl.addEventListener('pointerdown', dismissMenus);
 
         // Build all UI panels
         this.createTopBar();
@@ -222,6 +223,7 @@ export class MobileUi {
         // Dialog counter integration — auto-hide when modals open
         DIALOG_COUNTER.subscribe((count) => {
             if (count > 0) {
+                this.hideAllMenus();
                 this.rootEl.style.display = 'none';
                 if (this.layersWindow) this.layersWindow.style.display = 'none';
             } else if (this.isVisible) {
@@ -242,6 +244,7 @@ export class MobileUi {
         };
         window.addEventListener('click', closeAllMenus);
         window.addEventListener('touchstart', closeAllMenus, { passive: true });
+        window.addEventListener('pointerdown', closeAllMenus, { passive: true });
 
         // Resize handler
         window.addEventListener('resize', () => this.syncValues());
@@ -274,9 +277,9 @@ export class MobileUi {
         style.textContent = `
             :root {
                 --mp-accent: #6366f1;
-                --mp-accent-glow: rgba(99, 102, 241, 0.5);
-                --mp-bg: rgba(12, 12, 24, 0.82);
-                --mp-border: rgba(255, 255, 255, 0.07);
+                --mp-accent-glow: rgba(99, 102, 241, 0.4);
+                --mp-bg: rgba(15, 15, 27, 0.85);
+                --mp-border: rgba(255, 255, 255, 0.08);
                 --mp-text: #e2e8f0;
                 --mp-text-dim: #94a3b8;
                 --mp-danger: #ef4444;
@@ -284,24 +287,24 @@ export class MobileUi {
 
             /* Light theme overrides */
             html:not(.kl-theme-dark) {
-                --mp-bg: rgba(255, 255, 255, 0.88);
-                --mp-border: rgba(0, 0, 0, 0.09);
+                --mp-bg: rgba(255, 255, 255, 0.90);
+                --mp-border: rgba(0, 0, 0, 0.1);
                 --mp-text: #1e293b;
                 --mp-text-dim: #64748b;
             }
 
             /* === Animations === */
             @keyframes mp-slideDown {
-                from { opacity: 0; transform: translateY(-16px); }
+                from { opacity: 0; transform: translateY(-12px); }
                 to   { opacity: 1; transform: translateY(0); }
             }
             @keyframes mp-slideUp {
-                from { opacity: 0; transform: translateY(16px); }
+                from { opacity: 0; transform: translateY(12px); }
                 to   { opacity: 1; transform: translateY(0); }
             }
             @keyframes mp-scaleIn {
-                from { opacity: 0; transform: scale(0.88); }
-                to   { opacity: 1; transform: scale(1); }
+                from { opacity: 0; transform: scale(0.93) translateY(-8px); }
+                to   { opacity: 1; transform: scale(1) translateY(0); }
             }
             @keyframes mp-fadeIn {
                 from { opacity: 0; }
@@ -311,13 +314,13 @@ export class MobileUi {
             /* === Shared glass panel === */
             .mp-glass {
                 background: var(--mp-bg) !important;
-                background-image: linear-gradient(135deg, rgba(99,102,241,0.06), rgba(139,92,246,0.04)) !important;
-                backdrop-filter: blur(24px) saturate(200%) !important;
-                -webkit-backdrop-filter: blur(24px) saturate(200%) !important;
+                background-image: linear-gradient(135deg, rgba(99,102,241,0.07), rgba(139,92,246,0.05)) !important;
+                backdrop-filter: blur(24px) saturate(190%) !important;
+                -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
                 border: 1px solid var(--mp-border) !important;
                 color: var(--mp-text) !important;
                 font-family: 'Cairo', 'Outfit', system-ui, -apple-system, sans-serif !important;
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45) !important;
+                box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.1) !important;
                 pointer-events: auto !important;
             }
 
@@ -398,10 +401,10 @@ export class MobileUi {
                 background: rgba(255,255,255,0.1);
             }
             .mp-btn.mp-active {
-                background: var(--mp-accent) !important;
-                border-color: var(--mp-accent) !important;
+                background: linear-gradient(135deg, var(--mp-accent), #8b5cf6) !important;
+                border-color: transparent !important;
                 color: #fff !important;
-                box-shadow: 0 0 16px var(--mp-accent-glow) !important;
+                box-shadow: 0 4px 14px var(--mp-accent-glow) !important;
             }
 
             /* === Color Circle === */
@@ -422,16 +425,16 @@ export class MobileUi {
             /* === Popup Menu === */
             .mp-popup-menu {
                 position: fixed;
-                border-radius: 14px;
-                padding: 6px;
-                min-width: 200px;
+                border-radius: 16px;
+                padding: 8px;
+                min-width: 220px;
                 max-height: 70vh;
                 overflow-y: auto;
                 display: none;
                 flex-direction: column;
-                gap: 2px;
+                gap: 3px;
                 z-index: 10002;
-                animation: mp-scaleIn 0.2s ease-out;
+                animation: mp-scaleIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
                 touch-action: none !important;
                 pointer-events: auto !important;
             }
@@ -486,18 +489,18 @@ export class MobileUi {
             .mp-tools-grid {
                 display: grid !important;
                 grid-template-columns: repeat(3, 1fr) !important;
-                gap: 6px !important;
-                padding: 8px !important;
-                min-width: 190px;
+                gap: 8px !important;
+                padding: 10px !important;
+                min-width: 220px;
             }
             .mp-tool-cell {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                gap: 3px;
+                gap: 4px;
                 cursor: pointer;
-                padding: 6px 4px;
-                border-radius: 10px;
+                padding: 8px 4px;
+                border-radius: 12px;
                 transition: background 0.15s, box-shadow 0.2s;
                 touch-action: none !important;
                 -webkit-tap-highlight-color: transparent;
@@ -507,8 +510,8 @@ export class MobileUi {
                 background: rgba(255,255,255,0.06);
             }
             .mp-tool-cell.mp-active {
-                background: rgba(99,102,241,0.15);
-                box-shadow: 0 0 0 1.5px var(--mp-accent);
+                background: linear-gradient(135deg, rgba(99,102,241,0.22), rgba(139,92,246,0.12)) !important;
+                box-shadow: inset 0 0 0 1px var(--mp-accent), 0 4px 12px var(--mp-accent-glow) !important;
             }
             .mp-tool-cell .mp-tool-icon {
                 width: 28px; height: 28px;
@@ -587,15 +590,20 @@ export class MobileUi {
                 -webkit-appearance: none;
                 appearance: none;
                 touch-action: none !important;
+                transition: background 0.15s;
             }
             .mp-range::-webkit-slider-thumb {
                 -webkit-appearance: none;
                 width: 20px; height: 20px;
                 border-radius: 50%;
-                background: var(--mp-accent);
-                box-shadow: 0 0 8px var(--mp-accent-glow);
+                background: linear-gradient(135deg, var(--mp-accent), #8b5cf6);
+                box-shadow: 0 0 10px var(--mp-accent-glow);
                 cursor: pointer;
-                border: 2px solid rgba(255,255,255,0.3);
+                border: 2px solid #fff;
+                transition: transform 0.1s;
+            }
+            .mp-range::-webkit-slider-thumb:active {
+                transform: scale(1.2);
             }
 
             /* === Layers Window === */
@@ -861,11 +869,17 @@ export class MobileUi {
 
         // 3. Undo
         const undoBtn = this.createBtn(ICONS.undo);
-        this.addTouchButton(undoBtn, () => this.onUndo());
+        this.addTouchButton(undoBtn, () => {
+            this.hideAllMenus();
+            this.onUndo();
+        });
 
         // 4. Redo
         const redoBtn = this.createBtn(ICONS.redo);
-        this.addTouchButton(redoBtn, () => this.onRedo());
+        this.addTouchButton(redoBtn, () => {
+            this.hideAllMenus();
+            this.onRedo();
+        });
 
         // Separator
         const sep2 = BB.el({ className: 'mp-top-sep' });
@@ -873,6 +887,7 @@ export class MobileUi {
         // 5. Layers
         const layersBtn = this.createBtn(ICONS.layers);
         this.addTouchButton(layersBtn, () => {
+            this.hideAllMenus();
             const isShown = this.layersWindow!.style.display === 'flex';
             this.layersWindow!.style.display = isShown ? 'none' : 'flex';
             layersBtn.classList.toggle('mp-active', !isShown);
@@ -889,12 +904,14 @@ export class MobileUi {
         // 6. Fit view
         const fitBtn = this.createBtn(ICONS.fitScreen);
         this.addTouchButton(fitBtn, () => {
+            this.hideAllMenus();
             if (this.onFitView) this.onFitView();
         });
 
         // 7. Desktop mode
         const desktopBtn = this.createBtn(ICONS.desktop);
         this.addTouchButton(desktopBtn, () => {
+            this.hideAllMenus();
             this.onShowToolspace(true);
         });
 
@@ -912,12 +929,14 @@ export class MobileUi {
             css: { backgroundColor: '#000000' }
         });
         this.addTouchButton(this.colorPreview, () => {
+            this.hideAllMenus();
             if (this.onTriggerColorPicker) this.onTriggerColorPicker();
         });
 
         // 2. Eyedropper
         const eyedropperBtn = this.createBtn(ICONS.eyedropper);
         this.addTouchButton(eyedropperBtn, () => {
+            this.hideAllMenus();
             const isActive = !eyedropperBtn.classList.contains('mp-active');
             eyedropperBtn.classList.toggle('mp-active', isActive);
             if (this.onTriggerEyedropper) this.onTriggerEyedropper(isActive);
@@ -958,6 +977,7 @@ export class MobileUi {
                     this.toggleMenu(this.brushesMenu, brushBtn);
                 } else {
                     // Switch to brush mode
+                    this.hideAllMenus();
                     if (this.onTriggerBrushType) this.onTriggerBrushType('brush');
                     this.onSetTool('brush');
                     if (this.onSetBrushId) this.onSetBrushId(this.currentBrushId);
@@ -981,6 +1001,7 @@ export class MobileUi {
             if (currentTool === 'brush' && !isEraser) {
                 this.toggleMenu(this.brushesMenu, brushBtn);
             } else {
+                this.hideAllMenus();
                 if (this.onTriggerBrushType) this.onTriggerBrushType('brush');
                 this.onSetTool('brush');
                 if (this.onSetBrushId) this.onSetBrushId(this.currentBrushId);
@@ -990,6 +1011,7 @@ export class MobileUi {
         // 4. Eraser
         const eraserBtn = this.createBtn(ICONS.eraser);
         this.addTouchButton(eraserBtn, () => {
+            this.hideAllMenus();
             if (this.onTriggerBrushType) this.onTriggerBrushType('eraser');
             this.onSetTool('brush');
         });
@@ -998,6 +1020,7 @@ export class MobileUi {
         this.sizeToggleBtn = this.createBtn(ICONS.size);
         this.sizeToggleBtn.style.fontSize = '10px';
         this.addTouchButton(this.sizeToggleBtn, () => {
+            this.hideAllMenus();
             this.slidersVisible = !this.slidersVisible;
             if (this.slidersDeck) {
                 this.slidersDeck.style.display = this.slidersVisible ? 'flex' : 'none';
@@ -1115,7 +1138,7 @@ export class MobileUi {
             });
             el.innerHTML = `${item.icon}<span>${item.text}</span>`;
             this.addTouchButton(el, () => {
-                this.fileMenu!.style.display = 'none';
+                this.hideAllMenus();
                 item.action();
             });
             this.fileMenu!.append(el);
@@ -1140,7 +1163,7 @@ export class MobileUi {
             cell.append(iconWrap, label);
 
             this.addTouchButton(cell, () => {
-                this.toolsGrid!.style.display = 'none';
+                this.hideAllMenus();
                 this.toolsGrid!.querySelectorAll('.mp-tool-cell').forEach(c => c.classList.remove('mp-active'));
                 cell.classList.add('mp-active');
 
@@ -1172,7 +1195,7 @@ export class MobileUi {
             el.append(checkSpan);
 
             this.addTouchButton(el, () => {
-                this.brushesMenu!.style.display = 'none';
+                this.hideAllMenus();
                 this.currentBrushId = brush.id;
                 if (this.onSetBrushId) this.onSetBrushId(brush.id);
 
