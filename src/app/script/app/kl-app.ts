@@ -65,6 +65,7 @@ import { PinchZoomWatcher } from '../klecks/ui/components/pinch-zoom-watcher';
 import { EASEL_MAX_SCALE, EASEL_MIN_SCALE } from '../klecks/ui/easel/easel.config';
 import { CanvasHud } from '../klecks/ui/components/canvas-hud';
 import { QuickControls } from '../klecks/ui/components/quick-controls';
+import { ReferencePanel } from '../klecks/ui/components/reference-panel';
 import { THistoryEntryDataComposed } from '../klecks/history/history.types';
 import { KlHistoryExecutor, THistoryExecutionType } from '../klecks/history/kl-history-executor';
 import { KlHistory } from '../klecks/history/kl-history';
@@ -851,6 +852,9 @@ export class KlApp {
         canvasHud = new CanvasHud();
         this.easel.getElement().append(canvasHud.getElement());
 
+        const referencePanel = new ReferencePanel();
+        this.easel.getElement().append(referencePanel.getElement());
+
         quickControls = new QuickControls({
             onUndo: () => {
                 undo(true);
@@ -870,6 +874,9 @@ export class KlApp {
             },
             onReset: () => {
                 this.easel.resetOrFitTransform(true);
+            },
+            onToggleReference: () => {
+                referencePanel.toggle();
             }
         });
         this.easel.getElement().append(quickControls.getElement());

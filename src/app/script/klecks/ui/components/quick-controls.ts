@@ -7,6 +7,7 @@ export type TQuickControlsParams = {
     onZoomIn: () => void;
     onZoomOut: () => void;
     onReset: () => void;
+    onToggleReference?: () => void;
 };
 
 export class QuickControls {
@@ -41,6 +42,10 @@ export class QuickControls {
             { label: 'تصغير', action: p.onZoomOut },
             { label: 'ملائمة', action: p.onReset }
         ];
+
+        if (p.onToggleReference) {
+            actions.push({ label: 'مرجع', action: p.onToggleReference });
+        }
 
         actions.forEach(item => {
             const btn = BB.el({
