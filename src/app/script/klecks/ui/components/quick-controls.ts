@@ -47,7 +47,7 @@ export class QuickControls {
                 tagName: 'button',
                 content: item.label,
                 css: {
-                    border: 'none',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
                     background: 'rgba(255, 255, 255, 0.03)',
                     color: '#e2e8f0',
                     fontFamily: 'Cairo, Outfit, sans-serif',
@@ -56,7 +56,7 @@ export class QuickControls {
                     padding: '6px 10px',
                     borderRadius: '6px',
                     cursor: 'pointer',
-                    transition: 'transform 0.2s, background-color 0.2s, color 0.2s, box-shadow 0.2s',
+                    transition: 'transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.15s, color 0.15s, border-color 0.15s',
                     textAlign: 'center',
                     minWidth: '55px',
                     position: 'relative',
@@ -71,17 +71,17 @@ export class QuickControls {
 
             // Hover styles
             btn.addEventListener('mouseenter', () => {
-                btn.style.transform = 'scale(1.1)';
-                btn.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+                btn.style.transform = 'translateY(-1px)';
+                btn.style.backgroundColor = 'rgba(255, 255, 255, 0.12)';
                 btn.style.color = '#ffffff';
-                btn.style.boxShadow = '0 0 8px var(--active-highlight-color, #00f0ff)';
+                btn.style.borderColor = 'var(--active-highlight-color, #3b82f6)';
             });
 
             btn.addEventListener('mouseleave', () => {
-                btn.style.transform = 'scale(1)';
+                btn.style.transform = 'translateY(0)';
                 btn.style.backgroundColor = 'rgba(255, 255, 255, 0.03)';
                 btn.style.color = '#e2e8f0';
-                btn.style.boxShadow = 'none';
+                btn.style.borderColor = 'rgba(255, 255, 255, 0.08)';
             });
 
             this.rootEl.append(btn);

@@ -1269,11 +1269,13 @@ clip-path seems the cleanest.
     border-radius: 20px !important;
     overflow-x: hidden !important;
     overflow-y: auto !important;
+    scroll-behavior: smooth !important;
+    will-change: scroll-position, transform !important;
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 
     &::-webkit-scrollbar {
-        width: 5px;
+        width: 4px;
     }
     &::-webkit-scrollbar-track {
         background: transparent;
@@ -1281,6 +1283,7 @@ clip-path seems the cleanest.
     &::-webkit-scrollbar-thumb {
         background-color: rgba(255, 255, 255, 0.12);
         border-radius: 10px;
+        transition: background-color 0.15s ease;
 
         &:hover {
             background-color: rgba(255, 255, 255, 0.25);
@@ -1291,7 +1294,7 @@ clip-path seems the cleanest.
     backdrop-filter: blur(30px) saturate(140%) !important;
     background: rgba(10, 10, 15, 0.65) !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 240, 255, 0.03) !important;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6) !important;
 
     &.kl-toolspace--left {
         left: 20px !important;
@@ -1317,7 +1320,7 @@ clip-path seems the cleanest.
         border: 1px solid rgba(255, 255, 255, 0.08) !important;
         border-radius: 12px !important;
         padding: 8px 16px !important;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 15px rgba(0, 240, 255, 0.1) !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
         color: #fff !important;
         font-family: 'Cairo', 'Outfit', sans-serif !important;
         font-weight: 500 !important;
@@ -1361,9 +1364,8 @@ clip-path seems the cleanest.
         display: inline-block;
         width: 6px;
         height: 6px;
-        background: #00f0ff;
+        background: var(--active-highlight-color, #3b82f6);
         border-radius: 50%;
-        box-shadow: 0 0 8px #00f0ff;
     }
 }
 
@@ -1425,17 +1427,12 @@ svg, img {
 }
 
 .toolspace-row-button, .tool-dropdown-button, .kl-tooldropdown-caret, .kl-button, .kl-option, .kl-tool-button--hover {
-    transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease !important;
+    transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.15s ease, border-color 0.15s ease !important;
     
     &:hover, &:active, &.kl-tool-button--hover {
-        transform: scale(1.08) !important;
-        background-color: rgba(255, 255, 255, 0.12) !important;
-        box-shadow: 0 0 12px rgba(0, 240, 255, 0.75), 0 0 20px rgba(255, 0, 127, 0.5) !important;
-        border-color: rgba(0, 240, 255, 0.6) !important;
-        
-        svg, img {
-            filter: drop-shadow(0 0 5px rgba(0, 240, 255, 0.65)) drop-shadow(0 0 10px rgba(255, 0, 127, 0.4)) !important;
-        }
+        transform: translateY(-1px) !important;
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        border-color: var(--active-highlight-color, #3b82f6) !important;
     }
 }
 
@@ -1443,11 +1440,9 @@ svg, img {
 @keyframes watermarkBreathe {
     0%, 100% {
         opacity: 0.18 !important;
-        text-shadow: 0 0 4px rgba(0, 240, 255, 0.1), 0 0 10px rgba(255, 0, 127, 0.05) !important;
     }
     50% {
         opacity: 0.35 !important;
-        text-shadow: 0 0 15px rgba(0, 240, 255, 0.5), 0 0 25px rgba(255, 0, 127, 0.3) !important;
     }
 }
 
@@ -1503,10 +1498,8 @@ svg, img {
     padding: 40px;
     border-radius: 24px;
     background: rgba(15, 15, 25, 0.75);
-    border: 1px solid rgba(0, 240, 255, 0.15);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 
-                0 0 30px rgba(0, 240, 255, 0.05),
-                inset 0 0 20px rgba(255, 0, 127, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
     text-align: center;
     direction: rtl;
     font-family: 'Cairo', 'Outfit', sans-serif;
@@ -1520,7 +1513,7 @@ svg, img {
     color: #ffffff;
     margin-bottom: 20px;
     letter-spacing: 0.02em;
-    text-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+    /* no glow text shadow */
     transition: opacity 0.15s ease;
 }
 
@@ -1556,15 +1549,14 @@ svg, img {
     transition: all 0.25s ease;
 
     &:hover {
-        background: rgba(0, 240, 255, 0.4);
+        background: var(--active-highlight-color, rgba(255, 255, 255, 0.4));
     }
 }
 
 .maria-onboarding__dot--active {
     width: 24px;
     border-radius: 4px;
-    background: #00f0ff !important;
-    box-shadow: 0 0 8px #00f0ff;
+    background: var(--active-highlight-color, #3b82f6) !important;
 }
 
 .maria-onboarding__btn {
@@ -1582,29 +1574,25 @@ svg, img {
     box-shadow: none !important;
 
     &:hover {
-        background: rgba(0, 240, 255, 0.08) !important;
-        border-color: #00f0ff !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border-color: var(--active-highlight-color, #3b82f6) !important;
         color: #ffffff !important;
-        box-shadow: 0 0 10px rgba(0, 240, 255, 0.2) !important;
     }
 }
 
 .maria-onboarding__finish-btn {
     padding: 10px 24px;
     border-radius: 12px;
-    background: rgba(255, 0, 127, 0.15) !important;
-    border: 1px solid rgba(255, 0, 127, 0.4) !important;
+    background: var(--active-highlight-color, #3b82f6) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
     color: #ffffff !important;
     font-size: 14px;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s ease !important;
-    box-shadow: 0 0 15px rgba(255, 0, 127, 0.15) !important;
-
+ 
     &:hover {
-        background: rgba(255, 0, 127, 0.3) !important;
-        border-color: #ff007f !important;
-        box-shadow: 0 0 25px rgba(255, 0, 127, 0.35) !important;
+        opacity: 0.9 !important;
     }
 }
 

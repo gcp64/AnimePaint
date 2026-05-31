@@ -42,7 +42,7 @@ export class CanvasHud {
             css: {
                 fontSize: '9px',
                 fontWeight: '700',
-                color: 'var(--active-highlight-color, #00f0ff)',
+                color: 'var(--active-highlight-color, #3b82f6)',
                 letterSpacing: '0.1em',
                 marginBottom: '4px',
                 borderBottom: '1px solid rgba(255, 255, 255, 0.1)',

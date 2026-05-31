@@ -134,7 +134,7 @@ export class SettingsUi {
         });
 
         // ---- accent color ----
-        const savedAccent = localStorage.getItem('maria_core_theme_accent') || '#00f0ff';
+        const savedAccent = localStorage.getItem('maria_core_theme_accent') || '#3b82f6';
         
         const accentRow = BB.el({
             parent: this.rootEl,
@@ -147,7 +147,7 @@ export class SettingsUi {
         });
 
         const accentLabel = BB.el({
-            content: 'لون التوهج النشط (Accent):',
+            content: 'اللون المميز (Accent):',
             css: {
                 marginRight: '10px',
                 marginBottom: '2px',
@@ -164,10 +164,10 @@ export class SettingsUi {
         });
 
         const accents = [
-            { name: 'cyan', color: '#00f0ff' },
-            { name: 'magenta', color: '#ff007f' },
-            { name: 'green', color: '#39ff14' },
-            { name: 'yellow', color: '#e5ff00' }
+            { name: 'blue', color: '#3b82f6' },
+            { name: 'rose', color: '#e11d48' },
+            { name: 'green', color: '#10b981' },
+            { name: 'amber', color: '#d97706' }
         ];
 
         const chipElements: HTMLElement[] = [];
@@ -181,8 +181,7 @@ export class SettingsUi {
                     backgroundColor: item.color,
                     cursor: 'pointer',
                     border: item.color === savedAccent ? '2px solid #ffffff' : '2px solid rgba(255, 255, 255, 0.2)',
-                    boxShadow: item.color === savedAccent ? `0 0 8px ${item.color}` : 'none',
-                    transition: 'border 0.2s, box-shadow 0.2s, transform 0.2s',
+                    transition: 'border 0.2s, transform 0.2s',
                 },
                 onClick: () => {
                     localStorage.setItem('maria_core_theme_accent', item.color);
@@ -193,7 +192,6 @@ export class SettingsUi {
                         const active = accents[index].color === item.color;
                         css(el, {
                             border: active ? '2px solid #ffffff' : '2px solid rgba(255, 255, 255, 0.2)',
-                            boxShadow: active ? `0 0 8px ${accents[index].color}` : 'none',
                             transform: active ? 'scale(1.15)' : 'scale(1)',
                         });
                     });
@@ -207,21 +205,19 @@ export class SettingsUi {
 
             // Hover effect
             chip.addEventListener('mouseenter', () => {
-                const current = localStorage.getItem('maria_core_theme_accent') || '#00f0ff';
+                const current = localStorage.getItem('maria_core_theme_accent') || '#3b82f6';
                 if (item.color !== current) {
                     css(chip, {
                         transform: 'scale(1.1)',
-                        boxShadow: `0 0 4px ${item.color}`,
                     });
                 }
             });
 
             chip.addEventListener('mouseleave', () => {
-                const current = localStorage.getItem('maria_core_theme_accent') || '#00f0ff';
+                const current = localStorage.getItem('maria_core_theme_accent') || '#3b82f6';
                 if (item.color !== current) {
                     css(chip, {
                         transform: 'scale(1)',
-                        boxShadow: 'none',
                     });
                 }
             });
