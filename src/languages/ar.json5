@@ -1405,11 +1405,11 @@
   },
   'text-text': {
     original: 'Text',
-    value: 'محتوى النص المكتوب',
+    value: 'محتوى النص',
   },
   'text-font': {
     original: 'Font',
-    value: 'نوع الخط المستخدم للرسم والكتابة',
+    value: 'نوع الخط',
   },
   'text-placeholder': {
     hint: 'placeholder in text input.',
@@ -1418,19 +1418,19 @@
   },
   'text-color': {
     original: 'Color',
-    value: 'لون خط الكتابة',
+    value: 'لون الخط',
   },
   'text-size': {
     original: 'Size',
-    value: 'حجم خط الكتابة للرسمة',
+    value: 'حجم الخط',
   },
   'text-line-height': {
     original: 'Line Height',
-    value: 'المسافة العمودية بين الأسطر المكتوبة',
+    value: 'تباعد الأسطر',
   },
   'text-letter-spacing': {
     original: 'Letter Spacing',
-    value: 'المسافة الأفقية بين الحروف المكتوبة',
+    value: 'تباعد الحروف',
   },
   'text-left': {
     hint: 'left, center, right text formatting like in Word',
