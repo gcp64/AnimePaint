@@ -619,7 +619,6 @@ export class MobileUi {
 
             /* === Tools Grid === */
             .mp-tools-grid {
-                display: grid !important;
                 grid-template-columns: repeat(3, 1fr) !important;
                 gap: 8px !important;
                 padding: 10px !important;
@@ -2029,7 +2028,7 @@ export class MobileUi {
                 opacity: '0.5',
                 paddingBottom: '20px',
             },
-            content: 'AnimePaint Mobile v1.8.0'
+            content: 'AnimePaint Mobile v1.8.3'
         });
         body.append(versionInfo);
 

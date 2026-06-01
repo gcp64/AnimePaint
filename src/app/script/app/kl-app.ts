@@ -2785,11 +2785,26 @@ export class KlApp {
         const watermark = document.querySelector('.maria-watermark');
         const easel = this.easel.getElement();
         
+        const isMobileDevice = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+        const isMobile = this.uiWidth < this.collapseThreshold || isMobileDevice;
+
+        if (isMobile) {
+            // Force immediate layout visibility on mobile layout to avoid blank screen bugs
+            if (easel) {
+                easel.style.opacity = '1';
+                easel.style.transform = 'none';
+            }
+            if (toolspace) {
+                toolspace.style.opacity = '1';
+                toolspace.style.transform = 'none';
+            }
+        }
+
         const targets: HTMLElement[] = [];
         if (titlebar) targets.push(titlebar as HTMLElement);
-        if (toolspace) targets.push(toolspace);
+        if (toolspace && !isMobile) targets.push(toolspace);
         if (watermark) targets.push(watermark as HTMLElement);
-        if (easel) targets.push(easel);
+        if (easel && !isMobile) targets.push(easel);
 
         if (targets.length === 0) return;
 
