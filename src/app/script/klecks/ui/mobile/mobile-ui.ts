@@ -1202,48 +1202,7 @@ export class MobileUi {
 
     // ===================== HELPERS =====================
     private addTouchButton(el: HTMLElement, callback: () => void): void {
-        let startX = 0;
-        let startY = 0;
-        let isTouch = false;
-
-        const onTouchStart = (e: TouchEvent) => {
-            isTouch = true;
-            const t = e.touches[0];
-            startX = t.clientX;
-            startY = t.clientY;
-            el.classList.add('mp-pressing');
-            if (navigator.vibrate) {
-                try { navigator.vibrate(8); } catch (_) {}
-            }
-        };
-
-        const onTouchEnd = (e: TouchEvent) => {
-            if (!isTouch) return;
-            el.classList.remove('mp-pressing');
-            const t = e.changedTouches[0];
-            const dist = Math.sqrt(Math.pow(t.clientX - startX, 2) + Math.pow(t.clientY - startY, 2));
-            if (dist < 15) {
-                e.preventDefault();
-                e.stopPropagation();
-                callback();
-            }
-            isTouch = false;
-        };
-
-        const onTouchCancel = () => {
-            el.classList.remove('mp-pressing');
-            isTouch = false;
-        };
-
-        el.addEventListener('touchstart', onTouchStart, { passive: false });
-        el.addEventListener('touchend', onTouchEnd, { passive: false });
-        el.addEventListener('touchcancel', onTouchCancel, { passive: true });
-
-        // Fallback for mouse clicks (desktop / pointer)
         el.addEventListener('click', (e: MouseEvent) => {
-            if (isTouch) {
-                return;
-            }
             e.stopPropagation();
             if (navigator.vibrate) {
                 try { navigator.vibrate(8); } catch (_) {}

@@ -2727,6 +2727,7 @@ export class KlApp {
                         this.statusOverlay.out('تم التحميل بنجاح', true);
                         
                         this.rootEl.style.display = 'block';
+                        this.triggerPanelEntryAnimation();
                         this.updateCollapse();
                     } else {
                         this.statusOverlay.out('فشل في تحميل اللوحة', true);
@@ -2756,6 +2757,7 @@ export class KlApp {
                 this.easel.resetOrFitTransform(true);
                 
                 this.rootEl.style.display = 'block';
+                this.triggerPanelEntryAnimation();
                 this.updateCollapse();
             }
         });
