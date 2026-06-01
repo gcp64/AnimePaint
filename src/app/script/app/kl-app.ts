@@ -1421,7 +1421,8 @@ export class KlApp {
                     } catch (err) {
                         console.error('Failed to save project:', err);
                         this.statusOverlay.out('فشل في حفظ اللوحة', true);
-                        if (confirm('فشل حفظ اللوحة الفنية في المعرض المحلي. هل تود العودة للمعرض على أي حال؟ (قد تفقد التغييرات الأخيرة)')) {
+                        const errMsg = err instanceof Error ? err.message : String(err);
+                        if (confirm('فشل حفظ اللوحة الفنية في المعرض المحلي. التفاصيل: ' + errMsg + '\n\nهل تود العودة للمعرض على أي حال؟ (قد تفقد التغييرات الأخيرة)')) {
                             this.rootEl.style.display = 'none';
                             this.mobilePortal.setIsVisible(true);
                             this.mobilePortal.refreshGalleryList();
@@ -1453,6 +1454,12 @@ export class KlApp {
                     this.mobilePortal.refreshGalleryList();
                 } catch (e) {
                     console.error('Auto save project failed:', e);
+                }
+            },
+            onToggleLayers: (show) => {
+                this.layersUi.setIsVisible(show);
+                if (show) {
+                    this.layersUi.update();
                 }
             }
         });

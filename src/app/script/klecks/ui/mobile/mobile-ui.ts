@@ -34,6 +34,7 @@ export type TMobileUiParams = {
     onSetGridOverlay?: (value: string) => void;
     onSetPressureSim?: (enabled: boolean) => void;
     onAutoSave?: () => Promise<void>;
+    onToggleLayers?: (show: boolean) => void;
 };
 
 // SVG icon constants
@@ -220,6 +221,7 @@ export class MobileUi {
     private readonly onSetGridOverlay?: (value: string) => void;
     private readonly onSetPressureSim?: (enabled: boolean) => void;
     private readonly onAutoSave?: () => Promise<void>;
+    private readonly onToggleLayers?: (show: boolean) => void;
 
     private currentBrushId: string = 'penBrush';
 
@@ -274,6 +276,7 @@ export class MobileUi {
         this.onSetGridOverlay = p.onSetGridOverlay;
         this.onSetPressureSim = p.onSetPressureSim;
         this.onAutoSave = p.onAutoSave;
+        this.onToggleLayers = p.onToggleLayers;
  
         // Load persistent settings
         this.drawingSettings.stabilizer = localStorage.getItem('maria_core_stabilizer_enabled') === 'true';
@@ -333,7 +336,7 @@ export class MobileUi {
             if (count > 0) {
                 this.hideAllMenus();
                 this.rootEl.style.display = 'none';
-                if (this.layersWindow) this.layersWindow.style.display = 'none';
+                this.setLayersWindowVisible(false);
             } else if (this.isVisible) {
                 this.rootEl.style.display = 'block';
             }
@@ -1431,16 +1434,7 @@ export class MobileUi {
         this.addTouchButton(this.layersBtn, () => {
             this.hideAllMenus();
             const isShown = this.layersWindow!.style.display === 'flex';
-            this.layersWindow!.style.display = isShown ? 'none' : 'flex';
-            this.layersBtn!.classList.toggle('mp-active', !isShown);
-
-            if (!isShown) {
-                const body = this.layersWindow!.querySelector('.mp-layers-body');
-                if (body) {
-                    body.innerHTML = '';
-                    body.append(this.onGetLayersElement());
-                }
-            }
+            this.setLayersWindowVisible(!isShown);
         });
 
         // 6. Settings (Drawing Settings Panel)
@@ -1813,9 +1807,7 @@ export class MobileUi {
         const closeBtn = BB.el({ className: 'mp-close-glow' });
         closeBtn.innerHTML = ICONS.close;
         this.addTouchButton(closeBtn, () => {
-            this.layersWindow!.style.display = 'none';
-            // Use stored reference instead of hardcoded index
-            if (this.layersBtn) this.layersBtn.classList.remove('mp-active');
+            this.setLayersWindowVisible(false);
         });
 
         header.append(title, closeBtn);
@@ -1827,6 +1819,24 @@ export class MobileUi {
 
         // Draggable
         this.setupDrag(header, this.layersWindow);
+    }
+
+    private setLayersWindowVisible(visible: boolean): void {
+        if (!this.layersWindow) return;
+        this.layersWindow.style.display = visible ? 'flex' : 'none';
+        if (this.layersBtn) {
+            this.layersBtn.classList.toggle('mp-active', visible);
+        }
+        if (visible) {
+            const body = this.layersWindow.querySelector('.mp-layers-body');
+            if (body) {
+                body.innerHTML = '';
+                body.append(this.onGetLayersElement());
+            }
+        }
+        if (this.onToggleLayers) {
+            this.onToggleLayers(visible);
+        }
     }
 
     // ===================== SETTINGS PANEL =====================
@@ -2028,7 +2038,7 @@ export class MobileUi {
                 opacity: '0.5',
                 paddingBottom: '20px',
             },
-            content: 'AnimePaint Mobile v1.8.3'
+            content: 'AnimePaint Mobile v1.8.6'
         });
         body.append(versionInfo);
 
@@ -2059,7 +2069,7 @@ export class MobileUi {
         const info = BB.el({ tagName: 'div' });
         info.innerHTML = `<div class="mp-setting-label">${label}</div><div class="mp-setting-desc">${desc}</div>`;
 
-        const toggle = BB.el({ className: 'mp-toggle' });
+        const toggle = BB.el({ tagName: 'label', className: 'mp-toggle' });
         const input = document.createElement('input');
         input.type = 'checkbox';
         input.checked = initialValue;
@@ -2475,7 +2485,7 @@ export class MobileUi {
         } else {
             this.rootEl.remove();
             this.rootEl.style.display = 'none';
-            if (this.layersWindow) this.layersWindow.style.display = 'none';
+            this.setLayersWindowVisible(false);
             if (this.settingsPanel) this.settingsPanel.style.display = 'none';
             if (this.brushPreview) this.brushPreview.style.display = 'none';
             if (this.syncIntervalId) {

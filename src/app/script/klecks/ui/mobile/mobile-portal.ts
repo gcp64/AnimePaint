@@ -752,7 +752,7 @@ export class MobilePortal {
         helpBtn.className = 'mp-header-btn';
         helpBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.25z"/></svg>';
         helpBtn.addEventListener('click', () => {
-            this.showInfoDialog('AnimePaint Mobile v1.8.5', 'تطبيق رسم احترافي للهاتف مع طبقات، معرض محلي، وأدوات تخصيص متقدمة.');
+            this.showInfoDialog('AnimePaint Mobile v1.8.6', 'تطبيق رسم احترافي للهاتف مع طبقات، معرض محلي، وأدوات تخصيص متقدمة.');
         });
 
         const premiumBtn = document.createElement('div');
@@ -777,7 +777,7 @@ export class MobilePortal {
         imgWrap.append(wheel, brushIcon);
 
         const title = BB.el({ className: 'mp-logo-title', content: 'أنيمي باينت' });
-        const version = BB.el({ className: 'mp-logo-version', content: 'النسخة المحمولة Ver 1.8.5' });
+        const version = BB.el({ className: 'mp-logo-version', content: 'النسخة المحمولة Ver 1.8.6' });
         
         logoSec.append(imgWrap, title, version);
 
@@ -894,7 +894,7 @@ export class MobilePortal {
             content: 'مزامنة السحابية'
         });
 
-        const syncSwitch = BB.el({ className: 'mp-switch' });
+        const syncSwitch = BB.el({ tagName: 'label', className: 'mp-switch' });
         const syncInput = document.createElement('input');
         syncInput.type = 'checkbox';
         const syncSlider = BB.el({ className: 'mp-switch-slider' });
@@ -1440,6 +1440,34 @@ export class MobilePortal {
             }
         }
         this.settingsOverlay.style.display = show ? 'flex' : 'none';
+    }
+
+    showInfoDialog(titleStr: string, messageStr: string): void {
+        const overlay = BB.el({ className: 'mp-dialog-overlay' });
+        const dialog = BB.el({ className: 'mp-dialog', css: { maxWidth: '320px', textAlign: 'center' } });
+        const title = BB.el({ className: 'mp-dialog-title', content: titleStr });
+        const content = BB.el({
+            css: {
+                fontSize: '13px',
+                lineHeight: '1.6',
+                opacity: '0.8',
+                marginBottom: '20px',
+                textAlign: 'right'
+            },
+            content: messageStr
+        });
+        const btnsRow = BB.el({ className: 'mp-dialog-buttons' });
+        const confirmBtn = BB.el({ className: 'mp-dialog-btn mp-confirm-btn', content: 'حسناً' });
+        confirmBtn.addEventListener('click', () => {
+            overlay.remove();
+        });
+        btnsRow.append(confirmBtn);
+        dialog.append(title, content, btnsRow);
+        overlay.append(dialog);
+        overlay.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
+        overlay.addEventListener('pointerdown', (e) => e.stopPropagation(), { passive: true });
+        this.rootEl.append(overlay);
+        overlay.style.display = 'flex';
     }
 
     // ===================== PUBLIC API =====================

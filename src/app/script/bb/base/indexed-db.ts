@@ -6,47 +6,63 @@ export type TIndexedDbUpgrader = (event: IDBVersionChangeEvent) => void;
 // Blobs not supported on iPad in private tabs.
 // Blobs are required for indexed db to be useful. Data urls would be wasteful.
 const areBlobUrlsSupported = async function (): Promise<boolean> {
-    let result = true;
-    const dbName = 'kl-blob-url-test';
-    try {
-        const blob = new Blob(['test'], { type: 'text/plain' });
-        const db = await timeoutWrapper(
-            new Promise<IDBDatabase>((resolve, reject) => {
-                const request = indexedDB.open(dbName, 1);
-                request.onerror = () => reject(request.error);
-                request.onsuccess = () => resolve(request.result);
-                request.onupgradeneeded = (event) => {
-                    const db = (event.target as IDBOpenDBRequest).result;
-                    db.createObjectStore('testStore');
-                };
-            }),
-            'areBlobUrlsSupported.createDb',
-        );
-
-        await timeoutWrapper(
-            new Promise<void>((resolve, reject) => {
-                const transaction = db.transaction('testStore', 'readwrite');
-                const store = transaction.objectStore('testStore');
-                const request = store.put(blob, 'testStore');
-                transaction.onabort = () => resolve();
-                request.onsuccess = () => resolve();
-                request.onerror = () => reject(request.error);
-            }),
-            'areBlobUrlsSupported.storeBlob',
-        );
-
-        db.close();
-    } catch (e) {
-        result = false;
-    }
-    try {
-        indexedDB.deleteDatabase(dbName);
-    } catch (e) {
-        // IDBFactory.deleteDatabase() called in an invalid security context
-    }
-
-    return result;
+    return true; // We transparently serialize Blobs to ArrayBuffers, so this is always supported
 };
+
+async function serializeBlobs(val: any): Promise<any> {
+    if (val === null || val === undefined) {
+        return val;
+    }
+    if (val instanceof Blob) {
+        const arrayBuffer = await val.arrayBuffer();
+        return {
+            __isBlob: true,
+            type: val.type,
+            data: arrayBuffer
+        };
+    }
+    if (Array.isArray(val)) {
+        const result = [];
+        for (const item of val) {
+            result.push(await serializeBlobs(item));
+        }
+        return result;
+    }
+    if (typeof val === 'object') {
+        const proto = Object.getPrototypeOf(val);
+        if (proto === Object.prototype || proto === null) {
+            const result: any = {};
+            for (const key of Object.keys(val)) {
+                result[key] = await serializeBlobs(val[key]);
+            }
+            return result;
+        }
+    }
+    return val;
+}
+
+function deserializeBlobs(val: any): any {
+    if (val === null || val === undefined) {
+        return val;
+    }
+    if (typeof val === 'object') {
+        if (val.__isBlob === true) {
+            return new Blob([val.data], { type: val.type });
+        }
+        if (Array.isArray(val)) {
+            return val.map(item => deserializeBlobs(item));
+        }
+        const proto = Object.getPrototypeOf(val);
+        if (proto === Object.prototype || proto === null) {
+            const result: any = {};
+            for (const key of Object.keys(val)) {
+                result[key] = deserializeBlobs(val[key]);
+            }
+            return result;
+        }
+    }
+    return val;
+}
 
 // todo would it make sense that a single failure causes a complete failure?
 type TGetResultItem = {
@@ -167,12 +183,13 @@ export class IndexedDb {
     }
 
     async set(store: string, key: IDBValidKey | undefined, value: unknown): Promise<void> {
+        const serializedValue = await serializeBlobs(value);
         return this.autoDisconnectWrapper(async () => {
             await this.openDb();
             return await new Promise((resolve, reject) => {
                 const { transaction, objectStore } = this.getTransaction(store, 'readwrite');
                 transaction.onabort = () => reject(transaction.error);
-                const request = objectStore.put(value, key);
+                const request = objectStore.put(serializedValue, key);
                 request.onsuccess = () => {
                     resolve();
                 };
@@ -188,7 +205,7 @@ export class IndexedDb {
                 const { transaction, objectStore } = this.getTransaction(store, 'readonly');
                 transaction.onabort = () => reject(transaction.error);
                 const request = objectStore.get(key);
-                request.onsuccess = () => resolve(request.result);
+                request.onsuccess = () => resolve(deserializeBlobs(request.result));
                 request.onerror = () => reject(request.error);
             });
         });
@@ -239,6 +256,10 @@ export class IndexedDb {
         store: string,
         entries: { key: IDBValidKey | undefined; value: unknown }[],
     ): Promise<void> {
+        const serializedEntries = await Promise.all(entries.map(async (entry) => ({
+            key: entry.key,
+            value: await serializeBlobs(entry.value)
+        })));
         return this.autoDisconnectWrapper(async () => {
             await this.openDb();
             return new Promise((resolve, reject) => {
@@ -247,7 +268,7 @@ export class IndexedDb {
                 transaction.onerror = () => reject(transaction.error);
                 transaction.oncomplete = () => resolve();
 
-                for (const { key, value } of entries) {
+                for (const { key, value } of serializedEntries) {
                     const request = objectStore.put(value, key);
                     request.onerror = () => reject(request.error);
                 }
@@ -263,7 +284,13 @@ export class IndexedDb {
                 const { transaction, objectStore } = this.getTransaction(store, 'readonly');
                 transaction.onabort = () => reject(transaction.error);
                 transaction.onerror = () => reject(transaction.error);
-                transaction.oncomplete = () => resolve(results);
+                transaction.oncomplete = () => {
+                    const deserializedResults: Record<string, unknown> = {};
+                    for (const key of Object.keys(results)) {
+                        deserializedResults[key] = deserializeBlobs(results[key]);
+                    }
+                    resolve(deserializedResults);
+                };
 
                 keys.forEach((key, idx) => {
                     const request = objectStore.get(key);
