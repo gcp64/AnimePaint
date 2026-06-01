@@ -72,10 +72,25 @@
     </head>
     <body>
         <div id="loading-screen">
-            <video autoplay muted playsinline loop disablepictureinpicture disableremoteplayback style="width: 100%; height: 100%; object-fit: contain; pointer-events: none; -webkit-user-select: none; user-select: none;">
+            <video id="splash-video" autoplay muted playsinline loop disablepictureinpicture disableremoteplayback 
+                   poster="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                   style="width: 100%; height: 100%; object-fit: contain; pointer-events: none; -webkit-user-select: none; user-select: none; opacity: 0; transition: opacity 0.3s ease;">
                 <source src="app/img/splash.mp4" type="video/mp4">
             </video>
         </div>
+        <script>
+            (function() {
+                var video = document.getElementById('splash-video');
+                if (video) {
+                    video.addEventListener('playing', function() {
+                        video.style.opacity = '1';
+                    });
+                    setTimeout(function() {
+                        video.style.opacity = '1';
+                    }, 500);
+                }
+            })();
+        </script>
         <script>
             (function() {
                 var errorCount = 0;
