@@ -241,7 +241,7 @@ export class MobileUi {
         rotationLock: false,
         gridOverlay: 'off' as 'off' | '8x8' | '16x16' | '32x32',
         pressureSim: false,
-        autoSave: 'off' as 'off' | '30s' | '1min' | '5min',
+        autoSave: '30s' as 'off' | '30s' | '1min' | '5min',
         penSensitivity: 1.0,
     };
  
@@ -297,7 +297,7 @@ export class MobileUi {
         this.drawingSettings.rotationLock = localStorage.getItem('maria_core_disable_touch_rotation') === 'true';
         this.drawingSettings.gridOverlay = (localStorage.getItem('maria_core_grid_overlay') || 'off') as any;
         this.drawingSettings.pressureSim = localStorage.getItem('maria_core_pressure_sim') === 'true';
-        this.drawingSettings.autoSave = (localStorage.getItem('maria_core_auto_save') || 'off') as any;
+        this.drawingSettings.autoSave = (localStorage.getItem('maria_core_auto_save') || '30s') as any;
         this.drawingSettings.penSensitivity = parseFloat(localStorage.getItem('maria_core_pen_sensitivity') || '1.0');
 
 
@@ -392,6 +392,28 @@ export class MobileUi {
         if (this.toolsGrid) preventCanvasLeak(this.toolsGrid);
         if (this.brushesMenu) preventCanvasLeak(this.brushesMenu);
         if (this.settingsPanel) preventCanvasLeak(this.settingsPanel);
+
+        // Listen to visibilitychange and pagehide to save drawing immediately when app backgrounded/exited
+        document.addEventListener('visibilitychange', async () => {
+            if (document.visibilityState === 'hidden' && this.isVisible && this.onAutoSave) {
+                try {
+                    await this.onAutoSave();
+                    console.log('Saved automatically on visibility change.');
+                } catch (e) {
+                    console.error('Auto-save on visibility change failed:', e);
+                }
+            }
+        });
+        window.addEventListener('pagehide', async () => {
+            if (this.isVisible && this.onAutoSave) {
+                try {
+                    await this.onAutoSave();
+                    console.log('Saved automatically on page hide.');
+                } catch (e) {
+                    console.error('Auto-save on page hide failed:', e);
+                }
+            }
+        });
     }
 
     // ===================== STYLES =====================

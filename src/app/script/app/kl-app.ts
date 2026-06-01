@@ -1421,6 +1421,7 @@ export class KlApp {
                         await this.galleryStore.saveProject(currentProj, this.currentProjectTitle);
                         this.statusOverlay.out('تم الحفظ بنجاح', true);
                         this.rootEl.style.display = 'none';
+                        this.mobileUi.setIsVisible(false);
                         this.mobilePortal.setIsVisible(true);
                         this.mobilePortal.refreshGalleryList();
                     } catch (err) {
@@ -1429,6 +1430,7 @@ export class KlApp {
                         const errMsg = err instanceof Error ? err.message : String(err);
                         if (confirm('فشل حفظ اللوحة الفنية في المعرض المحلي. التفاصيل: ' + errMsg + '\n\nهل تود العودة للمعرض على أي حال؟ (قد تفقد التغييرات الأخيرة)')) {
                             this.rootEl.style.display = 'none';
+                            this.mobileUi.setIsVisible(false);
                             this.mobilePortal.setIsVisible(true);
                             this.mobilePortal.refreshGalleryList();
                         }
