@@ -111,15 +111,15 @@ export class EaselRotate implements TEaselTool {
     }
 
     onPointer(e: TPointerEvent): void {
-        this.easel.setCursor(e.button === 'left' ? 'grabbing' : 'grab');
+        this.easel.setCursor(this.downPos ? 'grabbing' : 'grab');
 
-        if (e.type === 'pointerdown' && e.button === 'left') {
+        if (e.type === 'pointerdown' && (e.button === 'left' || e.pointerType === 'touch')) {
             this.downPos = {
                 x: e.relX,
                 y: e.relY,
             };
             this.downTransform = BB.copyObj(this.easel.getTargetTransform());
-        } else if (e.button === 'left' && this.downPos && this.downTransform) {
+        } else if (e.type === 'pointermove' && this.downPos && this.downTransform) {
             const { width, height } = this.easel.getSize();
 
             const centerObj = {
@@ -147,7 +147,7 @@ export class EaselRotate implements TEaselTool {
                 !this.easel.isKeyPressed('shift'),
             );
             this.easel.requestRender();
-        } else if (e.type === 'pointerup' && this.downPos) {
+        } else if (e.type === 'pointerup') {
             this.downPos = undefined;
             this.downTransform = undefined;
         }

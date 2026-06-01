@@ -32,7 +32,7 @@ export class EaselZoom implements TEaselTool {
     onPointer(e: TPointerEvent): void {
         this.easel.setCursor("url('" + zoomEwImg + "') 7 7, zoom-in");
 
-        if (e.type === 'pointerdown' && ['left'].includes(e.button!)) {
+        if (e.type === 'pointerdown' && (e.button === 'left' || e.pointerType === 'touch')) {
             this.downPos = {
                 x: e.relX,
                 y: e.relY,
@@ -41,7 +41,6 @@ export class EaselZoom implements TEaselTool {
         }
         if (
             e.type === 'pointermove' &&
-            ['left'].includes(e.button!) &&
             this.downPos &&
             this.downTransform
         ) {
@@ -60,7 +59,7 @@ export class EaselZoom implements TEaselTool {
             );
             this.easel.requestRender();
         }
-        if (e.type === 'pointerup' && e.button === undefined) {
+        if (e.type === 'pointerup') {
             this.downPos = undefined;
             this.downTransform = undefined;
         }

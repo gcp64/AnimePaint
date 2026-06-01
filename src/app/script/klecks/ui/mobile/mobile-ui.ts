@@ -83,6 +83,7 @@ const TOOLS_LIST = [
 
 const BRUSH_TYPES = [
     { id: 'penBrush', name: 'قلم عادي (Pen)' },
+    { id: 'airbrushBrush', name: 'بخاخ ناعم (Airbrush)' },
     { id: 'blendBrush', name: 'قلم دمج (Blend)' },
     { id: 'sketchyBrush', name: 'تخطيط (Sketchy)' },
     { id: 'pixelBrush', name: 'بكسل (Pixel)' },
@@ -2014,6 +2015,7 @@ export class MobileUi {
 
         const shortNames: Record<string, string> = {
             penBrush: 'قلم',
+            airbrushBrush: 'بخاخ',
             blendBrush: 'مزج',
             sketchyBrush: 'تخطيط',
             pixelBrush: 'بكسل',
