@@ -752,14 +752,14 @@ export class MobilePortal {
         helpBtn.className = 'mp-header-btn';
         helpBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.25z"/></svg>';
         helpBtn.addEventListener('click', () => {
-            alert('AnimePaint Mobile v1.7.0\nتطبيق رسم احترافي للهاتف مع طبقات، معرض محلي، وأدوات تخصيص متقدمة.');
+            this.showInfoDialog('AnimePaint Mobile v1.8.0', 'تطبيق رسم احترافي للهاتف مع طبقات، معرض محلي، وأدوات تخصيص متقدمة.');
         });
 
         const premiumBtn = document.createElement('div');
         premiumBtn.className = 'mp-header-btn mp-premium-btn';
         premiumBtn.textContent = 'P';
         premiumBtn.addEventListener('click', () => {
-            alert('تم تفعيل مميزات Prime الاحترافية تلقائياً مجاناً كهدية من المطور!');
+            this.showInfoDialog('مميزات Prime', 'تم تفعيل مميزات Prime الاحترافية تلقائياً مجاناً كهدية من المطور!');
         });
 
         headerLeft.append(premiumBtn, helpBtn, settingsBtn);
@@ -777,7 +777,7 @@ export class MobilePortal {
         imgWrap.append(wheel, brushIcon);
 
         const title = BB.el({ className: 'mp-logo-title', content: 'أنيمي باينت' });
-        const version = BB.el({ className: 'mp-logo-version', content: 'النسخة المحمولة Ver 1.7.0' });
+        const version = BB.el({ className: 'mp-logo-version', content: 'النسخة المحمولة Ver 1.8.0' });
         
         logoSec.append(imgWrap, title, version);
 
@@ -830,9 +830,9 @@ export class MobilePortal {
             content: 'نصائح سريعة'
         });
         const tips = [
-            { icon: '✌️', text: 'إصبعين للتكبير والتحريك' },
-            { icon: '🔄', text: 'إصبع واحد للرسم على اللوحة' },
-            { icon: '💾', text: 'يتم الحفظ تلقائياً عند العودة للمعرض' },
+            { icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="#6366f1"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>', text: 'إصبعين للتكبير والتحريك' },
+            { icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="#8b5cf6"><path d="M7 14c-1.66 0-3 1.34-3 3 0 1.31-1.16 2-2 2 .92 1.22 2.49 2 4 2 2.21 0 4-1.79 4-4 0-1.66-1.34-3-3-3zm13.71-9.37l-1.34-1.34a.996.996 0 00-1.41 0L9 12.25 11.75 15l8.96-8.96a.996.996 0 000-1.41z"/></svg>', text: 'إصبع واحد للرسم على اللوحة' },
+            { icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="#22c55e"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>', text: 'يتم الحفظ تلقائياً عند العودة للمعرض' },
         ];
         tipsSection.append(tipsTitle);
         tips.forEach(tip => {
@@ -849,7 +849,7 @@ export class MobilePortal {
                     fontWeight: '600',
                 }
             });
-            row.innerHTML = `<span style="font-size: 18px;">${tip.icon}</span><span style="opacity: 0.7;">${tip.text}</span>`;
+            row.innerHTML = `<span style="flex-shrink: 0; display: flex; align-items: center;">${tip.icon}</span><span style="opacity: 0.7;">${tip.text}</span>`;
             tipsSection.append(row);
         });
 
@@ -873,7 +873,7 @@ export class MobilePortal {
         
         const selectBtn = BB.el({ className: 'mp-select-btn', content: 'تحديد' });
         selectBtn.addEventListener('click', () => {
-            alert('ميزة التحديد المتعدد ستتوفر قريباً! يمكنك إدارة كل لوحة باستخدام زر الخيارات المخصص (الثلاث نقاط) على اللوحة.');
+            this.showInfoDialog('تحديد متعدد', 'ميزة التحديد المتعدد ستتوفر قريباً! يمكنك إدارة كل لوحة باستخدام زر الخيارات المخصص (الثلاث نقاط) على اللوحة.');
         });
 
         header.append(backBtn, title, selectBtn);
@@ -901,7 +901,7 @@ export class MobilePortal {
         syncSwitch.append(syncInput, syncSlider);
 
         syncInput.addEventListener('change', () => {
-            alert(syncInput.checked ? 'تم تفعيل المزامنة السحابية التجريبية لرسوماتك!' : 'تم تعطيل المزامنة السحابية.');
+            this.showInfoDialog('المزامنة السحابية', syncInput.checked ? 'تم تفعيل المزامنة السحابية التجريبية لرسوماتك!' : 'تم تعطيل المزامنة السحابية.');
         });
 
         syncControlWrap.append(syncLabel, syncSwitch);
@@ -941,18 +941,18 @@ export class MobilePortal {
         
         // Populate dummy online drawings
         const mockWorks = [
-            { title: 'بطل القوة', author: 'أحمد رسام', emoji: '🎨' },
-            { title: 'فتاة الأنمي الرائعة', author: 'سارة آرت', emoji: '✨' },
-            { title: 'منظر غروب ياباني', author: 'أوتامو', emoji: '🌅' },
-            { title: 'الذئب الطائر', author: 'محمد 99', emoji: '🐺' },
-            { title: 'شخصية بأسلوب تشيبي', author: 'مريم رسامة', emoji: '🧸' },
-            { title: 'طبيعة ساحرة بالدمج', author: 'خالد آرت', emoji: '🌿' }
+            { title: 'بطل القوة', author: 'أحمد رسام', gradient: 'linear-gradient(135deg, #6366f1, #8b5cf6)' },
+            { title: 'فتاة الأنمي الرائعة', author: 'سارة آرت', gradient: 'linear-gradient(135deg, #ec4899, #f43f5e)' },
+            { title: 'منظر غروب ياباني', author: 'أوتامو', gradient: 'linear-gradient(135deg, #f97316, #eab308)' },
+            { title: 'الذئب الطائر', author: 'محمد 99', gradient: 'linear-gradient(135deg, #64748b, #475569)' },
+            { title: 'شخصية بأسلوب تشيبي', author: 'مريم رسامة', gradient: 'linear-gradient(135deg, #a855f7, #6366f1)' },
+            { title: 'طبيعة ساحرة بالدمج', author: 'خالد آرت', gradient: 'linear-gradient(135deg, #22c55e, #06b6d4)' }
         ];
 
         mockWorks.forEach(work => {
             const card = BB.el({ className: 'mp-online-card' });
             card.innerHTML = `
-                <div class="mp-online-thumb">${work.emoji}</div>
+                <div class="mp-online-thumb" style="background: ${work.gradient};"><svg width="32" height="32" viewBox="0 0 24 24" fill="rgba(255,255,255,0.3)"><path d="M7 14c-1.66 0-3 1.34-3 3 0 1.31-1.16 2-2 2 .92 1.22 2.49 2 4 2 2.21 0 4-1.79 4-4 0-1.66-1.34-3-3-3zm13.71-9.37l-1.34-1.34a.996.996 0 00-1.41 0L9 12.25 11.75 15l8.96-8.96a.996.996 0 000-1.41z"/></svg></div>
                 <div class="mp-online-info">
                     <div class="mp-online-title">${work.title}</div>
                     <div class="mp-online-author">بواسطة: ${work.author}</div>
@@ -1106,7 +1106,7 @@ export class MobilePortal {
             if (this.projectsList.length === 0) {
                 grid.innerHTML = `
                     <div class="mp-empty-state" style="grid-column: 1/-1;">
-                        <div class="mp-empty-icon">📂</div>
+                        <div class="mp-empty-icon"><svg width="56" height="56" viewBox="0 0 24 24" fill="#475569"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg></div>
                         <div class="mp-empty-text-1">ليس هناك عمل فني.</div>
                         <div class="mp-empty-text-2">اضغط زر '+' لإنشاء عمل فني جديد.</div>
                     </div>
@@ -1125,7 +1125,7 @@ export class MobilePortal {
                     img.onload = () => URL.revokeObjectURL(img.src);
                     thumb.append(img);
                 } else {
-                    thumb.innerHTML = '<span style="font-size: 24px; opacity: 0.2">🎨</span>';
+                    thumb.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="opacity: 0.2;"><path d="M12 22C6.49 22 2 17.51 2 12S6.49 2 12 2s10 4.49 10 10-4.49 10-10 10zm-5.5-9c-.83 0-1.5-.67-1.5-1.5S5.67 10 6.5 10 8 10.67 8 11.5 7.33 13 6.5 13zm3-4C8.67 9 8 8.33 8 7.5S8.67 6 9.5 6s1.5.67 1.5 1.5S10.33 9 9.5 9zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 6 14.5 6s1.5.67 1.5 1.5S15.33 9 14.5 9zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 10 17.5 10s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>';
                 }
 
                 // Launch drawing editor on thumbnail click
@@ -1360,9 +1360,9 @@ export class MobilePortal {
             }
         });
         securitySec.innerHTML = `
-            <div style="font-size: 26px; flex-shrink: 0; color: #22c55e;">🛡️</div>
+            <div style="flex-shrink: 0; color: #22c55e;"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg></div>
             <div style="display: flex; flex-direction: column; gap: 2px;">
-                <div style="font-size: 12px; font-weight: 800; color: #22c55e; display: flex; align-items: center; gap: 4px;">الحالة الأمنية: آمن وموقع ✓</div>
+                <div style="font-size: 12px; font-weight: 800; color: #22c55e; display: flex; align-items: center; gap: 4px;">الحالة الأمنية: آمن وموقع <svg width="12" height="12" viewBox="0 0 24 24" fill="#22c55e"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg></div>
                 <div style="font-size: 10px; font-weight: 600; opacity: 0.7; line-height: 1.3;">التطبيق موقع بشهادة أمان APK معتمدة ومرخص ومحمي بالكامل لحفظ سلامة أعمالك.</div>
             </div>
         `;
@@ -1434,7 +1434,7 @@ export class MobilePortal {
                             <span>إجمالي الرسومات المخزنة:</span>
                             <strong style="color: #6366f1;">${list.length} لوحات</strong>
                         </div>
-                        <div style="opacity: 0.5; font-size: 9px; margin-top: 4px; color: #ef4444; font-weight: 700;">⚠️ تنبيه هام: الرسومات تحفظ محلياً على المتصفح/الجهاز. لا تقم بمسح بيانات التطبيق أو ملفات الكاش نهائياً حتى لا تضيع أعمالك!</div>
+                        <div style="opacity: 0.5; font-size: 9px; margin-top: 4px; color: #ef4444; font-weight: 700; display: flex; align-items: flex-start; gap: 4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="#ef4444" style="flex-shrink: 0; margin-top: 1px;"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>تنبيه هام: الرسومات تحفظ محلياً على المتصفح/الجهاز. لا تقم بمسح بيانات التطبيق أو ملفات الكاش نهائياً حتى لا تضيع أعمالك!</div>
                     `;
                 }).catch(() => {});
             }

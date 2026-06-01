@@ -119,10 +119,10 @@ class MobileToast {
         const toast = document.createElement('div');
 
         const colors: Record<string, { bg: string; border: string; icon: string }> = {
-            success: { bg: 'rgba(34,197,94,0.15)', border: 'rgba(34,197,94,0.3)', icon: '✓' },
-            info: { bg: 'rgba(99,102,241,0.15)', border: 'rgba(99,102,241,0.3)', icon: 'ℹ' },
-            warning: { bg: 'rgba(234,179,8,0.15)', border: 'rgba(234,179,8,0.3)', icon: '⚠' },
-            error: { bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.3)', icon: '✕' },
+            success: { bg: 'rgba(34,197,94,0.15)', border: 'rgba(34,197,94,0.3)', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="#22c55e"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>' },
+            info: { bg: 'rgba(99,102,241,0.15)', border: 'rgba(99,102,241,0.3)', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="#6366f1"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>' },
+            warning: { bg: 'rgba(234,179,8,0.15)', border: 'rgba(234,179,8,0.3)', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="#eab308"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>' },
+            error: { bg: 'rgba(239,68,68,0.15)', border: 'rgba(239,68,68,0.3)', icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="#ef4444"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>' },
         };
         const c = colors[type];
 
@@ -146,7 +146,7 @@ class MobileToast {
             box-shadow: 0 8px 32px rgba(0,0,0,0.3);
             max-width: 100%;
         `;
-        toast.innerHTML = `<span style="font-size: 14px; flex-shrink: 0;">${c.icon}</span><span>${message}</span>`;
+        toast.innerHTML = `<span style="flex-shrink: 0; display: flex; align-items: center;">${c.icon}</span><span>${message}</span>`;
 
         this.container!.appendChild(toast);
 
@@ -216,6 +216,10 @@ export class MobileUi {
     private readonly onGetBrushId?: () => string;
     private readonly onFitView?: () => void;
     private readonly onBackToGallery?: () => void;
+    private readonly onSetStabilizer?: (enabled: boolean, strength: number) => void;
+    private readonly onSetGridOverlay?: (value: string) => void;
+    private readonly onSetPressureSim?: (enabled: boolean) => void;
+    private readonly onAutoSave?: () => Promise<void>;
 
     private currentBrushId: string = 'penBrush';
 
@@ -299,17 +303,7 @@ export class MobileUi {
 
         // Create backdrop element
         this.backdropEl = BB.el({
-            css: {
-                position: 'fixed',
-                top: '0',
-                left: '0',
-                right: '0',
-                bottom: '0',
-                background: 'rgba(0,0,0,0)',
-                zIndex: '10000',
-                pointerEvents: 'auto',
-                display: 'none',
-            }
+            className: 'mp-sheet-backdrop',
         });
         this.rootEl.append(this.backdropEl);
 
@@ -617,9 +611,10 @@ export class MobileUi {
             }
             .mp-menu-item .mp-check {
                 margin-right: auto;
-                font-size: 14px;
                 color: var(--mp-accent);
                 font-weight: 700;
+                display: flex;
+                align-items: center;
             }
 
             /* === Tools Grid === */
@@ -1077,6 +1072,130 @@ export class MobileUi {
                     width: 260px;
                 }
             }
+
+            /* --- v1.8.0 Premium Close Buttons with Glow --- */
+            .mp-close-glow {
+                width: 28px !important;
+                height: 28px !important;
+                border-radius: 50% !important;
+                background: rgba(255, 255, 255, 0.05) !important;
+                border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.3) !important;
+                color: var(--mp-text-dim) !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                cursor: pointer !important;
+                transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s, box-shadow 0.2s, color 0.2s !important;
+                pointer-events: auto !important;
+                touch-action: none !important;
+            }
+            .mp-close-glow:hover, .mp-close-glow:active {
+                transform: scale(1.12) rotate(90deg) !important;
+                background: rgba(239, 68, 68, 0.15) !important;
+                border-color: rgba(239, 68, 68, 0.4) !important;
+                color: #ff8888 !important;
+                box-shadow: 0 0 14px rgba(239, 68, 68, 0.4) !important;
+            }
+            .mp-close-glow svg {
+                width: 14px !important;
+                height: 14px !important;
+                fill: currentColor !important;
+                transition: fill 0.2s !important;
+            }
+
+            /* --- Will-Change & GPU Layers --- */
+            .mp-glass-gpu {
+                will-change: transform !important;
+                transform: translate3d(0,0,0) !important;
+            }
+
+            /* --- Luxury Bottom Sheets (Mobile Drawers) --- */
+            @keyframes mp-sheetUp {
+                from { transform: translateY(100%); }
+                to { transform: translateY(0); }
+            }
+            @keyframes mp-sheetDown {
+                from { transform: translateY(0); }
+                to { transform: translateY(100%); }
+            }
+            
+            .mp-sheet-backdrop {
+                position: fixed;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: rgba(8, 8, 16, 0.4);
+                backdrop-filter: blur(4px);
+                -webkit-backdrop-filter: blur(4px);
+                opacity: 0;
+                z-index: 10000;
+                display: none;
+                transition: opacity 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+                pointer-events: auto !important;
+            }
+            
+            @media (max-width: 500px) {
+                .mp-popup-menu.mp-bottom-sheet {
+                    position: fixed !important;
+                    bottom: 0 !important;
+                    left: 0 !important;
+                    right: 0 !important;
+                    top: auto !important;
+                    width: 100% !important;
+                    max-width: 100vw !important;
+                    min-width: 100% !important;
+                    border-radius: 24px 24px 0 0 !important;
+                    border: 1px solid var(--mp-border) !important;
+                    border-bottom: none !important;
+                    padding: 24px 16px 40px !important;
+                    max-height: 80vh !important;
+                    box-shadow: 0 -8px 32px rgba(0,0,0,0.4) !important;
+                    animation: mp-sheetUp 0.35s cubic-bezier(0.25, 1, 0.5, 1) !important;
+                    display: none;
+                    flex-direction: column;
+                }
+                
+                /* Drag handle indicator bar */
+                .mp-popup-menu.mp-bottom-sheet::before {
+                    content: '';
+                    position: absolute;
+                    top: 10px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    width: 48px;
+                    height: 5px;
+                    background: rgba(255,255,255,0.18);
+                    border-radius: 3px;
+                }
+                
+                html:not(.kl-theme-dark) .mp-popup-menu.mp-bottom-sheet::before {
+                    background: rgba(0,0,0,0.18);
+                }
+                
+                .mp-popup-menu.mp-bottom-sheet .mp-menu-item {
+                    font-size: 15px !important;
+                    padding: 14px 18px !important;
+                }
+            }
+
+            /* --- Real-Time Brush Size/Opacity Preview Circle --- */
+            .mp-preview-bubble {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) scale(0.8);
+                border-radius: 50%;
+                background: var(--mp-accent);
+                border: 2px solid #fff;
+                box-shadow: 0 0 0 1px rgba(0,0,0,0.2), 0 8px 24px rgba(0,0,0,0.3);
+                z-index: 20000;
+                pointer-events: none;
+                opacity: 0;
+                transition: opacity 0.18s ease, transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+            }
+            .mp-preview-bubble.mp-active {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
         `;
         document.head.appendChild(style);
     }
@@ -1134,7 +1253,14 @@ export class MobileUi {
         if (this.fileMenu) this.fileMenu.style.display = 'none';
         if (this.toolsGrid) this.toolsGrid.style.display = 'none';
         if (this.brushesMenu) this.brushesMenu.style.display = 'none';
-        if (this.backdropEl) this.backdropEl.style.display = 'none';
+        if (this.backdropEl) {
+            this.backdropEl.style.opacity = '0';
+            setTimeout(() => {
+                if (this.backdropEl && this.backdropEl.style.opacity === '0') {
+                    this.backdropEl.style.display = 'none';
+                }
+            }, 300);
+        }
         // Hide color history
         const colorHist = document.getElementById('mp-color-history-panel');
         if (colorHist) colorHist.style.display = 'none';
@@ -1149,6 +1275,11 @@ export class MobileUi {
         menu.style.top = 'auto';
         menu.style.bottom = 'auto';
         menu.style.transform = '';
+
+        // If it's acting as a bottom sheet (media query width < 500px), do not position it
+        if (window.innerWidth <= 500 && menu.classList.contains('mp-bottom-sheet')) {
+            return;
+        }
 
         // Show briefly to measure
         const prevDisplay = menu.style.display;
@@ -1180,27 +1311,48 @@ export class MobileUi {
         if (!isShown) {
             this.positionMenuAtAnchor(menu, anchor);
             menu.style.display = menu.classList.contains('mp-tools-grid') ? 'grid' : 'flex';
-            if (this.backdropEl) this.backdropEl.style.display = 'block';
+            if (this.backdropEl) {
+                this.backdropEl.style.display = 'block';
+                this.backdropEl.offsetHeight; // trigger reflow
+                this.backdropEl.style.opacity = '1';
+            }
         }
     }
 
     // ===================== BRUSH PREVIEW =====================
     private createBrushPreview(): void {
         this.brushPreview = BB.el({
-            className: 'mp-brush-preview',
+            className: 'mp-preview-bubble',
         });
         this.rootEl.append(this.brushPreview);
     }
 
-    private updateBrushPreview(): void {
+    private updateBrushPreview(active: boolean = false): void {
         if (!this.brushPreview || !this.isVisible) return;
         const size = this.onGetSize();
+        const opacity = this.onGetOpacity();
+        const color = this.onGetColor();
+
         const px = Math.max(4, Math.min(200, size));
         this.brushPreview.style.width = px + 'px';
         this.brushPreview.style.height = px + 'px';
+        
         // Position at center of the viewport
         this.brushPreview.style.left = `calc(50% - ${px / 2}px)`;
         this.brushPreview.style.top = `calc(50% - ${px / 2}px)`;
+
+        // Match current color and set active status
+        try {
+            const hexColor = BB.ColorConverter.toHexString(color);
+            this.brushPreview.style.backgroundColor = hexColor;
+        } catch (_) {}
+
+        if (active) {
+            this.brushPreview.style.opacity = opacity.toString();
+            this.brushPreview.classList.add('mp-active');
+        } else {
+            this.brushPreview.classList.remove('mp-active');
+        }
     }
 
     // ===================== TOAST HELPER =====================
@@ -1529,7 +1681,7 @@ export class MobileUi {
         // Header with title + close button
         const header = BB.el({ className: 'mp-sliders-header' });
         const titleEl = BB.el({ className: 'mp-sliders-title', content: 'أدوات الفرشاة' });
-        const closeBtn = BB.el({ className: 'mp-sliders-close' });
+        const closeBtn = BB.el({ className: 'mp-close-glow' });
         closeBtn.innerHTML = ICONS.close;
         this.addTouchButton(closeBtn, () => {
             this.slidersVisible = false;
@@ -1553,25 +1705,28 @@ export class MobileUi {
         // Double-tap to reset size
         let sizeLastTap = 0;
         this.sizeSlider.addEventListener('pointerdown', () => {
+            this.updateBrushPreview(true);
             const now = Date.now();
             if (now - sizeLastTap < 300) {
                 this.sizeSlider!.value = '5';
                 this.onSetSize(5);
                 this.sizeLabel!.textContent = `${LANG('brush-size')}: 5px`;
-                this.updateBrushPreview();
+                this.updateBrushPreview(true);
                 this.toast('تم إعادة الحجم إلى الإعدادي', 'info');
                 sizeLastTap = 0;
             } else {
                 sizeLastTap = now;
             }
         });
+        this.sizeSlider.addEventListener('pointerup', () => this.updateBrushPreview(false));
+        this.sizeSlider.addEventListener('pointercancel', () => this.updateBrushPreview(false));
 
         this.sizeSlider.addEventListener('input', () => {
             const val = parseInt(this.sizeSlider!.value);
             this.sizeLabel!.textContent = `${LANG('brush-size')}: ${val}px`;
             if (this.sizeDebounce) clearTimeout(this.sizeDebounce);
             this.sizeDebounce = setTimeout(() => this.onSetSize(val), 16);
-            this.updateBrushPreview();
+            this.updateBrushPreview(true);
         });
         sizeRow.append(this.sizeSlider, this.sizeLabel);
 
@@ -1589,6 +1744,7 @@ export class MobileUi {
         // Double-tap to reset opacity
         let opacityLastTap = 0;
         this.opacitySlider.addEventListener('pointerdown', () => {
+            this.updateBrushPreview(true);
             const now = Date.now();
             if (now - opacityLastTap < 300) {
                 this.opacitySlider!.value = '100';
@@ -1600,12 +1756,15 @@ export class MobileUi {
                 opacityLastTap = now;
             }
         });
+        this.opacitySlider.addEventListener('pointerup', () => this.updateBrushPreview(false));
+        this.opacitySlider.addEventListener('pointercancel', () => this.updateBrushPreview(false));
 
         this.opacitySlider.addEventListener('input', () => {
             const val = parseInt(this.opacitySlider!.value);
             this.opacityLabel!.textContent = `${LANG('opacity')}: ${val}%`;
             if (this.opacityDebounce) clearTimeout(this.opacityDebounce);
             this.opacityDebounce = setTimeout(() => this.onSetOpacity(val / 100), 16);
+            this.updateBrushPreview(true);
         });
         opacityRow.append(this.opacitySlider, this.opacityLabel);
 
@@ -1621,7 +1780,7 @@ export class MobileUi {
         const title = document.createElement('span');
         title.textContent = 'الطبقات (Layers)';
         
-        const closeBtn = BB.el({ className: 'mp-layers-close' });
+        const closeBtn = BB.el({ className: 'mp-close-glow' });
         closeBtn.innerHTML = ICONS.close;
         this.addTouchButton(closeBtn, () => {
             this.layersWindow!.style.display = 'none';
@@ -1647,13 +1806,15 @@ export class MobileUi {
         // Header
         const header = BB.el({ className: 'mp-settings-header' });
         const title = BB.el({ className: 'mp-settings-title', content: 'إعدادات الرسم' });
-        const closeBtn = BB.el({ className: 'mp-layers-close' });
+        const closeBtn = BB.el({ className: 'mp-close-glow' });
         closeBtn.innerHTML = ICONS.close;
         this.addTouchButton(closeBtn, () => {
             this.settingsPanel!.style.display = 'none';
             if (this.backdropEl) this.backdropEl.style.display = 'none';
         });
         header.append(title, closeBtn);
+
+        const body = BB.el({ className: 'mp-settings-body' });
 
         // == Drawing Group ==
         const drawGroup = BB.el({ className: 'mp-settings-group-title', content: 'أدوات الرسم' });
@@ -1679,11 +1840,12 @@ export class MobileUi {
 
         const stabSlider = document.createElement('input');
         stabSlider.type = 'range';
-        stabSlider.className = 'mp-setting-select';
-        stabSlider.style.min = '1';
-        stabSlider.style.max = '10';
+        stabSlider.className = 'mp-range';
+        stabSlider.min = '1';
+        stabSlider.max = '10';
         stabSlider.style.width = '70px';
         stabSlider.style.margin = '0 6px';
+        stabSlider.style.flexShrink = '0';
         stabSlider.value = this.drawingSettings.stabilizerStrength.toString();
         
         stabSlider.addEventListener('input', () => {
@@ -1836,9 +1998,22 @@ export class MobileUi {
                 opacity: '0.5',
                 paddingBottom: '20px',
             },
-            content: 'AnimePaint Mobile v1.7.0'
+            content: 'AnimePaint Mobile v1.8.0'
         });
         body.append(versionInfo);
+
+        // App info row
+        const appInfoRow = BB.el({
+            css: {
+                textAlign: 'center',
+                fontSize: '9px',
+                color: 'var(--mp-text-dim)',
+                opacity: '0.3',
+                paddingBottom: '16px',
+            },
+            content: 'AnimePaint by GCP64'
+        });
+        body.append(appInfoRow);
 
         this.settingsPanel.append(header, body);
         this.rootEl.append(this.settingsPanel);
@@ -1934,7 +2109,7 @@ export class MobileUi {
             if (this.onAutoSave) {
                 try {
                     await this.onAutoSave();
-                    this.toast('تم الحفظ التلقائي بنجاح ✓', 'success');
+                    this.toast('تم الحفظ التلقائي بنجاح', 'success');
                 } catch (e) {
                     console.error('Auto-save failed:', e);
                 }
@@ -1947,17 +2122,28 @@ export class MobileUi {
         const isShown = this.settingsPanel.style.display === 'flex';
         if (isShown) {
             this.settingsPanel.style.display = 'none';
-            if (this.backdropEl) this.backdropEl.style.display = 'none';
+            if (this.backdropEl) {
+                this.backdropEl.style.opacity = '0';
+                setTimeout(() => {
+                    if (this.backdropEl && this.backdropEl.style.opacity === '0') {
+                        this.backdropEl.style.display = 'none';
+                    }
+                }, 300);
+            }
         } else {
             this.settingsPanel.style.display = 'flex';
-            if (this.backdropEl) this.backdropEl.style.display = 'block';
+            if (this.backdropEl) {
+                this.backdropEl.style.display = 'block';
+                this.backdropEl.offsetHeight; // trigger reflow
+                this.backdropEl.style.opacity = '1';
+            }
         }
     }
 
     // ===================== MENUS =====================
     private createMenus(): void {
         // === File Menu ===
-        this.fileMenu = BB.el({ className: 'mp-popup-menu mp-glass' });
+        this.fileMenu = BB.el({ className: 'mp-popup-menu mp-glass mp-bottom-sheet' });
 
         const fileItems = [
             { text: 'عمل جديد (New)', icon: ICONS.newImage, action: () => this.onTriggerNew(), danger: false },
@@ -1991,7 +2177,7 @@ export class MobileUi {
         });
 
         // === Tools Grid ===
-        this.toolsGrid = BB.el({ className: 'mp-popup-menu mp-glass mp-tools-grid' });
+        this.toolsGrid = BB.el({ className: 'mp-popup-menu mp-glass mp-tools-grid mp-bottom-sheet' });
 
         TOOLS_LIST.forEach(tool => {
             const cell = document.createElement('div');
@@ -2039,13 +2225,13 @@ export class MobileUi {
         this.toolsGrid!.append(closeCell);
 
         // === Brushes Menu ===
-        this.brushesMenu = BB.el({ className: 'mp-popup-menu mp-glass' });
+        this.brushesMenu = BB.el({ className: 'mp-popup-menu mp-glass mp-bottom-sheet' });
 
         BRUSH_TYPES.forEach(brush => {
             const el = BB.el({ className: 'mp-menu-item' });
             const checkSpan = document.createElement('span');
             checkSpan.className = 'mp-check';
-            checkSpan.textContent = brush.id === this.currentBrushId ? '✓' : '';
+            checkSpan.innerHTML = brush.id === this.currentBrushId ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>' : '';
 
             el.innerHTML = `<span>${brush.name}</span>`;
             el.append(checkSpan);
@@ -2057,7 +2243,7 @@ export class MobileUi {
 
                 // Update check marks
                 this.brushesMenu!.querySelectorAll('.mp-check').forEach((c, i) => {
-                    (c as HTMLElement).textContent = BRUSH_TYPES[i].id === brush.id ? '✓' : '';
+                    (c as HTMLElement).innerHTML = BRUSH_TYPES[i].id === brush.id ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>' : '';
                 });
 
                 this.toast(`فرشاة: ${brush.name}`, 'info');
@@ -2073,6 +2259,7 @@ export class MobileUi {
     private setupDrag(handle: HTMLElement, target: HTMLElement): void {
         let startX = 0, startY = 0;
         let origLeft = 0, origTop = 0;
+        let finalLeft = 0, finalTop = 0;
         let isDragging = false;
 
         const onStart = (clientX: number, clientY: number) => {
@@ -2082,6 +2269,10 @@ export class MobileUi {
             const rect = target.getBoundingClientRect();
             origLeft = rect.left;
             origTop = rect.top;
+            finalLeft = origLeft;
+            finalTop = origTop;
+
+            target.classList.add('mp-glass-gpu');
         };
 
         const onMove = (clientX: number, clientY: number) => {
@@ -2095,13 +2286,28 @@ export class MobileUi {
             newLeft = Math.max(0, Math.min(window.innerWidth - target.offsetWidth, newLeft));
             newTop = Math.max(0, Math.min(window.innerHeight - target.offsetHeight, newTop));
 
-            target.style.left = newLeft + 'px';
-            target.style.top = newTop + 'px';
+            finalLeft = newLeft;
+            finalTop = newTop;
+
+            const tx = newLeft - origLeft;
+            const ty = newTop - origTop;
+
+            target.style.transform = `translate3d(${tx}px, ${ty}px, 0)`;
+        };
+
+        const onEnd = () => {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            target.classList.remove('mp-glass-gpu');
+            target.style.transform = '';
+            target.style.left = finalLeft + 'px';
+            target.style.top = finalTop + 'px';
             target.style.bottom = 'auto';
             target.style.right = 'auto';
         };
 
-        const onEnd = () => { isDragging = false; };
+        handle.style.cursor = 'move';
 
         handle.addEventListener('mousedown', (e: MouseEvent) => {
             e.preventDefault();
@@ -2190,7 +2396,7 @@ export class MobileUi {
             if (this.brushesMenu) {
                 const activeBrushId = this.onGetBrushId ? this.onGetBrushId() : this.currentBrushId;
                 this.brushesMenu.querySelectorAll('.mp-check').forEach((c, i) => {
-                    (c as HTMLElement).textContent = BRUSH_TYPES[i].id === activeBrushId ? '✓' : '';
+                    (c as HTMLElement).innerHTML = BRUSH_TYPES[i].id === activeBrushId ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>' : '';
                 });
             }
 
@@ -2235,7 +2441,7 @@ export class MobileUi {
                     return;
                 }
                 this.syncValues();
-            }, 200);
+            }, 300);
         } else {
             this.rootEl.remove();
             this.rootEl.style.display = 'none';
