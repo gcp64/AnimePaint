@@ -882,6 +882,14 @@ Renaming a key across multiple language files:
     "hint": "ellipse shape",
     "value": "Ellipse"
   },
+  "shape-triangle": {
+    "hint": "triangle shape",
+    "value": "Triangle"
+  },
+  "shape-star": {
+    "hint": "star shape",
+    "value": "Star"
+  },
   "shape-line": "Line",
   "shape-line-width": "Line Width",
   "shape-outwards": {

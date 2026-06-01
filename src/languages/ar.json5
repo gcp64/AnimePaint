@@ -1359,6 +1359,16 @@
     original: 'Ellipse',
     value: 'شكل بيضاوي/دائري هندسي',
   },
+  'shape-triangle': {
+    hint: 'triangle shape',
+    original: 'Triangle',
+    value: 'شكل مثلث هندسي',
+  },
+  'shape-star': {
+    hint: 'star shape',
+    original: 'Star',
+    value: 'شكل نجمة خماسية',
+  },
   'shape-line': {
     original: 'Line',
     value: 'رسم خط مستقيم تماماً',

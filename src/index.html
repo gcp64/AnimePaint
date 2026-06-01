@@ -72,22 +72,86 @@
     </head>
     <body>
         <div id="loading-screen">
+            <!-- Hidden video element to prevent browser media overlay play button from showing -->
             <video id="splash-video" autoplay muted playsinline loop disablepictureinpicture disableremoteplayback 
                    poster="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                   style="width: 100%; height: 100%; object-fit: contain; pointer-events: none; -webkit-user-select: none; user-select: none; opacity: 0; transition: opacity 0.3s ease;">
+                   style="display: none;">
                 <source src="app/img/splash.mp4" type="video/mp4">
             </video>
+            <!-- Render video frames on a clean canvas that never triggers webkit media overlays -->
+            <canvas id="splash-canvas" style="width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: contain; pointer-events: none; -webkit-user-select: none; user-select: none; opacity: 0; transition: opacity 0.4s ease;"></canvas>
         </div>
         <script>
             (function() {
                 var video = document.getElementById('splash-video');
-                if (video) {
-                    video.addEventListener('playing', function() {
-                        video.style.opacity = '1';
+                var canvas = document.getElementById('splash-canvas');
+                if (video && canvas) {
+                    var ctx = canvas.getContext('2d');
+                    var animationFrameId;
+
+                    function updateCanvasSize() {
+                        var rect = canvas.getBoundingClientRect();
+                        var dpr = window.devicePixelRatio || 1;
+                        var width = Math.round(rect.width * dpr);
+                        var height = Math.round(rect.height * dpr);
+                        if (canvas.width !== width || canvas.height !== height) {
+                            canvas.width = width;
+                            canvas.height = height;
+                        }
+                    }
+
+                    function drawFrame() {
+                        if (video.paused || video.ended) {
+                            animationFrameId = requestAnimationFrame(drawFrame);
+                            return;
+                        }
+                        updateCanvasSize();
+                        var cw = canvas.width;
+                        var ch = canvas.height;
+                        if (cw > 0 && ch > 0) {
+                            ctx.clearRect(0, 0, cw, ch);
+                            var vw = video.videoWidth;
+                            var vh = video.videoHeight;
+                            if (vw > 0 && vh > 0) {
+                                var scale = Math.min(cw / vw, ch / vh);
+                                var w = vw * scale;
+                                var h = vh * scale;
+                                var x = (cw - w) / 2;
+                                var y = (ch - h) / 2;
+                                ctx.drawImage(video, x, y, w, h);
+                            }
+                        }
+                        animationFrameId = requestAnimationFrame(drawFrame);
+                    }
+
+                    video.addEventListener('play', function() {
+                        canvas.style.opacity = '1';
                     });
+
+                    video.addEventListener('playing', function() {
+                        canvas.style.opacity = '1';
+                    });
+
+                    video.addEventListener('loadedmetadata', function() {
+                        updateCanvasSize();
+                    });
+
+                    // Start drawing loop immediately
+                    drawFrame();
+
+                    // Fallback to start rendering and make visible
                     setTimeout(function() {
-                        video.style.opacity = '1';
-                    }, 500);
+                        canvas.style.opacity = '1';
+                    }, 300);
+
+                    // Clean up animation frame when loading screen is removed
+                    var observer = new MutationObserver(function(mutations) {
+                        if (!document.getElementById('loading-screen')) {
+                            cancelAnimationFrame(animationFrameId);
+                            observer.disconnect();
+                        }
+                    });
+                    observer.observe(document.body, { childList: true });
                 }
             })();
         </script>

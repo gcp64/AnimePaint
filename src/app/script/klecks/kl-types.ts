@@ -168,7 +168,7 @@ export type TGradient = {
     isEraser: boolean;
 };
 
-export type TShapeToolType = 'rect' | 'ellipse' | 'line';
+export type TShapeToolType = 'rect' | 'ellipse' | 'line' | 'triangle' | 'star';
 
 export type TShapeToolMode = 'stroke' | 'fill';
 

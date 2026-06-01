@@ -133,6 +133,63 @@ export class ShapeUi {
             display: 'block',
         });
 
+        // --- NEW SHAPES SVGS ---
+        const triangleStrokeSvgPoly = BB.createSvg({
+            elementType: 'polygon',
+        });
+        const triangleStrokeSvg = BB.createSvg({
+            elementType: 'svg',
+            width: '' + previewSize,
+            height: '' + previewSize,
+        });
+        triangleStrokeSvg.classList.add('dark-invert');
+        triangleStrokeSvg.append(triangleStrokeSvgPoly);
+        css(triangleStrokeSvg, {
+            display: 'block',
+        });
+
+        const triangleFilledSvgPoly = BB.createSvg({
+            elementType: 'polygon',
+        });
+        const triangleFilledSvg = BB.createSvg({
+            elementType: 'svg',
+            width: '' + previewSize,
+            height: '' + previewSize,
+        });
+        triangleFilledSvg.classList.add('dark-invert');
+        triangleFilledSvg.append(triangleFilledSvgPoly);
+        css(triangleFilledSvg, {
+            display: 'block',
+        });
+
+        const starStrokeSvgPoly = BB.createSvg({
+            elementType: 'polygon',
+        });
+        const starStrokeSvg = BB.createSvg({
+            elementType: 'svg',
+            width: '' + previewSize,
+            height: '' + previewSize,
+        });
+        starStrokeSvg.classList.add('dark-invert');
+        starStrokeSvg.append(starStrokeSvgPoly);
+        css(starStrokeSvg, {
+            display: 'block',
+        });
+
+        const starFilledSvgPoly = BB.createSvg({
+            elementType: 'polygon',
+        });
+        const starFilledSvg = BB.createSvg({
+            elementType: 'svg',
+            width: '' + previewSize,
+            height: '' + previewSize,
+        });
+        starFilledSvg.classList.add('dark-invert');
+        starFilledSvg.append(starFilledSvgPoly);
+        css(starFilledSvg, {
+            display: 'block',
+        });
+
         const updatePreviews = () => {
             const strokeWidth =
                 BB.clamp(Math.round(this.lineWidthSlider.getValue() / 10), 1, 10) + 'px';
@@ -159,6 +216,21 @@ export class ShapeUi {
                 strokeWidth: strokeWidth,
             });
 
+            css(triangleStrokeSvgPoly, {
+                fill: 'none',
+                stroke: 'black',
+                strokeWidth: strokeWidth,
+            });
+            css(triangleFilledSvgPoly, { fill: 'black', stroke: 'none' });
+
+            css(starStrokeSvgPoly, {
+                fill: 'none',
+                stroke: 'black',
+                strokeWidth: strokeWidth,
+            });
+            css(starFilledSvgPoly, { fill: 'black', stroke: 'none' });
+
+            let topY, bottomY;
             if (this.fixedToggle.getValue()) {
                 rectStrokeSvgRect.setAttribute('y', '' + previewPadding);
                 rectStrokeSvgRect.setAttribute('height', '' + (previewSize - previewPadding * 2));
@@ -167,6 +239,9 @@ export class ShapeUi {
 
                 ellipseStrokeSvgEllipse.setAttribute('ry', '' + (previewSize / 2 - previewPadding));
                 ellipseFilledSvgEllipse.setAttribute('ry', '' + (previewSize / 2 - previewPadding));
+
+                topY = previewPadding;
+                bottomY = previewSize - previewPadding;
             } else {
                 rectStrokeSvgRect.setAttribute('y', '' + previewPadding * squish);
                 rectStrokeSvgRect.setAttribute(
@@ -187,7 +262,36 @@ export class ShapeUi {
                     'ry',
                     '' + (previewSize / 2 - previewPadding * squish),
                 );
+
+                topY = previewPadding * squish;
+                bottomY = previewSize - previewPadding * squish;
             }
+
+            // Triangle points
+            const triPoints = `${previewSize / 2},${topY} ${previewSize - previewPadding},${bottomY} ${previewPadding},${bottomY}`;
+            triangleStrokeSvgPoly.setAttribute('points', triPoints);
+            triangleFilledSvgPoly.setAttribute('points', triPoints);
+
+            // Star points
+            const cx = previewSize / 2;
+            const cy = (topY + bottomY) / 2;
+            const rx_outer = previewSize / 2 - previewPadding;
+            const ry_outer = (bottomY - topY) / 2;
+            const rx_inner = rx_outer * 0.382;
+            const ry_inner = ry_outer * 0.382;
+            let starPoints = '';
+            for (let i = 0; i < 5; i++) {
+                const angleOuter = -Math.PI / 2 + i * (2 * Math.PI / 5);
+                const ox = cx + rx_outer * Math.cos(angleOuter);
+                const oy = cy + ry_outer * Math.sin(angleOuter);
+                starPoints += `${ox},${oy} `;
+                const angleInner = angleOuter + Math.PI / 5;
+                const ix = cx + rx_inner * Math.cos(angleInner);
+                const iy = cy + ry_inner * Math.sin(angleInner);
+                starPoints += `${ix},${iy} `;
+            }
+            starStrokeSvgPoly.setAttribute('points', starPoints.trim());
+            starFilledSvgPoly.setAttribute('points', starPoints.trim());
 
             if (this.snapToggle.getValue()) {
                 lineSvgLine.setAttribute('y1', '' + (previewSize - previewPadding));
@@ -220,6 +324,16 @@ export class ShapeUi {
                     title: LANG('shape-ellipse') + ' ' + LANG('shape-stroke'),
                 },
                 {
+                    id: 'triangle-stroke',
+                    label: triangleStrokeSvg,
+                    title: LANG('shape-triangle') + ' ' + LANG('shape-stroke'),
+                },
+                {
+                    id: 'star-stroke',
+                    label: starStrokeSvg,
+                    title: LANG('shape-star') + ' ' + LANG('shape-stroke'),
+                },
+                {
                     id: 'line',
                     label: lineSvg,
                     title: LANG('shape-line'),
@@ -234,12 +348,22 @@ export class ShapeUi {
                     label: ellipseFilledSvg,
                     title: LANG('shape-ellipse') + ' ' + LANG('shape-fill'),
                 },
+                {
+                    id: 'triangle-fill',
+                    label: triangleFilledSvg,
+                    title: LANG('shape-triangle') + ' ' + LANG('shape-fill'),
+                },
+                {
+                    id: 'star-fill',
+                    label: starFilledSvg,
+                    title: LANG('shape-star') + ' ' + LANG('shape-fill'),
+                },
             ],
-            initId: this.shape + ' ' + this.mode,
+            initId: this.shape === 'line' ? 'line' : this.shape + '-' + this.mode,
             onChange: (id) => {
                 const split = id.split('-');
                 this.shape = split[0] as TShapeToolType;
-                this.mode = split[1] as TShapeToolMode;
+                this.mode = (split[1] || 'stroke') as TShapeToolMode;
 
                 css(this.fixedToggle.getElement(), {
                     display: this.shape === 'line' ? 'none' : '',

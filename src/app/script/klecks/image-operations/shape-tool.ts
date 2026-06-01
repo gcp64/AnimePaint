@@ -73,7 +73,7 @@ export function drawShape(
     };
     let bounds: TCoordinateBounds = { type: 'coordinate', x1: 0, y1: 0, x2: 0, y2: 0 };
 
-    if (['rect', 'ellipse', 'line'].includes(shapeObj.type)) {
+    if (['rect', 'ellipse', 'line', 'triangle', 'star'].includes(shapeObj.type)) {
         if (shapeObj.angleRad === undefined) {
             throw new Error('angleRad undefined');
         }
@@ -390,14 +390,13 @@ export function drawShape(
                 },
                 transformation,
             );
-
             if (shapeObj.fillRgb) {
                 ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
             } else {
                 ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
             }
-        } else {
-            // --- circle ---
+        } else if (shapeObj.type === 'ellipse') {
+            // --- circle / ellipse ---
             p1 = BB.rotate(x1, y1, (shapeObj.angleRad / Math.PI) * 180);
             p2 = BB.rotate(x2, y2, (shapeObj.angleRad / Math.PI) * 180);
             x = p1.x;
@@ -427,6 +426,85 @@ export function drawShape(
                     y1: center.y - rY - padding,
                     x2: center.x + rX + padding,
                     y2: center.y + rY + padding,
+                },
+                transformation,
+            );
+        } else if (shapeObj.type === 'triangle') {
+            // --- triangle ---
+            p1 = BB.rotate(x1, y1, (shapeObj.angleRad / Math.PI) * 180);
+            p2 = BB.rotate(x2, y2, (shapeObj.angleRad / Math.PI) * 180);
+            const minX = Math.min(p1.x, p2.x);
+            const maxX = Math.max(p1.x, p2.x);
+            const minY = Math.min(p1.y, p2.y);
+            const maxY = Math.max(p1.y, p2.y);
+
+            ctx.beginPath();
+            ctx.moveTo((minX + maxX) / 2, minY);
+            ctx.lineTo(maxX, maxY);
+            ctx.lineTo(minX, maxY);
+            ctx.closePath();
+
+            if (shapeObj.fillRgb) {
+                ctx.fill();
+            } else {
+                ctx.stroke();
+            }
+            const padding = shapeObj.fillRgb ? 0 : lineWidth / 2;
+            bounds = transformCoordinateBounds(
+                {
+                    type: 'coordinate',
+                    x1: minX - padding,
+                    y1: minY - padding,
+                    x2: maxX + padding,
+                    y2: maxY + padding,
+                },
+                transformation,
+            );
+        } else if (shapeObj.type === 'star') {
+            // --- star ---
+            p1 = BB.rotate(x1, y1, (shapeObj.angleRad / Math.PI) * 180);
+            p2 = BB.rotate(x2, y2, (shapeObj.angleRad / Math.PI) * 180);
+            const minX = Math.min(p1.x, p2.x);
+            const maxX = Math.max(p1.x, p2.x);
+            const minY = Math.min(p1.y, p2.y);
+            const maxY = Math.max(p1.y, p2.y);
+            const cx = (minX + maxX) / 2;
+            const cy = (minY + maxY) / 2;
+            const rx_outer = (maxX - minX) / 2;
+            const ry_outer = (maxY - minY) / 2;
+            const rx_inner = rx_outer * 0.382;
+            const ry_inner = ry_outer * 0.382;
+
+            ctx.beginPath();
+            for (let i = 0; i < 5; i++) {
+                const angleOuter = -Math.PI / 2 + i * (2 * Math.PI / 5);
+                const ox = cx + rx_outer * Math.cos(angleOuter);
+                const oy = cy + ry_outer * Math.sin(angleOuter);
+                if (i === 0) {
+                    ctx.moveTo(ox, oy);
+                } else {
+                    ctx.lineTo(ox, oy);
+                }
+                const angleInner = angleOuter + Math.PI / 5;
+                const ix = cx + rx_inner * Math.cos(angleInner);
+                const iy = cy + ry_inner * Math.sin(angleInner);
+                ctx.lineTo(ix, iy);
+            }
+            ctx.closePath();
+
+            if (shapeObj.fillRgb) {
+                ctx.fill();
+            } else {
+                ctx.stroke();
+            }
+            const padding = shapeObj.fillRgb ? 0 : lineWidth / 2;
+            bounds = transformCoordinateBounds(
+                {
+                    type: 'coordinate',
+                    x1: minX - padding,
+                    y1: minY - padding,
+                    x2: maxX + padding,
+                    y2: maxY + padding,
                 },
                 transformation,
             );
