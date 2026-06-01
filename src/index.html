@@ -39,6 +39,80 @@
     </head>
     <body>
         <div id="loading-screen">Loading Klecks</div>
+        <script>
+            (function() {
+                var errorCount = 0;
+                function showError(type, msg, source, line, col, err) {
+                    errorCount++;
+                    var div = document.getElementById('debug-error-overlay');
+                    if (!div) {
+                        div = document.createElement('div');
+                        div.id = 'debug-error-overlay';
+                        div.style.position = 'fixed';
+                        div.style.top = '10px';
+                        div.style.left = '10px';
+                        div.style.right = '10px';
+                        div.style.background = 'rgba(239, 68, 68, 0.95)';
+                        div.style.color = '#fff';
+                        div.style.padding = '16px';
+                        div.style.borderRadius = '12px';
+                        div.style.fontSize = '12px';
+                        div.style.fontFamily = 'monospace';
+                        div.style.zIndex = '999999';
+                        div.style.boxShadow = '0 8px 32px rgba(0,0,0,0.5)';
+                        div.style.maxHeight = '70vh';
+                        div.style.overflowY = 'auto';
+                        div.style.pointerEvents = 'auto';
+                        
+                        var title = document.createElement('div');
+                        title.style.fontWeight = '700';
+                        title.style.fontSize = '14px';
+                        title.style.marginBottom = '8px';
+                        title.style.borderBottom = '1px solid rgba(255,255,255,0.3)';
+                        title.style.paddingBottom = '4px';
+                        title.textContent = 'خطأ برمجي كاشف (Debug Error Overlay)';
+                        div.appendChild(title);
+                        
+                        var closeBtn = document.createElement('button');
+                        closeBtn.textContent = 'إغلاق';
+                        closeBtn.style.float = 'left';
+                        closeBtn.style.background = '#000';
+                        closeBtn.style.color = '#fff';
+                        closeBtn.style.border = 'none';
+                        closeBtn.style.padding = '4px 8px';
+                        closeBtn.style.borderRadius = '4px';
+                        closeBtn.onclick = function() { div.remove(); };
+                        title.appendChild(closeBtn);
+                        
+                        document.body.appendChild(div);
+                    }
+                    var errDiv = document.createElement('div');
+                    errDiv.style.marginBottom = '12px';
+                    errDiv.innerHTML = '<strong>[' + type + ']</strong> ' + msg + '<br><small>الموقع: ' + source + ':' + line + ':' + col + '</small>';
+                    if (err && err.stack) {
+                        var stackPre = document.createElement('pre');
+                        stackPre.style.fontSize = '10px';
+                        stackPre.style.background = 'rgba(0,0,0,0.2)';
+                        stackPre.style.padding = '6px';
+                        stackPre.style.borderRadius = '4px';
+                        stackPre.style.whiteSpace = 'pre-wrap';
+                        stackPre.textContent = err.stack;
+                        errDiv.appendChild(stackPre);
+                    }
+                    div.appendChild(errDiv);
+                }
+                window.onerror = function(message, source, lineno, colno, error) {
+                    showError('Exception', message, source, lineno, colno, error);
+                    return false;
+                };
+                window.addEventListener('unhandledrejection', function(event) {
+                    var reason = event.reason;
+                    var msg = reason instanceof Error ? reason.message : String(reason);
+                    var stack = reason instanceof Error ? reason.stack : '';
+                    showError('Promise Rejection', msg, '', 0, 0, reason);
+                });
+            })();
+        </script>
         <link rel="stylesheet" href="app/style/style.scss" />
         <script type="module" src="app/script/main-standalone.ts"></script>
     </body>

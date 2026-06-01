@@ -187,6 +187,8 @@ export class KlApp {
             if (this.mobileUi.getToolspaceIsOpen()) {
                 css(this.easel.getElement(), {
                     left: '0',
+                    width: Math.max(0, this.uiWidth) + 'px',
+                    height: this.uiHeight + 'px',
                 });
                 this.toolspace.style.display = 'block';
                 this.easel.setSize(Math.max(0, this.uiWidth), this.uiHeight);
@@ -194,6 +196,8 @@ export class KlApp {
             } else {
                 css(this.easel.getElement(), {
                     left: '0',
+                    width: Math.max(0, this.uiWidth) + 'px',
+                    height: this.uiHeight + 'px',
                 });
                 this.toolspace.style.display = 'none';
                 this.easel.setSize(Math.max(0, this.uiWidth), this.uiHeight);
@@ -214,6 +218,8 @@ export class KlApp {
             }
             css(this.easel.getElement(), {
                 left: '0',
+                width: Math.max(0, this.uiWidth) + 'px',
+                height: this.uiHeight + 'px',
             });
             this.toolspace.style.display = 'block';
             this.easel.setSize(Math.max(0, this.uiWidth), this.uiHeight);
@@ -2722,13 +2728,12 @@ export class KlApp {
                         this.layersUi.update(layers.length - 1);
                         setCurrentLayer(this.klCanvas.getLayer(layers.length - 1));
                         this.easelProjectUpdater.update();
+                        this.rootEl.style.display = 'block';
+                        this.updateCollapse(true);
                         this.easel.resetOrFitTransform(true);
                         
                         this.statusOverlay.out('تم التحميل بنجاح', true);
-                        
-                        this.rootEl.style.display = 'block';
                         this.triggerPanelEntryAnimation();
-                        this.updateCollapse();
                     } else {
                         this.statusOverlay.out('فشل في تحميل اللوحة', true);
                         this.mobilePortal.setIsVisible(true);
@@ -2754,11 +2759,10 @@ export class KlApp {
                 this.layersUi.update(0);
                 setCurrentLayer(this.klCanvas.getLayer(0));
                 this.easelProjectUpdater.update();
-                this.easel.resetOrFitTransform(true);
-                
                 this.rootEl.style.display = 'block';
+                this.updateCollapse(true);
+                this.easel.resetOrFitTransform(true);
                 this.triggerPanelEntryAnimation();
-                this.updateCollapse();
             }
         });
 

@@ -31,6 +31,7 @@ class MainActivity : Activity() {
             or View.SYSTEM_UI_FLAG_FULLSCREEN
         )
 
+        WebView.setWebContentsDebuggingEnabled(true)
         val wv = WebView(this)
         webView = wv
         setContentView(wv)
