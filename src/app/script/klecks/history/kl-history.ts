@@ -179,4 +179,19 @@ export class KlHistory {
     isPaused(): boolean {
         return this.pauseStack > 0;
     }
+
+    clear(): void {
+        const currentComposed = this.getComposed();
+        this.entries = [
+            {
+                timestamp: new Date().getTime(),
+                memoryEstimateBytes: estimateBytes(currentComposed),
+                data: currentComposed,
+            },
+        ];
+        this.index = 0;
+        this.composed = currentComposed;
+        this.totalActions = 0;
+        this.broadcast();
+    }
 }

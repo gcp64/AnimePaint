@@ -10,8 +10,8 @@ android {
         applicationId = "com.example.animepaint"
         minSdk = 24
         targetSdk = 36
-        versionCode = 8
-        versionName = "1.8.4"
+        versionCode = 9
+        versionName = "1.8.5"
     }
 
     signingConfigs {
