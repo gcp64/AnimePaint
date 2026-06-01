@@ -49,6 +49,17 @@ export class PressureNormalizer {
                 }
                 pressure = Math.min(2, pressure * 2);
             }
+
+            try {
+                const sensStr = localStorage.getItem('maria_core_pen_sensitivity');
+                if (sensStr) {
+                    const sens = parseFloat(sensStr);
+                    if (!isNaN(sens) && sens > 0) {
+                        pressure = Math.pow(pressure, 1 / sens);
+                    }
+                }
+            } catch (e) {}
+
             return pressure;
         } else {
             return pressure;

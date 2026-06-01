@@ -242,6 +242,7 @@ export class MobileUi {
         gridOverlay: 'off' as 'off' | '8x8' | '16x16' | '32x32',
         pressureSim: false,
         autoSave: 'off' as 'off' | '30s' | '1min' | '5min',
+        penSensitivity: 1.0,
     };
  
     private autoSaveTimer: ReturnType<typeof setInterval> | null = null;
@@ -297,6 +298,7 @@ export class MobileUi {
         this.drawingSettings.gridOverlay = (localStorage.getItem('maria_core_grid_overlay') || 'off') as any;
         this.drawingSettings.pressureSim = localStorage.getItem('maria_core_pressure_sim') === 'true';
         this.drawingSettings.autoSave = (localStorage.getItem('maria_core_auto_save') || 'off') as any;
+        this.drawingSettings.penSensitivity = parseFloat(localStorage.getItem('maria_core_pen_sensitivity') || '1.0');
 
 
         // Inject styles
@@ -436,6 +438,34 @@ export class MobileUi {
                 from { opacity: 0; transform: scale(0.93) translateY(-8px); }
                 to   { opacity: 1; transform: scale(1) translateY(0); }
             }
+            @keyframes mp-scaleOut {
+                from { opacity: 1; transform: scale(1) translateY(0); }
+                to   { opacity: 0; transform: scale(0.95) translateY(-8px); }
+            }
+            @keyframes mp-settingsSlideOut {
+                from { opacity: 1; transform: translateX(0); }
+                to   { opacity: 0; transform: translateX(100%); }
+            }
+            @keyframes mp-slideInLeft {
+                from { opacity: 0; transform: translateX(-16px); }
+                to   { opacity: 1; transform: translateX(0); }
+            }
+            @keyframes mp-slideOutLeft {
+                from { opacity: 1; transform: translateX(0); }
+                to   { opacity: 0; transform: translateX(-16px); }
+            }
+            @keyframes mp-slideInRight {
+                from { opacity: 0; transform: translateX(16px); }
+                to   { opacity: 1; transform: translateX(0); }
+            }
+            @keyframes mp-slideOutRight {
+                from { opacity: 1; transform: translateX(0); }
+                to   { opacity: 0; transform: translateX(16px); }
+            }
+            @keyframes mp-sheetDown {
+                from { transform: translateY(0); }
+                to   { transform: translateY(100%); }
+            }
             @keyframes mp-fadeIn {
                 from { opacity: 0; }
                 to   { opacity: 1; }
@@ -522,7 +552,7 @@ export class MobileUi {
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
-                transition: background 0.15s, transform 0.1s, box-shadow 0.2s, border-color 0.2s;
+                transition: background 0.15s, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s, border-color 0.2s;
                 touch-action: none !important;
                 -webkit-tap-highlight-color: transparent;
                 user-select: none;
@@ -541,16 +571,21 @@ export class MobileUi {
                 fill: currentColor;
                 pointer-events: none;
             }
+            .mp-btn:hover {
+                border-color: rgba(255, 255, 255, 0.2) !important;
+                background: rgba(255, 255, 255, 0.05) !important;
+            }
             .mp-btn:active,
             .mp-btn.mp-pressing {
-                transform: scale(0.9);
-                background: rgba(255,255,255,0.1);
+                transform: scale(0.85) !important;
+                background: rgba(255,255,255,0.08) !important;
             }
             .mp-btn.mp-active {
                 background: linear-gradient(135deg, var(--mp-accent), #8b5cf6) !important;
                 border-color: transparent !important;
                 color: #fff !important;
-                box-shadow: 0 4px 14px var(--mp-accent-glow) !important;
+                box-shadow: 0 4px 14px var(--mp-accent-glow), 0 0 10px rgba(99, 102, 241, 0.5) !important;
+                transform: scale(1.05) !important;
             }
 
             /* === Color Circle === */
@@ -583,6 +618,9 @@ export class MobileUi {
                 animation: mp-scaleIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
                 touch-action: none !important;
                 pointer-events: auto !important;
+            }
+            .mp-popup-menu.mp-closing {
+                animation: mp-scaleOut 0.2s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
             }
             .mp-popup-menu::-webkit-scrollbar { width: 4px; }
             .mp-popup-menu::-webkit-scrollbar-thumb {
@@ -721,8 +759,11 @@ export class MobileUi {
                 gap: 8px;
                 padding: 10px 14px;
                 box-sizing: border-box;
-                animation: mp-fadeIn 0.25s ease-out;
+                animation: mp-slideInLeft 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
                 z-index: 10001;
+            }
+            .mp-sliders-deck.mp-closing {
+                animation: mp-slideOutLeft 0.2s ease-in forwards !important;
             }
             .mp-sliders-header {
                 display: flex;
@@ -748,7 +789,7 @@ export class MobileUi {
             }
             .mp-sliders-close:active { background: rgba(255,255,255,0.1); }
             .mp-sliders-close svg { width: 14px; height: 14px; fill: currentColor; }
-
+ 
             .mp-slider-row {
                 display: flex;
                 align-items: center;
@@ -790,7 +831,7 @@ export class MobileUi {
                 height: 14px;
                 border-radius: 7px;
             }
-
+ 
             /* === Brush Size Preview === */
             .mp-brush-preview {
                 position: fixed;
@@ -802,7 +843,7 @@ export class MobileUi {
                 transition: width 0.1s, height 0.1s;
                 box-shadow: 0 0 4px rgba(0,0,0,0.3);
             }
-
+ 
             /* === Layers Window === */
             .mp-layers-window {
                 position: fixed;
@@ -815,7 +856,10 @@ export class MobileUi {
                 padding: 0;
                 overflow: hidden;
                 z-index: 10001;
-                animation: mp-scaleIn 0.25s ease-out;
+                animation: mp-slideInRight 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            }
+            .mp-layers-window.mp-closing {
+                animation: mp-slideOutRight 0.2s ease-in forwards !important;
             }
             .mp-layers-header {
                 display: flex;
@@ -906,6 +950,9 @@ export class MobileUi {
                 animation: mp-settingsSlide 0.3s cubic-bezier(0.25, 1, 0.5, 1);
                 overflow-y: auto;
                 padding: 0;
+            }
+            .mp-settings-overlay.mp-closing {
+                animation: mp-settingsSlideOut 0.25s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
             }
             .mp-settings-header {
                 display: flex;
@@ -1189,6 +1236,9 @@ export class MobileUi {
                     font-size: 15px !important;
                     padding: 14px 18px !important;
                 }
+                .mp-popup-menu.mp-bottom-sheet.mp-closing {
+                    animation: mp-sheetDown 0.25s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
+                }
             }
 
             /* --- Real-Time Brush Size/Opacity Preview Circle --- */
@@ -1237,9 +1287,19 @@ export class MobileUi {
     }
 
     private hideAllMenus(): void {
-        if (this.fileMenu) this.fileMenu.style.display = 'none';
-        if (this.toolsGrid) this.toolsGrid.style.display = 'none';
-        if (this.brushesMenu) this.brushesMenu.style.display = 'none';
+        const menus = [this.fileMenu, this.toolsGrid, this.brushesMenu];
+        menus.forEach(menu => {
+            if (menu && (menu.style.display === 'flex' || menu.style.display === 'grid')) {
+                menu.classList.add('mp-closing');
+                setTimeout(() => {
+                    if (menu.classList.contains('mp-closing')) {
+                        menu.style.display = 'none';
+                        menu.classList.remove('mp-closing');
+                    }
+                }, 200);
+            }
+        });
+
         if (this.backdropEl) {
             this.backdropEl.style.opacity = '0';
             setTimeout(() => {
@@ -1250,7 +1310,15 @@ export class MobileUi {
         }
         // Hide color history
         const colorHist = document.getElementById('mp-color-history-panel');
-        if (colorHist) colorHist.style.display = 'none';
+        if (colorHist && colorHist.style.display !== 'none') {
+            colorHist.classList.add('mp-closing');
+            setTimeout(() => {
+                if (colorHist.classList.contains('mp-closing')) {
+                    colorHist.style.display = 'none';
+                    colorHist.classList.remove('mp-closing');
+                }
+            }, 200);
+        }
     }
 
     private positionMenuAtAnchor(menu: HTMLElement, anchor: HTMLElement): void {
@@ -1293,10 +1361,24 @@ export class MobileUi {
         if (!menu || !anchor) return;
         const isShown = menu.style.display === 'flex' || menu.style.display === 'grid';
 
-        this.hideAllMenus();
-
-        if (!isShown) {
+        if (isShown) {
+            menu.classList.add('mp-closing');
+            if (this.backdropEl) {
+                this.backdropEl.style.opacity = '0';
+            }
+            setTimeout(() => {
+                if (menu.classList.contains('mp-closing')) {
+                    menu.style.display = 'none';
+                    menu.classList.remove('mp-closing');
+                }
+                if (this.backdropEl && this.backdropEl.style.opacity === '0') {
+                    this.backdropEl.style.display = 'none';
+                }
+            }, 200);
+        } else {
+            this.hideAllMenus();
             this.positionMenuAtAnchor(menu, anchor);
+            menu.classList.remove('mp-closing');
             menu.style.display = menu.classList.contains('mp-tools-grid') ? 'grid' : 'flex';
             if (this.backdropEl) {
                 this.backdropEl.style.display = 'block';
@@ -1339,6 +1421,44 @@ export class MobileUi {
             this.brushPreview.classList.add('mp-active');
         } else {
             this.brushPreview.classList.remove('mp-active');
+        }
+
+        // Floating HUD Text Preview
+        let previewText = document.getElementById('mp-preview-text');
+        if (!previewText) {
+            previewText = BB.el({
+                id: 'mp-preview-text',
+                css: {
+                    position: 'fixed',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    color: '#fff',
+                    background: 'rgba(15, 15, 27, 0.75)',
+                    padding: '4px 10px',
+                    borderRadius: '10px',
+                    fontSize: '12px',
+                    fontWeight: '700',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    backdropFilter: 'blur(8px)',
+                    webkitBackdropFilter: 'blur(8px)',
+                    pointerEvents: 'none',
+                    zIndex: '20001',
+                    opacity: '0',
+                    transition: 'opacity 0.15s ease',
+                    fontFamily: 'Cairo, Outfit, sans-serif',
+                }
+            });
+            this.rootEl.append(previewText);
+        }
+
+        // Synchronize with active status
+        if (active) {
+            previewText.textContent = `الحجم: ${Math.round(size)}px | الشفافية: ${Math.round(opacity * 100)}%`;
+            previewText.style.opacity = '1';
+            previewText.style.top = `calc(50% - ${px / 2 + 40}px)`;
+        } else {
+            previewText.style.opacity = '0';
         }
     }
 
@@ -1950,19 +2070,36 @@ export class MobileUi {
 
     private setLayersWindowVisible(visible: boolean): void {
         if (!this.layersWindow) return;
-        this.layersWindow.style.display = visible ? 'flex' : 'none';
-        if (this.layersBtn) {
-            this.layersBtn.classList.toggle('mp-active', visible);
-        }
         if (visible) {
+            this.layersWindow.classList.remove('mp-closing');
+            this.layersWindow.style.display = 'flex';
+            if (this.layersBtn) {
+                this.layersBtn.classList.add('mp-active');
+            }
             const body = this.layersWindow.querySelector('.mp-layers-body');
             if (body) {
                 body.innerHTML = '';
                 body.append(this.onGetLayersElement());
             }
-        }
-        if (this.onToggleLayers) {
-            this.onToggleLayers(visible);
+            if (this.onToggleLayers) {
+                this.onToggleLayers(true);
+            }
+        } else {
+            if (this.layersWindow.style.display === 'flex') {
+                this.layersWindow.classList.add('mp-closing');
+                if (this.layersBtn) {
+                    this.layersBtn.classList.remove('mp-active');
+                }
+                setTimeout(() => {
+                    if (this.layersWindow && this.layersWindow.classList.contains('mp-closing')) {
+                        this.layersWindow.style.display = 'none';
+                        this.layersWindow.classList.remove('mp-closing');
+                    }
+                }, 200);
+            }
+            if (this.onToggleLayers) {
+                this.onToggleLayers(false);
+            }
         }
     }
 
@@ -1976,8 +2113,7 @@ export class MobileUi {
         const closeBtn = BB.el({ className: 'mp-close-glow' });
         closeBtn.innerHTML = ICONS.close;
         this.addTouchButton(closeBtn, () => {
-            this.settingsPanel!.style.display = 'none';
-            if (this.backdropEl) this.backdropEl.style.display = 'none';
+            this.toggleSettingsPanel();
         });
         header.append(title, closeBtn);
 
@@ -2054,7 +2190,44 @@ export class MobileUi {
             }
         );
         this.settingsInputs.pressCheckbox = pressRow.querySelector('input');
-        body.append(pressRow);
+        
+        // Pen Sensitivity Slider Container
+        const penSensRow = BB.el({
+            className: 'mp-setting-row',
+            css: {
+                paddingTop: '4px',
+                borderBottom: 'none'
+            }
+        });
+        const penSensInfo = BB.el({ tagName: 'div', css: { flexGrow: '1' } });
+        penSensInfo.innerHTML = '<div class="mp-setting-label">حساسية ضغط القلم</div><div class="mp-setting-desc">استجابة القلم وقوة الفرشاة (0.5 خفيف - 2.0 قوي)</div>';
+        
+        const penSensVal = BB.el({
+            tagName: 'div',
+            css: { fontSize: '11px', fontWeight: '800', color: 'var(--mp-accent)', minWidth: '24px', textAlign: 'center' },
+            content: this.drawingSettings.penSensitivity.toFixed(1)
+        });
+
+        const penSensSlider = document.createElement('input');
+        penSensSlider.type = 'range';
+        penSensSlider.className = 'mp-range';
+        penSensSlider.min = '0.5';
+        penSensSlider.max = '2.0';
+        penSensSlider.step = '0.1';
+        penSensSlider.style.width = '70px';
+        penSensSlider.style.margin = '0 6px';
+        penSensSlider.style.flexShrink = '0';
+        penSensSlider.value = this.drawingSettings.penSensitivity.toString();
+
+        penSensSlider.addEventListener('input', () => {
+            const val = parseFloat(penSensSlider.value);
+            penSensVal.textContent = val.toFixed(1);
+            this.drawingSettings.penSensitivity = val;
+            localStorage.setItem('maria_core_pen_sensitivity', val.toString());
+        });
+        penSensRow.append(penSensInfo, penSensSlider, penSensVal);
+
+        body.append(pressRow, penSensRow);
 
         // == Canvas Group ==
         const canvasGroup = BB.el({ className: 'mp-settings-group-title', content: 'اللوحة' });
@@ -2173,7 +2346,7 @@ export class MobileUi {
                 opacity: '0.5',
                 paddingBottom: '20px',
             },
-            content: 'AnimePaint Mobile v1.8.7'
+            content: 'AnimePaint Mobile v1.8.8'
         });
         body.append(versionInfo);
 
@@ -2296,16 +2469,21 @@ export class MobileUi {
         if (!this.settingsPanel) return;
         const isShown = this.settingsPanel.style.display === 'flex';
         if (isShown) {
-            this.settingsPanel.style.display = 'none';
+            this.settingsPanel.classList.add('mp-closing');
             if (this.backdropEl) {
                 this.backdropEl.style.opacity = '0';
-                setTimeout(() => {
-                    if (this.backdropEl && this.backdropEl.style.opacity === '0') {
-                        this.backdropEl.style.display = 'none';
-                    }
-                }, 300);
             }
+            setTimeout(() => {
+                if (this.settingsPanel && this.settingsPanel.classList.contains('mp-closing')) {
+                    this.settingsPanel.style.display = 'none';
+                    this.settingsPanel.classList.remove('mp-closing');
+                }
+                if (this.backdropEl && this.backdropEl.style.opacity === '0') {
+                    this.backdropEl.style.display = 'none';
+                }
+            }, 250);
         } else {
+            this.settingsPanel.classList.remove('mp-closing');
             this.settingsPanel.style.display = 'flex';
             if (this.backdropEl) {
                 this.backdropEl.style.display = 'block';
