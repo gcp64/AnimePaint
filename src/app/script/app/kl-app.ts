@@ -289,6 +289,7 @@ export class KlApp {
     constructor(p: TKlAppParams) {
         let fileUi: any = null;
         let brushTabRow: any = null;
+        let handUi: any = null;
         let showNewImageDialog: any = null;
         const savedAccent = localStorage.getItem('maria_core_theme_accent');
         if (savedAccent) {
@@ -886,9 +887,13 @@ export class KlApp {
                 this.mobileColorUi.setIsVisible(toolId !== 'select');
             },
             onTransformChange: (transform, isScaleOrAngleChanged) => {
-                handUi.update(transform.scale, transform.angleDeg);
-                this.toolspaceToolRow.setEnableZoomIn(transform.scale !== EASEL_MAX_SCALE);
-                this.toolspaceToolRow.setEnableZoomOut(transform.scale !== EASEL_MIN_SCALE);
+                if (handUi) {
+                    handUi.update(transform.scale, transform.angleDeg);
+                }
+                if (this.toolspaceToolRow) {
+                    this.toolspaceToolRow.setEnableZoomIn(transform.scale !== EASEL_MAX_SCALE);
+                    this.toolspaceToolRow.setEnableZoomOut(transform.scale !== EASEL_MIN_SCALE);
+                }
 
                 if (canvasHud) {
                     canvasHud.updateZoom(transform.scale * 100);
@@ -1779,7 +1784,7 @@ export class KlApp {
             ...Object.entries(KL.BRUSHES_UI).map(([b]) => brushUiMap[b].getElement()),
         ]);
 
-        const handUi = new KL.HandUi({
+        handUi = new KL.HandUi({
             scale: this.easel.getTransform().scale,
             angleDeg: 0,
             onReset: () => {
