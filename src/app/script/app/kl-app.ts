@@ -998,7 +998,7 @@ export class KlApp {
         });
 
         const updateMainTabVisibility = () => {
-            if (!mainTabRow) {
+            if (!mainTabRow || !this.toolspaceToolRow) {
                 return;
             }
 
@@ -1407,7 +1407,7 @@ export class KlApp {
                 brushTabRow.open(brushId);
             },
             onGetBrushId: () => {
-                return brushTabRow.getActive();
+                return brushTabRow ? brushTabRow.getOpenedTabId() : 'penBrush';
             },
             onFitView: () => {
                 this.easel.resetOrFitTransform(true);
