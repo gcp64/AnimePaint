@@ -189,7 +189,7 @@ export class IndexedDb {
             return await new Promise((resolve, reject) => {
                 const { transaction, objectStore } = this.getTransaction(store, 'readwrite');
                 transaction.onabort = () => reject(transaction.error);
-                const request = objectStore.put(serializedValue, key);
+                const request = objectStore.keyPath ? objectStore.put(serializedValue) : objectStore.put(serializedValue, key);
                 request.onsuccess = () => {
                     resolve();
                 };
@@ -269,7 +269,7 @@ export class IndexedDb {
                 transaction.oncomplete = () => resolve();
 
                 for (const { key, value } of serializedEntries) {
-                    const request = objectStore.put(value, key);
+                    const request = objectStore.keyPath ? objectStore.put(value) : objectStore.put(value, key);
                     request.onerror = () => reject(request.error);
                 }
             });

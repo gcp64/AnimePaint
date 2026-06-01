@@ -60,6 +60,8 @@ export const penBrushUi = (function () {
         let sizeSlider: KlSlider;
         let opacitySlider: KlSlider;
         let scatterSlider: KlSlider;
+        let glowSlider: KlSlider;
+        let angleSlider: KlSlider;
 
         const alphaOptions = new Options({
             optionArr: [0, 1, 2, 3].map((id) => {
@@ -204,6 +206,38 @@ export const penBrushUi = (function () {
                 brush.scatterPressure(b);
             });
 
+            glowSlider = new KlSlider({
+                label: 'توهج النيون (Glow)',
+                width: 225,
+                height: 30,
+                min: 0,
+                max: 10,
+                value: brush.getGlow ? brush.getGlow() : 0,
+                eventResMs: EVENT_RES_MS,
+                toDisplayValue: (val) => val,
+                toValue: (displayValue) => displayValue,
+                onChange: (val) => {
+                    if (brush.setGlow) brush.setGlow(val);
+                },
+                formatFunc: (val) => val === 0 ? 'مغلق' : val.toString(),
+            });
+
+            angleSlider = new KlSlider({
+                label: 'زاوية الخط (Angle)',
+                width: 225,
+                height: 30,
+                min: 0,
+                max: 360,
+                value: brush.getAngle ? brush.getAngle() : 0,
+                eventResMs: EVENT_RES_MS,
+                toDisplayValue: (val) => val,
+                toValue: (displayValue) => displayValue,
+                onChange: (val) => {
+                    if (brush.setAngle) brush.setAngle(val);
+                },
+                formatFunc: (val) => `${val}°`,
+            });
+
             div.append(
                 BB.el({
                     content: [sizeSlider.getElement(), pressureSizeToggle],
@@ -239,6 +273,18 @@ export const penBrushUi = (function () {
                 }),
                 BB.el({
                     content: lockAlphaToggle.getElement(),
+                    css: {
+                        marginTop: '10px',
+                    },
+                }),
+                BB.el({
+                    content: glowSlider.getElement(),
+                    css: {
+                        marginTop: '10px',
+                    },
+                }),
+                BB.el({
+                    content: angleSlider.getElement(),
                     css: {
                         marginTop: '10px',
                     },
@@ -387,7 +433,222 @@ export const penBrushUi = (function () {
 
             updatePresetsList('pencils');
 
-            div.append(presetsHeader, categorySelect, presetsGrid);
+            // Custom Presets Section
+            const customPresetsHeader = BB.el({
+                content: 'فرش الرسم المخصصة (حفظ وتخصيص)',
+                className: 'kl-presets-header',
+                css: {
+                    marginTop: '25px',
+                }
+            });
+
+            const customPresetsGrid = BB.el({
+                className: 'kl-presets-grid',
+                css: {
+                    marginBottom: '10px',
+                }
+            });
+
+            const saveRow = BB.el({
+                css: {
+                    display: 'flex',
+                    gap: '6px',
+                    marginTop: '8px',
+                    width: '100%',
+                }
+            });
+
+            const customNameInput = BB.el({
+                tagName: 'input',
+                className: 'kl-presets-select',
+                css: {
+                    flexGrow: '1',
+                    marginBottom: '0',
+                    height: '32px',
+                    padding: '0 8px',
+                    fontSize: '11px',
+                }
+            }) as HTMLInputElement;
+            customNameInput.placeholder = 'اسم الفرشاة المخصصة...';
+
+            const saveBtn = BB.el({
+                tagName: 'button',
+                className: 'kl-preset-btn',
+                content: 'حفظ الحالية',
+                css: {
+                    height: '32px',
+                    padding: '0 12px',
+                    whiteSpace: 'nowrap',
+                    fontWeight: 'bold',
+                    borderColor: 'var(--active-highlight-color)',
+                }
+            });
+
+            saveRow.append(customNameInput, saveBtn);
+
+            function getCustomPresets() {
+                try {
+                    const data = localStorage.getItem('animepaint_custom_pens');
+                    return data ? JSON.parse(data) : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function saveCustomPresets(list: any[]) {
+                localStorage.setItem('animepaint_custom_pens', JSON.stringify(list));
+            }
+
+            function updateCustomPresetsGrid() {
+                customPresetsGrid.innerHTML = '';
+                const list = getCustomPresets();
+                if (list.length === 0) {
+                    const emptyTip = BB.el({
+                        css: {
+                            gridColumn: 'span 2',
+                            fontSize: '10px',
+                            opacity: '0.4',
+                            textAlign: 'center',
+                            padding: '12px 0',
+                            fontStyle: 'italic',
+                        },
+                        content: 'لا توجد فرش مخصصة بعد. اكتب اسماً واحفظ!'
+                    });
+                    customPresetsGrid.append(emptyTip);
+                    return;
+                }
+
+                list.forEach((preset: any, idx: number) => {
+                    const itemContainer = BB.el({
+                        css: {
+                            display: 'flex',
+                            alignItems: 'center',
+                            background: 'rgba(255, 255, 255, 0.02)',
+                            border: '1px solid rgba(255, 255, 255, 0.05)',
+                            borderRadius: '6px',
+                            padding: '2px 4px 2px 8px',
+                            justifyContent: 'space-between',
+                            gap: '4px',
+                            minWidth: '0',
+                        }
+                    });
+
+                    const applyBtn = BB.el({
+                        tagName: 'button',
+                        content: preset.name,
+                        css: {
+                            background: 'none',
+                            border: 'none',
+                            color: '#cbd5e1',
+                            fontSize: '11px',
+                            cursor: 'pointer',
+                            textAlign: 'right',
+                            padding: '4px 0',
+                            flexGrow: '1',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            fontWeight: 'bold',
+                            fontFamily: 'inherit',
+                        }
+                    });
+
+                    applyBtn.onclick = () => {
+                        if (preset.size !== undefined) {
+                            setSize(preset.size);
+                            sizeSlider.setValue(preset.size);
+                            p.onSizeChange(preset.size);
+                        }
+                        if (preset.opacity !== undefined) {
+                            brush.setOpacity(preset.opacity);
+                            opacitySlider.setValue(preset.opacity);
+                            p.onOpacityChange(preset.opacity);
+                        }
+                        if (preset.scatter !== undefined) {
+                            brush.setScatter(preset.scatter);
+                            scatterSlider.setValue(preset.scatter);
+                            p.onScatterChange(preset.scatter);
+                        }
+                        if (preset.shape !== undefined) {
+                            brush.setAlpha(preset.shape);
+                            alphaOptions.setValue(preset.shape);
+                        }
+                        if (preset.glow !== undefined && brush.setGlow) {
+                            brush.setGlow(preset.glow);
+                            glowSlider.setValue(preset.glow);
+                        }
+                        if (preset.angle !== undefined && brush.setAngle) {
+                            brush.setAngle(preset.angle);
+                            angleSlider.setValue(preset.angle);
+                        }
+                    };
+
+                    const deleteBtn = BB.el({
+                        tagName: 'button',
+                        content: '×',
+                        css: {
+                            background: 'none',
+                            border: 'none',
+                            color: 'rgba(239, 68, 68, 0.6)',
+                            fontSize: '14px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            transition: 'all 0.2s',
+                        }
+                    });
+
+                    deleteBtn.onmouseenter = () => {
+                        deleteBtn.style.color = '#ff4d4d';
+                        deleteBtn.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                    };
+                    deleteBtn.onmouseleave = () => {
+                        deleteBtn.style.color = 'rgba(239, 68, 68, 0.6)';
+                        deleteBtn.style.backgroundColor = 'transparent';
+                    };
+
+                    deleteBtn.onclick = () => {
+                        const current = getCustomPresets();
+                        current.splice(idx, 1);
+                        saveCustomPresets(current);
+                        updateCustomPresetsGrid();
+                    };
+
+                    itemContainer.append(applyBtn, deleteBtn);
+                    customPresetsGrid.append(itemContainer);
+                });
+            }
+
+            saveBtn.onclick = () => {
+                const name = customNameInput.value.trim();
+                if (!name) {
+                    alert('يرجى كتابة اسم للفرشاة المخصصة أولاً!');
+                    return;
+                }
+                const current = getCustomPresets();
+                if (current.some((p: any) => p.name === name)) {
+                    alert('هناك فرشاة مخصصة بنفس الاسم بالفعل!');
+                    return;
+                }
+                const newPreset = {
+                    name,
+                    size: brush.getSize(),
+                    opacity: brush.getOpacity(),
+                    scatter: brush.getScatter(),
+                    shape: brush.getAlpha ? brush.getAlpha() : 0,
+                    glow: brush.getGlow ? brush.getGlow() : 0,
+                    angle: brush.getAngle ? brush.getAngle() : 0,
+                };
+                current.push(newPreset);
+                saveCustomPresets(current);
+                customNameInput.value = '';
+                updateCustomPresetsGrid();
+            };
+
+            updateCustomPresetsGrid();
+
+            div.append(presetsHeader, categorySelect, presetsGrid, customPresetsHeader, customPresetsGrid, saveRow);
         }
 
         init();
@@ -423,6 +684,20 @@ export const penBrushUi = (function () {
         this.setScatter = function (scatter) {
             brush.setScatter(scatter);
             scatterSlider.setValue(scatter);
+        };
+        this.getGlow = function () {
+            return brush.getGlow ? brush.getGlow() : 0;
+        };
+        this.setGlow = function (glow) {
+            if (brush.setGlow) brush.setGlow(glow);
+            if (glowSlider) glowSlider.setValue(glow);
+        };
+        this.getAngle = function () {
+            return brush.getAngle ? brush.getAngle() : 0;
+        };
+        this.setAngle = function (angle) {
+            if (brush.setAngle) brush.setAngle(angle);
+            if (angleSlider) angleSlider.setValue(angle);
         };
 
         this.setColor = function (c) {

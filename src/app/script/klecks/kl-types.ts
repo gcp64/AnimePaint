@@ -224,6 +224,10 @@ export type TBrushUiInstance<GBrush> = {
     getSeed?: () => number;
     setSeed?: (s: number) => void;
     toggleEraser?: () => void;
+    getGlow?: () => number;
+    setGlow?: (g: number) => void;
+    getAngle?: () => number;
+    setAngle?: (a: number) => void;
 };
 
 export type TBrushUi<GBrush> = TSliderConfig & {

@@ -224,6 +224,8 @@ export class MobileUi {
     private readonly onToggleLayers?: (show: boolean) => void;
 
     private currentBrushId: string = 'penBrush';
+    private stabilizerLabel: HTMLElement | null = null;
+    private updateSlidersBrushPicker?: () => void;
 
     // Debounce timers
     private sizeDebounce: ReturnType<typeof setTimeout> | null = null;
@@ -243,6 +245,16 @@ export class MobileUi {
     };
  
     private autoSaveTimer: ReturnType<typeof setInterval> | null = null;
+
+    private settingsInputs = {
+        stabSlider: null as HTMLInputElement | null,
+        stabCheckbox: null as HTMLInputElement | null,
+        pressCheckbox: null as HTMLInputElement | null,
+        rotCheckbox: null as HTMLInputElement | null,
+        fingerCheckbox: null as HTMLInputElement | null,
+        gridSelect: null as HTMLSelectElement | null,
+        autoSaveSelect: null as HTMLSelectElement | null,
+    };
 
 
     constructor(p: TMobileUiParams) {
@@ -1792,7 +1804,122 @@ export class MobileUi {
         });
         opacityRow.append(this.opacitySlider, this.opacityLabel);
 
-        this.slidersDeck.append(header, sizeRow, opacityRow);
+        // Stabilizer slider (Direct Adjust)
+        const stabilizerRow = BB.el({ className: 'mp-slider-row', css: { marginTop: '8px' } });
+        this.stabilizerLabel = BB.el({
+            className: 'mp-slider-label',
+            content: this.drawingSettings.stabilizer ? `تنعيم الخط: ${this.drawingSettings.stabilizerStrength}` : 'تنعيم الخط: مغلق'
+        });
+        const stabilizerSlider = document.createElement('input');
+        stabilizerSlider.type = 'range';
+        stabilizerSlider.className = 'mp-range';
+        stabilizerSlider.min = '0';
+        stabilizerSlider.max = '10';
+        stabilizerSlider.value = this.drawingSettings.stabilizer ? this.drawingSettings.stabilizerStrength.toString() : '0';
+        stabilizerSlider.setAttribute('aria-label', 'مُثبت الخط');
+
+        stabilizerSlider.addEventListener('input', () => {
+            const val = parseInt(stabilizerSlider.value);
+            if (val === 0) {
+                this.stabilizerLabel!.textContent = 'تنعيم الخط: مغلق';
+                this.drawingSettings.stabilizer = false;
+                localStorage.setItem('maria_core_stabilizer_enabled', 'false');
+            } else {
+                this.stabilizerLabel!.textContent = `تنعيم الخط: ${val}`;
+                this.drawingSettings.stabilizer = true;
+                this.drawingSettings.stabilizerStrength = val;
+                localStorage.setItem('maria_core_stabilizer_enabled', 'true');
+                localStorage.setItem('maria_core_stabilizer_strength', val.toString());
+            }
+            this.updateStabilizer();
+        });
+        stabilizerRow.append(stabilizerSlider, this.stabilizerLabel);
+
+        // Divider
+        const divider = BB.el({
+            css: {
+                height: '1px',
+                background: 'rgba(255,255,255,0.06)',
+                margin: '12px 0 8px',
+                width: '100%'
+            }
+        });
+
+        // Quick brush type selector
+        const pickerLabel = BB.el({
+            css: {
+                fontSize: '10px',
+                fontWeight: '700',
+                opacity: '0.4',
+                marginBottom: '4px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+            },
+            content: 'نوع الفرشاة (Pen Type):'
+        });
+
+        const brushPickerRow = BB.el({
+            css: {
+                display: 'flex',
+                gap: '6px',
+                overflowX: 'auto',
+                padding: '4px 0 8px',
+                width: '100%',
+                webkitOverflowScrolling: 'touch',
+            }
+        });
+        brushPickerRow.style.scrollbarWidth = 'none';
+
+        const shortNames: Record<string, string> = {
+            penBrush: 'قلم',
+            blendBrush: 'مزج',
+            sketchyBrush: 'تخطيط',
+            pixelBrush: 'بكسل',
+            chemyBrush: 'كيمي',
+            smudgeBrush: 'تلطيخ',
+        };
+
+        const updateActivePill = () => {
+            const currentBrushId = this.onGetBrushId ? this.onGetBrushId() : '';
+            brushPickerRow.querySelectorAll('.mp-brush-pill').forEach(pill => {
+                const isSelected = pill.getAttribute('data-id') === currentBrushId;
+                (pill as HTMLElement).style.background = isSelected ? 'var(--mp-accent)' : 'rgba(255,255,255,0.06)';
+                (pill as HTMLElement).style.color = isSelected ? '#fff' : 'var(--mp-text)';
+                (pill as HTMLElement).style.borderColor = isSelected ? 'var(--mp-accent)' : 'rgba(255,255,255,0.08)';
+            });
+        };
+        this.updateSlidersBrushPicker = updateActivePill;
+
+        BRUSH_TYPES.forEach(b => {
+            const pill = BB.el({
+                className: 'mp-brush-pill',
+                css: {
+                    padding: '6px 12px',
+                    borderRadius: '16px',
+                    fontSize: '11px',
+                    fontWeight: '700',
+                    whiteSpace: 'nowrap',
+                    cursor: 'pointer',
+                    background: 'rgba(255,255,255,0.06)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    transition: 'all 0.2s',
+                    flexShrink: '0',
+                },
+                content: shortNames[b.id] || b.name
+            });
+            pill.setAttribute('data-id', b.id);
+            this.addTouchButton(pill, () => {
+                if (this.onSetBrushId) {
+                    this.onSetBrushId(b.id);
+                    if (this.onSetTool) this.onSetTool('brush');
+                }
+                updateActivePill();
+            });
+            brushPickerRow.append(pill);
+        });
+        updateActivePill();
+
+        this.slidersDeck.append(header, sizeRow, opacityRow, stabilizerRow, divider, pickerLabel, brushPickerRow);
         this.rootEl.append(this.slidersDeck);
     }
 
@@ -1888,6 +2015,8 @@ export class MobileUi {
         stabSlider.style.flexShrink = '0';
         stabSlider.value = this.drawingSettings.stabilizerStrength.toString();
         
+        this.settingsInputs.stabSlider = stabSlider;
+
         stabSlider.addEventListener('input', () => {
             const val = parseInt(stabSlider.value);
             stabStrengthVal.textContent = val.toString();
@@ -1910,6 +2039,7 @@ export class MobileUi {
                 this.toast(val ? 'تم تفعيل مُثبت الخط' : 'تم تعطيل مُثبت الخط', val ? 'success' : 'info');
             }
         );
+        this.settingsInputs.stabCheckbox = stabRow.querySelector('input');
         body.append(stabRow, stabStrengthRow);
 
         // Pressure Simulation
@@ -1923,6 +2053,7 @@ export class MobileUi {
                 this.toast(val ? 'تم تفعيل محاكاة الضغط' : 'تم تعطيل محاكاة الضغط', val ? 'success' : 'info');
             }
         );
+        this.settingsInputs.pressCheckbox = pressRow.querySelector('input');
         body.append(pressRow);
 
         // == Canvas Group ==
@@ -1940,6 +2071,7 @@ export class MobileUi {
                 this.toast(val ? 'تم قفل التدوير' : 'تم فتح التدوير', val ? 'success' : 'info');
             }
         );
+        this.settingsInputs.rotCheckbox = rotRow.querySelector('input');
         body.append(rotRow);
 
         // Finger Painting Lock
@@ -1953,6 +2085,7 @@ export class MobileUi {
                 this.toast(val ? 'تم قفل الرسم بالإصبع' : 'تم تفعيل الرسم بالإصبع', val ? 'success' : 'info');
             }
         );
+        this.settingsInputs.fingerCheckbox = fingerRow.querySelector('input');
         body.append(fingerRow);
 
         // Grid Overlay
@@ -1972,6 +2105,7 @@ export class MobileUi {
                 this.toast(val === 'off' ? 'تم إغلاق الشبكة' : `تم تفعيل الشبكة ${val}`, val === 'off' ? 'info' : 'success');
             }
         );
+        this.settingsInputs.gridSelect = gridRow.querySelector('select');
         body.append(gridRow);
 
         // == Save Group ==
@@ -1996,6 +2130,7 @@ export class MobileUi {
                 this.toast(val === 'off' ? 'تم تعطيل الحفظ التلقائي' : `حفظ تلقائي كل ${val === '30s' ? '30 ثانية' : val === '1min' ? 'دقيقة' : '5 دقائق'}`, val === 'off' ? 'info' : 'success');
             }
         );
+        this.settingsInputs.autoSaveSelect = autoSaveRow.querySelector('select');
         body.append(autoSaveRow);
 
         // == Display Group ==
@@ -2038,7 +2173,7 @@ export class MobileUi {
                 opacity: '0.5',
                 paddingBottom: '20px',
             },
-            content: 'AnimePaint Mobile v1.8.6'
+            content: 'AnimePaint Mobile v1.8.7'
         });
         body.append(versionInfo);
 
@@ -2400,6 +2535,20 @@ export class MobileUi {
                 const opVal = Math.min(100, Math.max(0, Math.round(opacity * 100)));
                 this.opacitySlider.value = opVal.toString();
                 this.opacityLabel!.textContent = `${LANG('opacity')}: ${opVal}%`;
+            }
+
+            // Sync stabilizer slider
+            const stabSlider = this.slidersDeck.querySelector('input[aria-label="مُثبت الخط"]') as HTMLInputElement;
+            if (stabSlider && this.stabilizerLabel) {
+                const isStab = this.drawingSettings.stabilizer;
+                const strength = this.drawingSettings.stabilizerStrength;
+                stabSlider.value = isStab ? strength.toString() : '0';
+                this.stabilizerLabel.textContent = isStab ? `تنعيم الخط: ${strength}` : 'تنعيم الخط: مغلق';
+            }
+
+            // Sync brush picker pills
+            if (this.updateSlidersBrushPicker) {
+                this.updateSlidersBrushPicker();
             }
 
             // Sync color preview

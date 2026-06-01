@@ -34,6 +34,8 @@ export class PenBrush {
     private settingColorStr: string = '';
     private settingAlphaId: number = ALPHA_CIRCLE;
     private settingLockLayerAlpha: boolean = false;
+    private settingGlow: number = 0;
+    private settingAngle: number = 0;
 
     private hasDrawnDot: boolean = false;
     private lineToolLastDot: number = 0;
@@ -155,6 +157,12 @@ export class PenBrush {
             this.context.globalAlpha = opacity;
         }
 
+        const hasGlow = this.settingGlow > 0;
+        if (hasGlow) {
+            this.context.shadowBlur = size * (this.settingGlow / 2);
+            this.context.shadowColor = this.settingColorStr;
+        }
+
         if (
             !before &&
             (this.settingAlphaId === ALPHA_CIRCLE || this.settingAlphaId === ALPHA_SQUARE)
@@ -189,14 +197,13 @@ export class PenBrush {
             this.context.fill();
             this.hasDrawnDot = true;
         } else if (this.settingAlphaId === ALPHA_SQUARE) {
-            if (angle !== undefined) {
-                this.context.save();
-                this.context.translate(x, y);
-                this.context.rotate((angle / 180) * Math.PI);
-                this.context.fillRect(-size, -size, size * 2, size * 2);
-                this.context.restore();
-                this.hasDrawnDot = true;
-            }
+            const drawAngle = angle !== undefined ? angle : this.settingAngle;
+            this.context.save();
+            this.context.translate(x, y);
+            this.context.rotate((drawAngle / 180) * Math.PI);
+            this.context.fillRect(-size, -size, size * 2, size * 2);
+            this.context.restore();
+            this.hasDrawnDot = true;
         } else {
             // other brush alphas
             this.context.save();
@@ -210,11 +217,17 @@ export class PenBrush {
             this.context.scale(size, size);
             if (this.settingAlphaId === ALPHA_CHALK) {
                 this.context.rotate(((x + y) * 53123) % TWO_PI); // without mod it sometimes looks different
+            } else if (this.settingAngle !== 0) {
+                this.context.rotate((this.settingAngle / 180) * Math.PI);
             }
             this.context.drawImage(targetMipmap, -1, -1, 2, 2);
 
             this.context.restore();
             this.hasDrawnDot = true;
+        }
+
+        if (hasGlow) {
+            this.context.shadowBlur = 0;
         }
     }
 
@@ -517,5 +530,25 @@ export class PenBrush {
 
     getLockAlpha(): boolean {
         return this.settingLockLayerAlpha;
+    }
+
+    getAlpha(): number {
+        return this.settingAlphaId;
+    }
+
+    setGlow(g: number): void {
+        this.settingGlow = g;
+    }
+
+    getGlow(): number {
+        return this.settingGlow;
+    }
+
+    setAngle(a: number): void {
+        this.settingAngle = a;
+    }
+
+    getAngle(): number {
+        return this.settingAngle;
     }
 }
