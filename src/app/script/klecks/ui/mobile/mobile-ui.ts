@@ -1202,37 +1202,51 @@ export class MobileUi {
 
     // ===================== HELPERS =====================
     private addTouchButton(el: HTMLElement, callback: () => void): void {
-        let isPressing = false;
-        let lastPointerTime = 0;
+        let startX = 0;
+        let startY = 0;
+        let isTouch = false;
 
-        el.addEventListener('pointerdown', (e: PointerEvent) => {
-            e.stopPropagation();
-            isPressing = true;
+        const onTouchStart = (e: TouchEvent) => {
+            isTouch = true;
+            const t = e.touches[0];
+            startX = t.clientX;
+            startY = t.clientY;
             el.classList.add('mp-pressing');
-            // Responsive micro-haptic
             if (navigator.vibrate) {
                 try { navigator.vibrate(8); } catch (_) {}
             }
-        });
+        };
 
-        el.addEventListener('pointerup', (e: PointerEvent) => {
-            if (!isPressing) return;
-            isPressing = false;
+        const onTouchEnd = (e: TouchEvent) => {
+            if (!isTouch) return;
             el.classList.remove('mp-pressing');
-            e.stopPropagation();
-            lastPointerTime = Date.now();
-            callback();
-        });
+            const t = e.changedTouches[0];
+            const dist = Math.sqrt(Math.pow(t.clientX - startX, 2) + Math.pow(t.clientY - startY, 2));
+            if (dist < 15) {
+                e.preventDefault();
+                e.stopPropagation();
+                callback();
+            }
+            isTouch = false;
+        };
 
-        el.addEventListener('pointercancel', () => {
-            isPressing = false;
+        const onTouchCancel = () => {
             el.classList.remove('mp-pressing');
-        });
+            isTouch = false;
+        };
 
+        el.addEventListener('touchstart', onTouchStart, { passive: false });
+        el.addEventListener('touchend', onTouchEnd, { passive: false });
+        el.addEventListener('touchcancel', onTouchCancel, { passive: true });
+
+        // Fallback for mouse clicks (desktop / pointer)
         el.addEventListener('click', (e: MouseEvent) => {
-            e.stopPropagation();
-            if (Date.now() - lastPointerTime < 500) {
+            if (isTouch) {
                 return;
+            }
+            e.stopPropagation();
+            if (navigator.vibrate) {
+                try { navigator.vibrate(8); } catch (_) {}
             }
             callback();
         });
@@ -1508,14 +1522,15 @@ export class MobileUi {
 
         let colorLongTimer: ReturnType<typeof setTimeout> | null = null;
         let colorWasLong = false;
-        let colorLastPointerTime = 0;
+        let colorStartX = 0;
+        let colorStartY = 0;
+        let colorIsTouch = false;
 
-        this.colorPreview.addEventListener('pointerdown', (e: PointerEvent) => {
-            e.stopPropagation();
+        const onColorStart = (clientX: number, clientY: number, isTouchInput: boolean) => {
+            colorIsTouch = isTouchInput;
             colorWasLong = false;
             colorLongTimer = setTimeout(() => {
                 colorWasLong = true;
-                // Long-press: copy color hex
                 const color = this.onGetColor();
                 const hex = BB.ColorConverter.toHexString(color);
                 if (navigator.clipboard) {
@@ -1529,31 +1544,62 @@ export class MobileUi {
                 }
                 if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
             }, 600);
-        });
+        };
 
-        this.colorPreview.addEventListener('pointerup', (e: PointerEvent) => {
-            e.stopPropagation();
+        const onColorEnd = (clientX: number, clientY: number, e: Event) => {
             if (colorLongTimer) clearTimeout(colorLongTimer);
             if (!colorWasLong) {
-                colorLastPointerTime = Date.now();
                 if (navigator.vibrate) try { navigator.vibrate(8); } catch (_) {}
                 this.hideAllMenus();
-                // Save current color to history
                 this.addToColorHistory(this.onGetColor());
                 if (this.onTriggerColorPicker) this.onTriggerColorPicker();
             }
-        });
+        };
 
-        this.colorPreview.addEventListener('pointercancel', () => {
-            if (colorLongTimer) clearTimeout(colorLongTimer);
-        });
-
-        this.colorPreview.addEventListener('click', (e) => {
+        this.colorPreview.addEventListener('touchstart', (e: TouchEvent) => {
             e.stopPropagation();
-            if (Date.now() - colorLastPointerTime < 500) return;
-            this.hideAllMenus();
-            this.addToColorHistory(this.onGetColor());
-            if (this.onTriggerColorPicker) this.onTriggerColorPicker();
+            const t = e.touches[0];
+            colorStartX = t.clientX;
+            colorStartY = t.clientY;
+            onColorStart(t.clientX, t.clientY, true);
+        }, { passive: false });
+
+        this.colorPreview.addEventListener('touchmove', (e: TouchEvent) => {
+            const t = e.touches[0];
+            const dist = Math.sqrt(Math.pow(t.clientX - colorStartX, 2) + Math.pow(t.clientY - colorStartY, 2));
+            if (dist > 15 && colorLongTimer) {
+                clearTimeout(colorLongTimer);
+            }
+        }, { passive: true });
+
+        this.colorPreview.addEventListener('touchend', (e: TouchEvent) => {
+            e.stopPropagation();
+            e.preventDefault();
+            const t = e.changedTouches[0];
+            const dist = Math.sqrt(Math.pow(t.clientX - colorStartX, 2) + Math.pow(t.clientY - colorStartY, 2));
+            if (dist < 15) {
+                onColorEnd(t.clientX, t.clientY, e);
+            } else if (colorLongTimer) {
+                clearTimeout(colorLongTimer);
+            }
+            colorIsTouch = false;
+        }, { passive: false });
+
+        this.colorPreview.addEventListener('touchcancel', () => {
+            if (colorLongTimer) clearTimeout(colorLongTimer);
+            colorIsTouch = false;
+        });
+
+        this.colorPreview.addEventListener('mousedown', (e: MouseEvent) => {
+            if (colorIsTouch) return;
+            e.stopPropagation();
+            onColorStart(e.clientX, e.clientY, false);
+        });
+
+        this.colorPreview.addEventListener('mouseup', (e: MouseEvent) => {
+            if (colorIsTouch) return;
+            e.stopPropagation();
+            onColorEnd(e.clientX, e.clientY, e);
         });
 
         // 2. Eyedropper with double-tap for color history
@@ -1581,10 +1627,12 @@ export class MobileUi {
         brushBtn.classList.add('mp-active');
         let brushLongTimer: ReturnType<typeof setTimeout> | null = null;
         let brushWasLong = false;
-        let brushLastPointerTime = 0;
+        let brushStartX = 0;
+        let brushStartY = 0;
+        let brushIsTouch = false;
 
-        brushBtn.addEventListener('pointerdown', (e: PointerEvent) => {
-            e.stopPropagation();
+        const onBrushStart = (clientX: number, clientY: number, isTouchInput: boolean) => {
+            brushIsTouch = isTouchInput;
             brushBtn.classList.add('mp-pressing');
             brushWasLong = false;
             brushLongTimer = setTimeout(() => {
@@ -1592,14 +1640,12 @@ export class MobileUi {
                 this.toggleMenu(this.brushesMenu, brushBtn);
                 if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
             }, 400);
-        });
+        };
 
-        brushBtn.addEventListener('pointerup', (e: PointerEvent) => {
-            e.stopPropagation();
+        const onBrushEnd = (clientX: number, clientY: number, e: Event) => {
             brushBtn.classList.remove('mp-pressing');
             if (brushLongTimer) clearTimeout(brushLongTimer);
             if (!brushWasLong) {
-                brushLastPointerTime = Date.now();
                 if (navigator.vibrate) try { navigator.vibrate(8); } catch (_) {}
                 const currentTool = this.onGetTool();
                 const currentBrushId = this.onGetBrushId ? this.onGetBrushId() : '';
@@ -1616,29 +1662,55 @@ export class MobileUi {
                     if (this.onSetBrushId) this.onSetBrushId(this.currentBrushId);
                 }
             }
-        });
+        };
 
-        brushBtn.addEventListener('pointercancel', () => {
+        brushBtn.addEventListener('touchstart', (e: TouchEvent) => {
+            e.stopPropagation();
+            const t = e.touches[0];
+            brushStartX = t.clientX;
+            brushStartY = t.clientY;
+            onBrushStart(t.clientX, t.clientY, true);
+        }, { passive: false });
+
+        brushBtn.addEventListener('touchmove', (e: TouchEvent) => {
+            const t = e.touches[0];
+            const dist = Math.sqrt(Math.pow(t.clientX - brushStartX, 2) + Math.pow(t.clientY - brushStartY, 2));
+            if (dist > 15) {
+                brushBtn.classList.remove('mp-pressing');
+                if (brushLongTimer) clearTimeout(brushLongTimer);
+            }
+        }, { passive: true });
+
+        brushBtn.addEventListener('touchend', (e: TouchEvent) => {
+            e.stopPropagation();
+            e.preventDefault();
+            const t = e.changedTouches[0];
+            const dist = Math.sqrt(Math.pow(t.clientX - brushStartX, 2) + Math.pow(t.clientY - brushStartY, 2));
+            if (dist < 15) {
+                onBrushEnd(t.clientX, t.clientY, e);
+            } else {
+                brushBtn.classList.remove('mp-pressing');
+                if (brushLongTimer) clearTimeout(brushLongTimer);
+            }
+            brushIsTouch = false;
+        }, { passive: false });
+
+        brushBtn.addEventListener('touchcancel', () => {
             brushBtn.classList.remove('mp-pressing');
             if (brushLongTimer) clearTimeout(brushLongTimer);
+            brushIsTouch = false;
         });
 
-        brushBtn.addEventListener('click', (e) => {
+        brushBtn.addEventListener('mousedown', (e: MouseEvent) => {
+            if (brushIsTouch) return;
             e.stopPropagation();
-            if (Date.now() - brushLastPointerTime < 500) {
-                return;
-            }
-            const currentTool = this.onGetTool();
-            const currentBrushId = this.onGetBrushId ? this.onGetBrushId() : '';
-            const isEraser = currentBrushId === 'eraserBrush';
-            if (currentTool === 'brush' && !isEraser) {
-                this.toggleMenu(this.brushesMenu, brushBtn);
-            } else {
-                this.hideAllMenus();
-                if (this.onTriggerBrushType) this.onTriggerBrushType('brush');
-                this.onSetTool('brush');
-                if (this.onSetBrushId) this.onSetBrushId(this.currentBrushId);
-            }
+            onBrushStart(e.clientX, e.clientY, false);
+        });
+
+        brushBtn.addEventListener('mouseup', (e: MouseEvent) => {
+            if (brushIsTouch) return;
+            e.stopPropagation();
+            onBrushEnd(e.clientX, e.clientY, e);
         });
 
         // 4. Eraser — fix: properly update currentBrushId state

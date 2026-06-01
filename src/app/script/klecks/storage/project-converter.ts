@@ -96,9 +96,15 @@ export class ProjectConverter {
             let blob;
             if (item.image instanceof HTMLCanvasElement) {
                 blob = await canvasToBlob(item.image as HTMLCanvasElement, 'image/png');
+            } else if (item.image instanceof HTMLImageElement) {
+                const tempCanvas = BB.canvas(project.width, project.height);
+                const tempCtx = tempCanvas.getContext('2d');
+                if (tempCtx) {
+                    tempCtx.drawImage(item.image as HTMLImageElement, 0, 0);
+                }
+                blob = await canvasToBlob(tempCanvas, 'image/png');
             } else {
-                // todo image
-                throw new Error('Not implemented');
+                throw new Error('Unsupported layer image type');
             }
             layers.push({
                 name: item.name,
