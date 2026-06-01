@@ -74,729 +74,8 @@ export class MobilePortal {
         );
     }
 
-    private injectStyles(): void {
-        const styleId = 'mp-portal-styles';
-        if (document.getElementById(styleId)) return;
-
-        const style = document.createElement('style');
-        style.id = styleId;
-        style.textContent = `
-            .mp-portal-root {
-                background: radial-gradient(circle at top left, #1e1e38, #0c0c18);
-                color: #f1f5f9;
-                overflow-y: auto;
-                user-select: none;
-                -webkit-user-select: none;
-            }
-            html:not(.kl-theme-dark) .mp-portal-root {
-                background: radial-gradient(circle at top left, #f1f5f9, #cbd5e1);
-                color: #1e293b;
-            }
-
-            /* Animations */
-            @keyframes mp-portal-fade {
-                from { opacity: 0; transform: translateY(15px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
-            @keyframes mp-portal-scale {
-                from { opacity: 0; transform: scale(0.92); }
-                to { opacity: 1; transform: scale(1); }
-            }
-
-            .mp-portal-animate {
-                animation: mp-portal-fade 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-            }
-
-            /* Welcome View */
-            .mp-welcome-view {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                min-height: 100vh;
-                padding: 24px;
-                box-sizing: border-box;
-                position: relative;
-            }
-            .mp-portal-header {
-                position: absolute;
-                top: calc(16px + env(safe-area-inset-top, 0px));
-                left: 16px;
-                right: 16px;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-            .mp-header-left {
-                display: flex;
-                gap: 12px;
-            }
-            .mp-header-left .mp-header-btn {
-                width: 44px; height: 44px;
-                border-radius: 50%;
-                border: 1px solid rgba(255,255,255,0.08);
-                background: rgba(255,255,255,0.04);
-                color: inherit;
-                display: flex; align-items: center; justify-content: center;
-                cursor: pointer;
-                transition: transform 0.2s, background 0.2s;
-            }
-            html:not(.kl-theme-dark) .mp-header-left .mp-header-btn {
-                border-color: rgba(0,0,0,0.1);
-                background: rgba(0,0,0,0.03);
-            }
-            .mp-header-left .mp-header-btn:active {
-                transform: scale(0.92);
-                background: rgba(255,255,255,0.12);
-            }
-            .mp-header-left .mp-header-btn.mp-premium-btn {
-                background: linear-gradient(135deg, #f59e0b, #d97706);
-                color: #fff;
-                font-weight: 800;
-                box-shadow: 0 4px 14px rgba(217, 119, 6, 0.4);
-            }
-            .mp-header-left .mp-header-btn svg {
-                width: 20px; height: 20px;
-                fill: currentColor;
-            }
-
-            .mp-welcome-logo {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                margin-bottom: 48px;
-            }
-            .mp-logo-img-wrapper {
-                position: relative;
-                margin-bottom: 16px;
-            }
-            .mp-logo-wheel {
-                width: 90px; height: 90px;
-                background: conic-gradient(#ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #6366f1, #a855f7, #ec4899, #ef4444);
-                border-radius: 50%;
-                box-shadow: 0 8px 32px rgba(99, 102, 241, 0.35);
-                display: flex; align-items: center; justify-content: center;
-                animation: mp-spin 16s linear infinite;
-            }
-            @keyframes mp-spin {
-                from { transform: rotate(0deg); }
-                to { transform: rotate(360deg); }
-            }
-            .mp-logo-wheel::after {
-                content: '';
-                width: 48px; height: 48px;
-                background: #0c0c18;
-                border-radius: 50%;
-            }
-            html:not(.kl-theme-dark) .mp-logo-wheel::after {
-                background: #f1f5f9;
-            }
-            .mp-logo-brush-icon {
-                position: absolute;
-                bottom: 0; right: -8px;
-                width: 32px; height: 32px;
-                background: #6366f1;
-                color: #fff;
-                border-radius: 50%;
-                display: flex; align-items: center; justify-content: center;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            }
-            .mp-logo-brush-icon svg { width: 16px; height: 16px; fill: currentColor; }
-
-            .mp-logo-title {
-                font-size: 36px;
-                font-weight: 900;
-                letter-spacing: -0.5px;
-                margin: 0;
-                background: linear-gradient(to right, #fff, #a5b4fc, #ec4899);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                text-shadow: 0 0 30px rgba(99, 102, 241, 0.45);
-            }
-            html:not(.kl-theme-dark) .mp-logo-title {
-                background: linear-gradient(to right, #1e293b, #4f46e5, #db2777);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                text-shadow: none;
-            }
-            .mp-logo-version {
-                font-size: 11px;
-                opacity: 0.5;
-                margin-top: 4px;
-            }
-
-            .mp-welcome-actions {
-                display: flex;
-                flex-direction: column;
-                gap: 16px;
-                width: 100%;
-                max-width: 440px;
-                margin-top: 10px;
-            }
-            .mp-hero-card {
-                width: 100%;
-                border-radius: 28px;
-                border: 1px solid rgba(255,255,255,0.08);
-                background: linear-gradient(135deg, rgba(99,102,241,0.22), rgba(139,92,246,0.18));
-                backdrop-filter: blur(24px);
-                -webkit-backdrop-filter: blur(24px);
-                box-shadow: 0 12px 30px rgba(99, 102, 241, 0.25);
-                padding: 22px;
-                box-sizing: border-box;
-                cursor: pointer;
-                transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s, box-shadow 0.2s;
-                position: relative;
-                overflow: hidden;
-            }
-            html:not(.kl-theme-dark) .mp-hero-card {
-                border-color: rgba(99,102,241,0.2);
-                background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08));
-                box-shadow: 0 8px 24px rgba(99, 102, 241, 0.12);
-            }
-            .mp-hero-card::before {
-                content: '';
-                position: absolute;
-                top: -50%; left: -50%; width: 200%; height: 200%;
-                background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
-                pointer-events: none;
-                transition: opacity 0.3s;
-                opacity: 0;
-            }
-            .mp-hero-card:active {
-                transform: scale(0.96);
-                box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
-            }
-            .mp-hero-card-content {
-                display: flex;
-                align-items: center;
-                gap: 18px;
-            }
-            .mp-hero-card-icon {
-                width: 60px; height: 60px;
-                border-radius: 20px;
-                background: linear-gradient(135deg, #6366f1, #8b5cf6);
-                color: #fff;
-                display: flex; align-items: center; justify-content: center;
-                box-shadow: 0 6px 18px rgba(99,102,241,0.4);
-                flex-shrink: 0;
-            }
-            .mp-hero-card-icon svg {
-                width: 28px; height: 28px;
-                fill: currentColor;
-            }
-            .mp-hero-card-text {
-                display: flex;
-                flex-direction: column;
-                gap: 4px;
-                text-align: right;
-            }
-            .mp-hero-card-title {
-                font-size: 18px;
-                font-weight: 800;
-                color: #fff;
-                text-shadow: 0 0 10px rgba(255,255,255,0.1);
-            }
-            html:not(.kl-theme-dark) .mp-hero-card-title {
-                color: #1e293b;
-            }
-            .mp-hero-card-desc {
-                font-size: 11px;
-                opacity: 0.65;
-                font-weight: 500;
-                line-height: 1.4;
-            }
-
-            .mp-welcome-secondary-row {
-                display: flex;
-                gap: 16px;
-                width: 100%;
-            }
-            .mp-action-card {
-                cursor: pointer;
-                transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s, box-shadow 0.2s;
-            }
-            .mp-secondary-card {
-                flex: 1;
-                aspect-ratio: 1.15;
-                border-radius: 24px;
-                border: 1px solid rgba(255,255,255,0.06);
-                background: rgba(255,255,255,0.03);
-                backdrop-filter: blur(16px);
-                -webkit-backdrop-filter: blur(16px);
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                gap: 10px;
-                box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-            }
-            html:not(.kl-theme-dark) .mp-secondary-card {
-                border-color: rgba(0,0,0,0.07);
-                background: rgba(255,255,255,0.7);
-                box-shadow: 0 6px 18px rgba(0,0,0,0.05);
-            }
-            .mp-secondary-card:active {
-                transform: scale(0.95);
-                background-color: rgba(255,255,255,0.06);
-            }
-            html:not(.kl-theme-dark) .mp-secondary-card:active {
-                background-color: rgba(0,0,0,0.04);
-            }
-            .mp-secondary-card .mp-action-card-icon {
-                width: 48px; height: 48px;
-                border-radius: 16px;
-                background: rgba(99,102,241,0.1);
-                color: #6366f1;
-                display: flex; align-items: center; justify-content: center;
-            }
-            .mp-secondary-card .mp-action-card-icon svg {
-                width: 22px; height: 22px;
-                fill: currentColor;
-            }
-            .mp-action-card-label {
-                font-size: 13px;
-                font-weight: 700;
-            }
-
-            /* Gallery View & Subviews */
-            .mp-subview-layout {
-                padding: 16px;
-                padding-top: calc(68px + env(safe-area-inset-top, 0px));
-                min-height: 100vh;
-                box-sizing: border-box;
-                display: none;
-            }
-            .mp-subview-header {
-                position: fixed;
-                top: 0; left: 0; right: 0;
-                height: calc(60px + env(safe-area-inset-top, 0px));
-                padding: 0 16px;
-                padding-top: env(safe-area-inset-top, 0px);
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                backdrop-filter: blur(20px);
-                -webkit-backdrop-filter: blur(20px);
-                background: rgba(12,12,24,0.7);
-                border-bottom: 1px solid rgba(255,255,255,0.06);
-                z-index: 10000;
-            }
-            html:not(.kl-theme-dark) .mp-subview-header {
-                background: rgba(255,255,255,0.85);
-                border-bottom-color: rgba(0,0,0,0.06);
-            }
-            .mp-subview-header-right {
-                display: flex; align-items: center; gap: 8px;
-            }
-            .mp-back-btn {
-                padding: 6px 12px;
-                border-radius: 12px;
-                font-size: 14px;
-                font-weight: 700;
-                color: #6366f1;
-                cursor: pointer;
-                display: flex; align-items: center; gap: 4px;
-            }
-            .mp-back-btn:active { background: rgba(99,102,241,0.08); }
-            .mp-back-btn svg { width: 16px; height: 16px; fill: currentColor; }
-
-            .mp-subview-title {
-                font-size: 16px;
-                font-weight: 800;
-            }
-
-            .mp-select-btn {
-                font-size: 13px;
-                font-weight: 700;
-                color: #6366f1;
-                cursor: pointer;
-                padding: 6px 12px;
-                border-radius: 8px;
-            }
-            .mp-select-btn:active { background: rgba(99,102,241,0.08); }
-
-            /* Empty state */
-            .mp-empty-state {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                min-height: calc(100vh - 180px);
-                color: #94a3b8;
-                text-align: center;
-                gap: 8px;
-            }
-            .mp-empty-icon {
-                font-size: 56px;
-                margin-bottom: 10px;
-                color: #475569;
-            }
-            .mp-empty-text-1 { font-size: 16px; font-weight: 700; color: inherit; }
-            .mp-empty-text-2 { font-size: 12px; opacity: 0.7; }
-
-            /* Gallery Grid */
-            .mp-projects-grid {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 16px;
-                padding-bottom: 80px;
-            }
-            @media (min-width: 600px) {
-                .mp-projects-grid { grid-template-columns: repeat(3, 1fr); }
-            }
-            @media (min-width: 900px) {
-                .mp-projects-grid { grid-template-columns: repeat(4, 1fr); }
-            }
-
-            .mp-project-card {
-                border-radius: 18px;
-                background: rgba(255,255,255,0.03);
-                border: 1px solid rgba(255,255,255,0.06);
-                overflow: hidden;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                display: flex;
-                flex-direction: column;
-                transition: transform 0.2s;
-                position: relative;
-            }
-            html:not(.kl-theme-dark) .mp-project-card {
-                background: rgba(255,255,255,0.8);
-                border-color: rgba(0,0,0,0.06);
-                box-shadow: 0 4px 10px rgba(0,0,0,0.04);
-            }
-            .mp-project-card:active {
-                transform: scale(0.98);
-            }
-            .mp-project-thumb {
-                width: 100%;
-                aspect-ratio: 4/3;
-                background: #18182c;
-                display: flex; align-items: center; justify-content: center;
-                position: relative;
-                overflow: hidden;
-                border-bottom: 1px solid rgba(255,255,255,0.04);
-                cursor: pointer;
-            }
-            html:not(.kl-theme-dark) .mp-project-thumb {
-                background: #f1f5f9;
-                border-bottom-color: rgba(0,0,0,0.04);
-            }
-            .mp-project-thumb img {
-                max-width: 100%; max-height: 100%;
-                object-fit: contain;
-            }
-            .mp-project-info {
-                padding: 10px 12px;
-                display: flex;
-                flex-direction: column;
-                gap: 3px;
-                position: relative;
-            }
-            .mp-project-title {
-                font-size: 13px;
-                font-weight: 700;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                padding-left: 20px; /* Space for action dots */
-            }
-            .mp-project-meta {
-                font-size: 10px;
-                color: #94a3b8;
-                white-space: nowrap;
-            }
-            .mp-project-dots {
-                position: absolute;
-                top: 8px; left: 8px;
-                width: 24px; height: 24px;
-                display: flex; align-items: center; justify-content: center;
-                cursor: pointer;
-                color: #94a3b8;
-                border-radius: 6px;
-                transition: background 0.15s;
-            }
-            .mp-project-dots:active { background: rgba(255,255,255,0.1); }
-            .mp-project-dots svg { width: 14px; height: 14px; fill: currentColor; }
-
-            /* FAB */
-            .mp-fab {
-                position: fixed;
-                bottom: calc(24px + env(safe-area-inset-bottom, 0px));
-                left: 0; right: 0;
-                margin: 0 auto;
-                width: 56px; height: 56px;
-                border-radius: 50%;
-                background: linear-gradient(135deg, #6366f1, #8b5cf6);
-                color: #fff;
-                display: flex; align-items: center; justify-content: center;
-                cursor: pointer;
-                box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
-                transition: transform 0.2s;
-                z-index: 10001;
-            }
-            .mp-fab:active {
-                transform: scale(0.92);
-            }
-            .mp-fab svg { width: 24px; height: 24px; fill: currentColor; }
-
-            /* Floating size dialog styling */
-            .mp-dialog-overlay {
-                position: fixed;
-                top: 0; left: 0; right: 0; bottom: 0;
-                background: rgba(0,0,0,0.5);
-                backdrop-filter: blur(8px);
-                -webkit-backdrop-filter: blur(8px);
-                z-index: 20000;
-                display: none;
-                align-items: center;
-                justify-content: center;
-                padding: 16px;
-            }
-            .mp-dialog {
-                width: 100%;
-                max-width: 320px;
-                border-radius: 24px;
-                background: rgba(15, 15, 27, 0.88);
-                border: 1px solid rgba(255,255,255,0.08);
-                box-shadow: 0 16px 48px rgba(0,0,0,0.5);
-                padding: 20px;
-                box-sizing: border-box;
-                animation: mp-portal-scale 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-                color: #e2e8f0;
-            }
-            html:not(.kl-theme-dark) .mp-dialog {
-                background: rgba(255,255,255,0.92);
-                border-color: rgba(0,0,0,0.1);
-                color: #1e293b;
-            }
-            .mp-dialog-title {
-                font-size: 16px;
-                font-weight: 800;
-                text-align: center;
-                margin-bottom: 16px;
-            }
-            .mp-dialog-presets {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 8px;
-                margin-bottom: 16px;
-            }
-            .mp-preset-btn {
-                padding: 10px;
-                border-radius: 12px;
-                border: 1px solid rgba(255,255,255,0.06);
-                background: rgba(255,255,255,0.03);
-                font-size: 11px;
-                font-weight: 700;
-                text-align: center;
-                cursor: pointer;
-                color: inherit;
-                transition: background 0.15s;
-            }
-            html:not(.kl-theme-dark) .mp-preset-btn {
-                border-color: rgba(0,0,0,0.08);
-                background: rgba(0,0,0,0.03);
-            }
-            .mp-preset-btn:active {
-                background: rgba(255,255,255,0.1);
-            }
-            html:not(.kl-theme-dark) .mp-preset-btn:active {
-                background: rgba(0,0,0,0.08);
-            }
-            .mp-preset-btn.mp-active {
-                background: #6366f1 !important;
-                border-color: #6366f1 !important;
-                color: #fff !important;
-            }
-
-            .mp-input-row {
-                display: flex;
-                gap: 12px;
-                margin-bottom: 16px;
-            }
-            .mp-input-col {
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-                gap: 4px;
-            }
-            .mp-input-col label {
-                font-size: 10px;
-                color: #94a3b8;
-                font-weight: 600;
-            }
-            .mp-input-col input {
-                width: 100%;
-                box-sizing: border-box;
-                padding: 10px 12px;
-                border-radius: 12px;
-                border: 1px solid rgba(255,255,255,0.08);
-                background: rgba(0,0,0,0.2);
-                color: inherit;
-                outline: none;
-                font-family: inherit;
-                font-size: 14px;
-                text-align: center;
-                font-weight: 700;
-            }
-            html:not(.kl-theme-dark) .mp-input-col input {
-                border-color: rgba(0,0,0,0.1);
-                background: rgba(255,255,255,0.6);
-            }
-            .mp-input-col input:focus {
-                border-color: #6366f1;
-            }
-
-            /* Custom toggle style */
-            .mp-toggle-row {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 20px;
-                font-size: 12px;
-                font-weight: 700;
-            }
-            .mp-switch {
-                position: relative;
-                display: inline-block;
-                width: 44px;
-                height: 24px;
-            }
-            .mp-switch input { opacity: 0; width: 0; height: 0; }
-            .mp-switch-slider {
-                position: absolute;
-                cursor: pointer;
-                top: 0; left: 0; right: 0; bottom: 0;
-                background-color: rgba(255,255,255,0.1);
-                transition: .3s;
-                border-radius: 24px;
-            }
-            html:not(.kl-theme-dark) .mp-switch-slider {
-                background-color: rgba(0,0,0,0.1);
-            }
-            .mp-switch-slider:before {
-                position: absolute;
-                content: "";
-                height: 18px;
-                width: 18px;
-                left: 3px;
-                bottom: 3px;
-                background-color: white;
-                transition: .3s;
-                border-radius: 50%;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            }
-            .mp-switch input:checked + .mp-switch-slider {
-                background-color: #6366f1;
-            }
-            .mp-switch input:checked + .mp-switch-slider:before {
-                transform: translateX(20px);
-            }
-
-            .mp-dialog-buttons {
-                display: flex;
-                gap: 10px;
-            }
-            .mp-dialog-btn {
-                flex: 1;
-                padding: 11px;
-                border-radius: 12px;
-                font-size: 13px;
-                font-weight: 700;
-                text-align: center;
-                cursor: pointer;
-                transition: background 0.15s, transform 0.1s;
-            }
-            .mp-dialog-btn:active { transform: scale(0.96); }
-            .mp-dialog-btn.mp-cancel-btn {
-                background: rgba(255,255,255,0.04);
-                border: 1px solid rgba(255,255,255,0.06);
-            }
-            html:not(.kl-theme-dark) .mp-dialog-btn.mp-cancel-btn {
-                background: rgba(0,0,0,0.03);
-                border-color: rgba(0,0,0,0.08);
-            }
-            .mp-dialog-btn.mp-cancel-btn:active { background: rgba(255,255,255,0.08); }
-            .mp-dialog-btn.mp-confirm-btn {
-                background: linear-gradient(135deg, #6366f1, #8b5cf6);
-                color: #fff;
-                box-shadow: 0 4px 12px rgba(99,102,241,0.3);
-            }
-
-            /* Context actions menu styling */
-            .mp-ctx-menu {
-                position: fixed;
-                z-index: 30000;
-                background: rgba(15,15,27,0.92);
-                border: 1px solid rgba(255,255,255,0.08);
-                box-shadow: 0 8px 30px rgba(0,0,0,0.6);
-                border-radius: 14px;
-                min-width: 150px;
-                padding: 4px;
-                display: none;
-                animation: mp-portal-scale 0.15s ease-out;
-                backdrop-filter: blur(16px);
-                -webkit-backdrop-filter: blur(16px);
-            }
-            html:not(.kl-theme-dark) .mp-ctx-menu {
-                background: rgba(255,255,255,0.94);
-                border-color: rgba(0,0,0,0.08);
-                box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-            }
-            .mp-ctx-item {
-                padding: 10px 14px;
-                border-radius: 10px;
-                cursor: pointer;
-                font-size: 13px;
-                font-weight: 700;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                color: inherit;
-                transition: background 0.15s;
-            }
-            .mp-ctx-item:active {
-                background: rgba(255,255,255,0.08);
-            }
-            html:not(.kl-theme-dark) .mp-ctx-item:active {
-                background: rgba(0,0,0,0.05);
-            }
-            .mp-ctx-item.mp-danger {
-                color: #ef4444 !important;
-            }
-            .mp-ctx-item svg { width: 16px; height: 16px; fill: currentColor; }
-
-            /* ONLINE VIEW REMOVED STYLES */
-
-            /* Cloud sync banner */
-            .mp-sync-banner {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                background: rgba(255,255,255,0.03);
-                border: 1px solid rgba(255,255,255,0.06);
-                padding: 10px 14px;
-                font-size: 11px;
-                font-weight: 700;
-                margin-bottom: 16px;
-                box-sizing: border-box;
-                border-radius: 12px;
-                gap: 8px;
-            }
-            html:not(.kl-theme-dark) .mp-sync-banner {
-                background: rgba(0,0,0,0.02);
-                border-color: rgba(0,0,0,0.05);
-            }
-            .mp-sync-text-1 {
-                opacity: 0.8;
-            }
-
-            html:not(.kl-theme-dark) .mp-portal-root .mp-welcome-view div[style*="rgba(255,255,255,0.03)"] {
-                background: rgba(0,0,0,0.02) !important;
-                border-color: rgba(0,0,0,0.05) !important;
-            }
-        `;
-        document.head.appendChild(style);
+    private injectStylesOldUnused(): void {
+        // Empty
     }
 
     // ===================== WELCOME VIEW =====================
@@ -806,6 +85,7 @@ export class MobilePortal {
         // Header Buttons
         const header = BB.el({ className: 'mp-portal-header' });
         
+        const headerBrand = BB.el({ className: 'mp-header-brand', content: 'ماري ستوديو' });
         const headerLeft = BB.el({ className: 'mp-header-left' });
         
         const settingsBtn = document.createElement('div');
@@ -820,7 +100,7 @@ export class MobilePortal {
         helpBtn.className = 'mp-header-btn';
         helpBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.25z"/></svg>';
         helpBtn.addEventListener('click', () => {
-            this.showInfoDialog('AnimePaint Mobile v2.4.0', 'تطبيق رسم احترافي للهاتف مع طبقات، معرض محلي، وأدوات تخصيص متقدمة.');
+            this.showInfoDialog('Marie Mobile v2.4.2', 'تطبيق رسم احترافي للهاتف مع طبقات، معرض محلي، وأدوات تخصيص متقدمة.');
         });
 
         const premiumBtn = document.createElement('div');
@@ -831,7 +111,7 @@ export class MobilePortal {
         });
 
         headerLeft.append(premiumBtn, helpBtn, settingsBtn);
-        header.append(headerLeft);
+        header.append(headerBrand, headerLeft);
 
         // Logo Section
         const logoSec = BB.el({ className: 'mp-welcome-logo' });
@@ -844,10 +124,11 @@ export class MobilePortal {
         });
         imgWrap.append(wheel, brushIcon);
  
-        const title = BB.el({ className: 'mp-logo-title', content: 'أنيمي باينت' });
-        const version = BB.el({ className: 'mp-logo-version', content: 'النسخة المحمولة Ver 2.4.0' });
+        const title = BB.el({ className: 'mp-logo-title', content: 'ماري' });
+        const subtitle = BB.el({ className: 'mp-logo-subtitle', content: 'استوديو الرسم الرقمي الاحترافي' });
+        const version = BB.el({ className: 'mp-logo-version', content: 'النسخة المحمولة Ver 2.4.2' });
         
-        logoSec.append(imgWrap, title, version);
+        logoSec.append(imgWrap, title, subtitle, version);
 
         // Actions cards
         const actions = BB.el({ className: 'mp-welcome-actions' });
@@ -1110,6 +391,10 @@ export class MobilePortal {
 
     private showNewCanvasDialog(show: boolean): void {
         this.dialogOverlay.style.display = show ? 'flex' : 'none';
+    }
+
+    private showSettingsOverlay(show: boolean): void {
+        this.settingsOverlay.style.display = show ? 'flex' : 'none';
     }
 
     // ===================== NAVIGATION =====================
@@ -1631,13 +916,27 @@ export class MobilePortal {
                 position: relative;
             }
             .mp-portal-header {
-                position: absolute;
-                top: calc(16px + env(safe-area-inset-top, 0px));
-                left: 16px;
-                right: 16px;
+                width: 100%;
+                max-width: 440px;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
+                margin-bottom: 32px;
+                padding-top: env(safe-area-inset-top, 0px);
+                box-sizing: border-box;
+            }
+            .mp-header-brand {
+                font-size: 20px;
+                font-weight: 800;
+                background: linear-gradient(135deg, #ffffff 40%, var(--mp-accent-color) 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                letter-spacing: -0.5px;
+            }
+            html:not(.kl-theme-dark) .mp-header-brand {
+                background: linear-gradient(135deg, #0f172a 40%, var(--mp-accent-color) 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
             }
             .mp-header-left {
                 display: flex;
@@ -1679,11 +978,12 @@ export class MobilePortal {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                margin-bottom: 48px;
+                margin-bottom: 40px;
             }
             .mp-logo-img-wrapper {
                 position: relative;
                 margin-bottom: 16px;
+                animation: mp-float 4s ease-in-out infinite, mp-glow 4s ease-in-out infinite;
             }
             .mp-logo-wheel {
                 width: 100px; height: 100px;
@@ -1691,11 +991,19 @@ export class MobilePortal {
                 border-radius: 50%;
                 box-shadow: 0 8px 32px rgba(var(--mp-accent-color-rgb), 0.35);
                 display: flex; align-items: center; justify-content: center;
-                animation: mp-spin 20s linear infinite, mp-glow 3s ease-in-out infinite;
+                animation: mp-spin 15s linear infinite, mp-hue 8s linear infinite;
             }
             @keyframes mp-spin {
                 from { transform: rotate(0deg); }
                 to { transform: rotate(360deg); }
+            }
+            @keyframes mp-float {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-8px); }
+            }
+            @keyframes mp-hue {
+                0% { filter: hue-rotate(0deg); }
+                100% { filter: hue-rotate(360deg); }
             }
             .mp-logo-wheel::after {
                 content: '';
@@ -1724,25 +1032,44 @@ export class MobilePortal {
             .mp-logo-brush-icon svg { width: 18px; height: 18px; fill: currentColor; }
 
             .mp-logo-title {
-                font-size: 42px;
+                font-size: 52px;
                 font-weight: 900;
-                letter-spacing: -0.5px;
+                letter-spacing: -1px;
                 margin: 0;
-                background: linear-gradient(135deg, #ffffff 30%, rgba(var(--mp-accent-color-rgb), 1) 70%, #ec4899 100%);
+                background: linear-gradient(135deg, #ffffff 10%, var(--mp-accent-color) 60%, #ec4899 100%);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 text-shadow: 0 0 40px rgba(var(--mp-accent-color-rgb), 0.45);
+                transition: transform 0.3s ease;
+            }
+            .mp-logo-title:active {
+                transform: scale(0.97);
             }
             html:not(.kl-theme-dark) .mp-logo-title {
-                background: linear-gradient(135deg, #0f172a 30%, rgba(var(--mp-accent-color-rgb), 1) 70%, #db2777 100%);
+                background: linear-gradient(135deg, #0f172a 10%, var(--mp-accent-color) 60%, #db2777 100%);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 text-shadow: none;
             }
+            .mp-logo-subtitle {
+                font-size: 13px;
+                font-weight: 700;
+                margin-top: 6px;
+                text-align: center;
+                background: linear-gradient(90deg, rgba(255, 255, 255, 0.5), var(--mp-accent-color) 50%, rgba(255, 255, 255, 0.5));
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                opacity: 0.9;
+            }
+            html:not(.kl-theme-dark) .mp-logo-subtitle {
+                background: linear-gradient(90deg, rgba(15, 23, 42, 0.6), var(--mp-accent-color) 50%, rgba(15, 23, 42, 0.6));
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
             .mp-logo-version {
                 font-size: 12px;
                 opacity: 0.6;
-                margin-top: 6px;
+                margin-top: 8px;
                 font-weight: 700;
             }
 
