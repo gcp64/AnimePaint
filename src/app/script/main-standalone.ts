@@ -17,6 +17,8 @@ import {
 import { KlRecoveryManager } from './klecks/storage/kl-recovery-manager';
 
 function showInitError(e: Error): void {
+    const loadingScreenEl = document.getElementById('loading-screen');
+    loadingScreenEl?.remove();
     const el = document.createElement('div');
     el.style.textAlign = 'center';
     el.style.background = '#fff';
@@ -63,12 +65,19 @@ function showInitError(e: Error): void {
             outQueue.push(LANG('tab-recovery-failed-to-recover'));
         }
 
-        // in case an extension manipulated the page
-        const loadingScreenEl = document.getElementById('loading-screen');
-        loadingScreenEl?.remove();
-
         const klApp = new KlApp({ project, klRecoveryManager });
         document.body.append(klApp.getElement());
+
+        // Wait for the app to render in the DOM before fading out the loading screen
+        setTimeout(() => {
+            const loadingScreenEl = document.getElementById('loading-screen');
+            if (loadingScreenEl) {
+                loadingScreenEl.classList.add('fade-out');
+                setTimeout(() => {
+                    loadingScreenEl.remove();
+                }, 800);
+            }
+        }, 50);
 
         setTimeout(() => {
             outQueue.forEach((msg) => {
