@@ -6,8 +6,11 @@
  * data, and the request should ideally be **wrapped in a user gesture**."
  * from https://web.dev/articles/persistent-storage
  */
-export async function requestPersistentStorage(): Promise<void> {
+export async function requestPersistentStorage(): Promise<boolean> {
     if ('storage' in navigator && 'persist' in navigator.storage) {
-        await navigator.storage.persist();
+        const persisted = await navigator.storage.persist();
+        console.log('Storage persistence status:', persisted);
+        return persisted;
     }
+    return false;
 }

@@ -15,6 +15,7 @@ import {
     KL_INDEXED_DB_VERSION,
 } from './klecks/storage/kl-indexed-db';
 import { KlRecoveryManager } from './klecks/storage/kl-recovery-manager';
+import { requestPersistentStorage } from './klecks/storage/request-persistent-storage';
 
 function showInitError(e: Error): void {
     const loadingScreenEl = document.getElementById('loading-screen');
@@ -42,6 +43,11 @@ function showInitError(e: Error): void {
             KL_INDEXED_DB_VERSION,
             KL_INDEXED_DB_UPGRADER,
         );
+        try {
+            await requestPersistentStorage();
+        } catch (e) {
+            console.warn('Persistent storage request failed at app start:', e);
+        }
         if (!(await KL_INDEXED_DB.testConnection())) {
             outQueue.push(LANG('file-storage-cant-access'));
         }

@@ -2370,7 +2370,7 @@ export class MobileUi {
                 opacity: '0.5',
                 paddingBottom: '20px',
             },
-            content: 'AnimePaint Mobile v1.9.0'
+            content: 'Marie Mobile v2.4.3'
         });
         body.append(versionInfo);
 
@@ -2383,7 +2383,7 @@ export class MobileUi {
                 opacity: '0.3',
                 paddingBottom: '16px',
             },
-            content: 'AnimePaint by GCP64'
+            content: 'Marie by GCP64'
         });
         body.append(appInfoRow);
 

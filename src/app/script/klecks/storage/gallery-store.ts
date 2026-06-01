@@ -2,6 +2,7 @@ import { KL_INDEXED_DB, BROWSER_STORAGE_STORE, IMAGE_DATA_STORE } from './kl-ind
 import { randomUuid, isBlob } from '../../bb/base/base';
 import { TKlProject } from '../kl-types';
 import { ProjectConverter } from './project-converter';
+import { requestPersistentStorage } from './request-persistent-storage';
 
 export type TGalleryProjectMeta = {
     projectId: string;
@@ -72,6 +73,11 @@ export class GalleryStore {
     async saveProject(project: TKlProject, title: string): Promise<void> {
         if (!KL_INDEXED_DB.getIsAvailable()) {
             return;
+        }
+        try {
+            await requestPersistentStorage();
+        } catch (e) {
+            console.warn('Persistent storage request failed:', e);
         }
         const key = project.projectId;
         
