@@ -809,7 +809,7 @@ export class MobilePortal {
         helpBtn.className = 'mp-header-btn';
         helpBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.25z"/></svg>';
         helpBtn.addEventListener('click', () => {
-            this.showInfoDialog('AnimePaint Mobile v2.1.0', 'تطبيق رسم احترافي للهاتف مع طبقات، معرض محلي، وأدوات تخصيص متقدمة.');
+            this.showInfoDialog('AnimePaint Mobile v2.2.0', 'تطبيق رسم احترافي للهاتف مع طبقات، معرض محلي، وأدوات تخصيص متقدمة.');
         });
 
         const premiumBtn = document.createElement('div');
@@ -834,7 +834,7 @@ export class MobilePortal {
         imgWrap.append(wheel, brushIcon);
  
         const title = BB.el({ className: 'mp-logo-title', content: 'أنيمي باينت' });
-        const version = BB.el({ className: 'mp-logo-version', content: 'النسخة المحمولة Ver 2.1.0' });
+        const version = BB.el({ className: 'mp-logo-version', content: 'النسخة المحمولة Ver 2.2.0' });
         
         logoSec.append(imgWrap, title, version);
 
@@ -1062,7 +1062,7 @@ export class MobilePortal {
         const toggleLabel = document.createElement('span');
         toggleLabel.textContent = 'خلفية شفافة (Transparent Background)';
         
-        const switchLabel = BB.el({ className: 'mp-switch' });
+        const switchLabel = BB.el({ tagName: 'label', className: 'mp-switch' });
         const toggleInput = document.createElement('input');
         toggleInput.type = 'checkbox';
         const slider = BB.el({ className: 'mp-switch-slider' });
@@ -1147,9 +1147,11 @@ export class MobilePortal {
                 const thumb = BB.el({ className: 'mp-project-thumb' });
                 if (project.thumbnailBlob && project.thumbnailBlob.size > 0) {
                     const img = document.createElement('img');
-                    img.src = URL.createObjectURL(project.thumbnailBlob);
-                    // Revoke URL when image loads to prevent memory leak
-                    img.onload = () => URL.revokeObjectURL(img.src);
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        img.src = reader.result as string;
+                    };
+                    reader.readAsDataURL(project.thumbnailBlob);
                     thumb.append(img);
                 } else {
                     thumb.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="opacity: 0.2;"><path d="M12 22C6.49 22 2 17.51 2 12S6.49 2 12 2s10 4.49 10 10-4.49 10-10 10zm-5.5-9c-.83 0-1.5-.67-1.5-1.5S5.67 10 6.5 10 8 10.67 8 11.5 7.33 13 6.5 13zm3-4C8.67 9 8 8.33 8 7.5S8.67 6 9.5 6s1.5.67 1.5 1.5S10.33 9 9.5 9zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 6 14.5 6s1.5.67 1.5 1.5S15.33 9 14.5 9zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 10 17.5 10s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>';
