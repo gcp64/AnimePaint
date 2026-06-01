@@ -13,6 +13,8 @@ export type TGalleryProjectMeta = {
 };
 
 export class GalleryStore {
+    private saveLocks: Record<string, boolean> = {};
+
     async listProjects(): Promise<TGalleryProjectMeta[]> {
         if (!KL_INDEXED_DB.getIsAvailable()) {
             return [];
@@ -26,13 +28,24 @@ export class GalleryStore {
             const results = await KL_INDEXED_DB.bulkGet(BROWSER_STORAGE_STORE, projectKeys);
             const list: TGalleryProjectMeta[] = [];
             
+            // Extract all thumbnail IDs to batch load them
+            const thumbIds: string[] = [];
+            for (const key of Object.keys(results)) {
+                const raw = results[key] as any;
+                if (raw && raw.thumbnail && raw.thumbnail.id) {
+                    thumbIds.push(raw.thumbnail.id);
+                }
+            }
+            
+            const thumbBlobs = thumbIds.length > 0 ? await KL_INDEXED_DB.bulkGet(IMAGE_DATA_STORE, thumbIds) : {};
+            
             for (const key of Object.keys(results)) {
                 const raw = results[key] as any;
                 if (!raw) continue;
                 
                 let thumbnailBlob: Blob | undefined;
                 if (raw.thumbnail && raw.thumbnail.id) {
-                    const readResult = await KL_INDEXED_DB.get(IMAGE_DATA_STORE, raw.thumbnail.id);
+                    const readResult = thumbBlobs[raw.thumbnail.id];
                     if (isBlob(readResult)) {
                         thumbnailBlob = readResult;
                     }
@@ -44,7 +57,7 @@ export class GalleryStore {
                     width: raw.width,
                     height: raw.height,
                     timestamp: raw.timestamp || Date.now(),
-                    thumbnailBlob: thumbnailBlob || new Blob(),
+                    thumbnailBlob: thumbnailBlob as any || new Blob(),
                 });
             }
             
@@ -62,6 +75,12 @@ export class GalleryStore {
         }
         const key = project.projectId;
         
+        // Wait if there is a save operation in progress for this project
+        while (this.saveLocks[key]) {
+            await new Promise(resolve => setTimeout(resolve, 50));
+        }
+        
+        this.saveLocks[key] = true;
         try {
             // Find obsolete blobs to clean them up from IMAGE_DATA_STORE
             const rawOld = (await KL_INDEXED_DB.get(BROWSER_STORAGE_STORE, key)) as any;
@@ -128,6 +147,8 @@ export class GalleryStore {
         } catch (e) {
             console.error('GalleryStore saveProject error:', e);
             throw e;
+        } finally {
+            this.saveLocks[key] = false;
         }
     }
 
@@ -135,15 +156,32 @@ export class GalleryStore {
         if (!KL_INDEXED_DB.getIsAvailable()) {
             return undefined;
         }
+        
+        // Wait if there is a save operation in progress for this project
+        while (this.saveLocks[projectId]) {
+            await new Promise(resolve => setTimeout(resolve, 50));
+        }
+        
         try {
             const raw = (await KL_INDEXED_DB.get(BROWSER_STORAGE_STORE, projectId)) as any;
             if (!raw) return undefined;
             
             const layers: any[] = [];
+            
+            // Extract all layer blob IDs to batch load them
+            const blobIds: string[] = [];
+            for (const layer of raw.layers) {
+                if (layer.blob && layer.blob.id) {
+                    blobIds.push(layer.blob.id);
+                }
+            }
+            
+            const blobs = blobIds.length > 0 ? await KL_INDEXED_DB.bulkGet(IMAGE_DATA_STORE, blobIds) : {};
+            
             for (const layer of raw.layers) {
                 let blob: Blob | undefined;
                 if (layer.blob && layer.blob.id) {
-                    const readResult = await KL_INDEXED_DB.get(IMAGE_DATA_STORE, layer.blob.id);
+                    const readResult = blobs[layer.blob.id];
                     if (isBlob(readResult)) {
                         blob = readResult;
                     }
@@ -172,6 +210,12 @@ export class GalleryStore {
         if (!KL_INDEXED_DB.getIsAvailable()) {
             return;
         }
+        
+        // Wait if there is a save operation in progress for this project
+        while (this.saveLocks[projectId]) {
+            await new Promise(resolve => setTimeout(resolve, 50));
+        }
+        
         try {
             const raw = (await KL_INDEXED_DB.get(BROWSER_STORAGE_STORE, projectId)) as any;
             if (!raw) return;
@@ -201,6 +245,12 @@ export class GalleryStore {
         if (!KL_INDEXED_DB.getIsAvailable()) {
             return;
         }
+        
+        // Wait if there is a save operation in progress for this project
+        while (this.saveLocks[projectId]) {
+            await new Promise(resolve => setTimeout(resolve, 50));
+        }
+        
         try {
             const raw = (await KL_INDEXED_DB.get(BROWSER_STORAGE_STORE, projectId)) as any;
             if (!raw) return;
