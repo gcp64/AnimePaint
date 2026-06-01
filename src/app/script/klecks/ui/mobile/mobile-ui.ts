@@ -2346,7 +2346,7 @@ export class MobileUi {
                 opacity: '0.5',
                 paddingBottom: '20px',
             },
-            content: 'AnimePaint Mobile v1.8.8'
+            content: 'AnimePaint Mobile v1.9.0'
         });
         body.append(versionInfo);
 

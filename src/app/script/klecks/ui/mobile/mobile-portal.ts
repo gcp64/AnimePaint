@@ -17,13 +17,12 @@ export class MobilePortal {
     private readonly onLoadProject: TMobilePortalParams['onLoadProject'];
     private readonly onNewProject: TMobilePortalParams['onNewProject'];
 
-    private currentView: 'welcome' | 'gallery' | 'online' = 'welcome';
+    private currentView: 'welcome' | 'gallery' = 'welcome';
     private projectsList: TGalleryProjectMeta[] = [];
 
     // UI Containers
     private welcomeContainer!: HTMLElement;
     private galleryContainer!: HTMLElement;
-    private onlineContainer!: HTMLElement;
     private dialogOverlay!: HTMLElement;
     private settingsOverlay!: HTMLElement;
 
@@ -53,14 +52,12 @@ export class MobilePortal {
 
         this.buildWelcomeView();
         this.buildGalleryView();
-        this.buildOnlineView();
         this.buildSizeDialog();
         this.buildSettingsOverlay();
  
         this.rootEl.append(
             this.welcomeContainer,
             this.galleryContainer,
-            this.onlineContainer,
             this.dialogOverlay,
             this.settingsOverlay
         );
@@ -163,15 +160,20 @@ export class MobilePortal {
                 margin-bottom: 16px;
             }
             .mp-logo-wheel {
-                width: 84px; height: 84px;
+                width: 90px; height: 90px;
                 background: conic-gradient(#ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6, #6366f1, #a855f7, #ec4899, #ef4444);
                 border-radius: 50%;
-                box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+                box-shadow: 0 8px 32px rgba(99, 102, 241, 0.35);
                 display: flex; align-items: center; justify-content: center;
+                animation: mp-spin 16s linear infinite;
+            }
+            @keyframes mp-spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
             }
             .mp-logo-wheel::after {
                 content: '';
-                width: 44px; height: 44px;
+                width: 48px; height: 48px;
                 background: #0c0c18;
                 border-radius: 50%;
             }
@@ -191,10 +193,20 @@ export class MobilePortal {
             .mp-logo-brush-icon svg { width: 16px; height: 16px; fill: currentColor; }
 
             .mp-logo-title {
-                font-size: 32px;
-                font-weight: 800;
+                font-size: 36px;
+                font-weight: 900;
                 letter-spacing: -0.5px;
                 margin: 0;
+                background: linear-gradient(to right, #fff, #a5b4fc, #ec4899);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                text-shadow: 0 0 30px rgba(99, 102, 241, 0.45);
+            }
+            html:not(.kl-theme-dark) .mp-logo-title {
+                background: linear-gradient(to right, #1e293b, #4f46e5, #db2777);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                text-shadow: none;
             }
             .mp-logo-version {
                 font-size: 11px;
@@ -204,52 +216,134 @@ export class MobilePortal {
 
             .mp-welcome-actions {
                 display: flex;
-                gap: 20px;
-                justify-content: center;
+                flex-direction: column;
+                gap: 16px;
                 width: 100%;
                 max-width: 440px;
+                margin-top: 10px;
+            }
+            .mp-hero-card {
+                width: 100%;
+                border-radius: 28px;
+                border: 1px solid rgba(255,255,255,0.08);
+                background: linear-gradient(135deg, rgba(99,102,241,0.22), rgba(139,92,246,0.18));
+                backdrop-filter: blur(24px);
+                -webkit-backdrop-filter: blur(24px);
+                box-shadow: 0 12px 30px rgba(99, 102, 241, 0.25);
+                padding: 22px;
+                box-sizing: border-box;
+                cursor: pointer;
+                transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s, box-shadow 0.2s;
+                position: relative;
+                overflow: hidden;
+            }
+            html:not(.kl-theme-dark) .mp-hero-card {
+                border-color: rgba(99,102,241,0.2);
+                background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08));
+                box-shadow: 0 8px 24px rgba(99, 102, 241, 0.12);
+            }
+            .mp-hero-card::before {
+                content: '';
+                position: absolute;
+                top: -50%; left: -50%; width: 200%; height: 200%;
+                background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+                pointer-events: none;
+                transition: opacity 0.3s;
+                opacity: 0;
+            }
+            .mp-hero-card:active {
+                transform: scale(0.96);
+                box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+            }
+            .mp-hero-card-content {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+            }
+            .mp-hero-card-icon {
+                width: 60px; height: 60px;
+                border-radius: 20px;
+                background: linear-gradient(135deg, #6366f1, #8b5cf6);
+                color: #fff;
+                display: flex; align-items: center; justify-content: center;
+                box-shadow: 0 6px 18px rgba(99,102,241,0.4);
+                flex-shrink: 0;
+            }
+            .mp-hero-card-icon svg {
+                width: 28px; height: 28px;
+                fill: currentColor;
+            }
+            .mp-hero-card-text {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                text-align: right;
+            }
+            .mp-hero-card-title {
+                font-size: 18px;
+                font-weight: 800;
+                color: #fff;
+                text-shadow: 0 0 10px rgba(255,255,255,0.1);
+            }
+            html:not(.kl-theme-dark) .mp-hero-card-title {
+                color: #1e293b;
+            }
+            .mp-hero-card-desc {
+                font-size: 11px;
+                opacity: 0.65;
+                font-weight: 500;
+                line-height: 1.4;
+            }
+
+            .mp-welcome-secondary-row {
+                display: flex;
+                gap: 16px;
+                width: 100%;
             }
             .mp-action-card {
+                cursor: pointer;
+                transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s, box-shadow 0.2s;
+            }
+            .mp-secondary-card {
                 flex: 1;
-                aspect-ratio: 1;
+                aspect-ratio: 1.15;
                 border-radius: 24px;
                 border: 1px solid rgba(255,255,255,0.06);
                 background: rgba(255,255,255,0.03);
-                background-image: linear-gradient(135deg, rgba(99,102,241,0.07), rgba(139,92,246,0.05));
                 backdrop-filter: blur(16px);
                 -webkit-backdrop-filter: blur(16px);
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                gap: 12px;
-                cursor: pointer;
-                transition: transform 0.2s, background-color 0.2s, box-shadow 0.2s;
-                box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+                gap: 10px;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.15);
             }
-            html:not(.kl-theme-dark) .mp-action-card {
+            html:not(.kl-theme-dark) .mp-secondary-card {
                 border-color: rgba(0,0,0,0.07);
                 background: rgba(255,255,255,0.7);
-                box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+                box-shadow: 0 6px 18px rgba(0,0,0,0.05);
             }
-            .mp-action-card:active {
-                transform: scale(0.94);
-                background-color: rgba(255,255,255,0.08);
+            .mp-secondary-card:active {
+                transform: scale(0.95);
+                background-color: rgba(255,255,255,0.06);
             }
-            html:not(.kl-theme-dark) .mp-action-card:active {
-                background-color: rgba(0,0,0,0.05);
+            html:not(.kl-theme-dark) .mp-secondary-card:active {
+                background-color: rgba(0,0,0,0.04);
             }
-            .mp-action-card-icon {
-                width: 56px; height: 56px;
-                border-radius: 50%;
-                background: rgba(99,102,241,0.12);
+            .mp-secondary-card .mp-action-card-icon {
+                width: 48px; height: 48px;
+                border-radius: 16px;
+                background: rgba(99,102,241,0.1);
                 color: #6366f1;
                 display: flex; align-items: center; justify-content: center;
-                box-shadow: 0 4px 10px rgba(99,102,241,0.15);
             }
-            .mp-action-card-icon svg { width: 26px; height: 26px; fill: currentColor; }
+            .mp-secondary-card .mp-action-card-icon svg {
+                width: 22px; height: 22px;
+                fill: currentColor;
+            }
             .mp-action-card-label {
-                font-size: 14px;
+                font-size: 13px;
                 font-weight: 700;
             }
 
@@ -661,44 +755,7 @@ export class MobilePortal {
             }
             .mp-ctx-item svg { width: 16px; height: 16px; fill: currentColor; }
 
-            /* MOCK ONLINE GALLERY VIEW */
-            .mp-online-grid {
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                gap: 16px;
-                padding-bottom: 40px;
-            }
-            @media (min-width: 600px) {
-                .mp-online-grid { grid-template-columns: repeat(3, 1fr); }
-            }
-            .mp-online-card {
-                border-radius: 18px;
-                background: rgba(255,255,255,0.02);
-                border: 1px solid rgba(255,255,255,0.05);
-                overflow: hidden;
-                display: flex;
-                flex-direction: column;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            }
-            html:not(.kl-theme-dark) .mp-online-card {
-                background: rgba(255,255,255,0.85);
-                border-color: rgba(0,0,0,0.05);
-            }
-            .mp-online-thumb {
-                width: 100%;
-                aspect-ratio: 4/3;
-                background: linear-gradient(135deg, #1e1b4b, #311042);
-                display: flex; align-items: center; justify-content: center;
-                font-size: 28px;
-            }
-            .mp-online-info {
-                padding: 10px 12px;
-                display: flex;
-                flex-direction: column;
-                gap: 3px;
-            }
-            .mp-online-title { font-size: 13px; font-weight: 700; }
-            .mp-online-author { font-size: 10px; color: #6366f1; font-weight: 700; }
+            /* ONLINE VIEW REMOVED STYLES */
 
             /* Cloud sync banner */
             .mp-sync-banner {
@@ -752,7 +809,7 @@ export class MobilePortal {
         helpBtn.className = 'mp-header-btn';
         helpBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.25z"/></svg>';
         helpBtn.addEventListener('click', () => {
-            this.showInfoDialog('AnimePaint Mobile v1.8.8', 'تطبيق رسم احترافي للهاتف مع طبقات، معرض محلي، وأدوات تخصيص متقدمة.');
+            this.showInfoDialog('AnimePaint Mobile v1.9.0', 'تطبيق رسم احترافي للهاتف مع طبقات، معرض محلي، وأدوات تخصيص متقدمة.');
         });
 
         const premiumBtn = document.createElement('div');
@@ -777,36 +834,58 @@ export class MobilePortal {
         imgWrap.append(wheel, brushIcon);
 
         const title = BB.el({ className: 'mp-logo-title', content: 'أنيمي باينت' });
-        const version = BB.el({ className: 'mp-logo-version', content: 'النسخة المحمولة Ver 1.8.8' });
+        const version = BB.el({ className: 'mp-logo-version', content: 'النسخة المحمولة Ver 1.9.0' });
         
         logoSec.append(imgWrap, title, version);
 
         // Actions cards
         const actions = BB.el({ className: 'mp-welcome-actions' });
         
-        const galleryCard = BB.el({ className: 'mp-action-card' });
+        const newDrawingCard = BB.el({ className: 'mp-hero-card mp-action-card' });
+        newDrawingCard.innerHTML = `
+            <div class="mp-hero-card-content">
+                <div class="mp-hero-card-icon">
+                    <svg viewBox="0 0 24 24" width="36" height="36"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                </div>
+                <div class="mp-hero-card-text">
+                    <div class="mp-hero-card-title">ابدأ لوحة جديدة</div>
+                    <div class="mp-hero-card-desc">أنشئ مساحة عمل فارغة بالكامل للرسم والتلوين</div>
+                </div>
+            </div>
+        `;
+        newDrawingCard.addEventListener('click', () => {
+            this.showNewCanvasDialog(true);
+            this.triggerHaptic(12);
+        });
+
+        const secondaryRow = BB.el({ className: 'mp-welcome-secondary-row' });
+
+        const galleryCard = BB.el({ className: 'mp-action-card mp-secondary-card' });
         galleryCard.innerHTML = `
             <div class="mp-action-card-icon">
                 <svg viewBox="0 0 24 24"><path d="M12 22C6.49 22 2 17.51 2 12S6.49 2 12 2s10 4.49 10 10-4.49 10-10 10zm-5.5-9c-.83 0-1.5-.67-1.5-1.5S5.67 10 6.5 10 8 10.67 8 11.5 7.33 13 6.5 13zm3-4C8.67 9 8 8.33 8 7.5S8.67 6 9.5 6s1.5.67 1.5 1.5S10.33 9 9.5 9zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 6 14.5 6s1.5.67 1.5 1.5S15.33 9 14.5 9zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 10 17.5 10s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
             </div>
-            <div class="mp-action-card-label">معرضي (My Gallery)</div>
+            <div class="mp-action-card-label">معرض رسوماتي</div>
         `;
         galleryCard.addEventListener('click', () => {
             this.switchView('gallery');
+            this.triggerHaptic(12);
         });
 
-        const onlineCard = BB.el({ className: 'mp-action-card' });
-        onlineCard.innerHTML = `
+        const settingsCard = BB.el({ className: 'mp-action-card mp-secondary-card' });
+        settingsCard.innerHTML = `
             <div class="mp-action-card-icon">
-                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.53c-.26-.81-1-1.4-1.9-1.4h-1v-3c0-.55-.45-1-1-1h-6v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
             </div>
-            <div class="mp-action-card-label">المعرض على الشبكة</div>
+            <div class="mp-action-card-label">إعدادات التطبيق</div>
         `;
-        onlineCard.addEventListener('click', () => {
-            this.switchView('online');
+        settingsCard.addEventListener('click', () => {
+            this.showSettingsOverlay(true);
+            this.triggerHaptic(12);
         });
 
-        actions.append(galleryCard, onlineCard);
+        secondaryRow.append(galleryCard, settingsCard);
+        actions.append(newDrawingCard, secondaryRow);
 
         // Quick drawing tips
         const tipsSection = BB.el({
@@ -922,58 +1001,7 @@ export class MobilePortal {
         this.galleryContainer.append(header, syncBanner, grid, fab);
     }
 
-    // ===================== ONLINE VIEW =====================
-    private buildOnlineView(): void {
-        this.onlineContainer = BB.el({
-            className: 'mp-subview-layout mp-portal-animate',
-            id: 'mp-online-view-container'
-        });
-
-        // Header
-        const header = BB.el({ className: 'mp-subview-header' });
-        const backBtn = BB.el({ className: 'mp-back-btn', content: '<svg viewBox="0 0 24 24" style="transform: rotate(180deg);"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg><span>رجوع</span>' });
-        backBtn.addEventListener('click', () => this.switchView('welcome'));
-        const title = BB.el({ className: 'mp-subview-title', content: 'معرض الشبكة' });
-        const dummy = BB.el({ className: 'mp-select-btn', css: { visibility: 'hidden' }, content: 'تحديد' });
-        header.append(backBtn, title, dummy);
-
-        const grid = BB.el({ className: 'mp-online-grid' });
-        
-        // Populate dummy online drawings
-        const mockWorks = [
-            { title: 'بطل القوة', author: 'أحمد رسام', gradient: 'linear-gradient(135deg, #6366f1, #8b5cf6)' },
-            { title: 'فتاة الأنمي الرائعة', author: 'سارة آرت', gradient: 'linear-gradient(135deg, #ec4899, #f43f5e)' },
-            { title: 'منظر غروب ياباني', author: 'أوتامو', gradient: 'linear-gradient(135deg, #f97316, #eab308)' },
-            { title: 'الذئب الطائر', author: 'محمد 99', gradient: 'linear-gradient(135deg, #64748b, #475569)' },
-            { title: 'شخصية بأسلوب تشيبي', author: 'مريم رسامة', gradient: 'linear-gradient(135deg, #a855f7, #6366f1)' },
-            { title: 'طبيعة ساحرة بالدمج', author: 'خالد آرت', gradient: 'linear-gradient(135deg, #22c55e, #06b6d4)' }
-        ];
-
-        mockWorks.forEach(work => {
-            const card = BB.el({ className: 'mp-online-card' });
-            card.innerHTML = `
-                <div class="mp-online-thumb" style="background: ${work.gradient};"><svg width="32" height="32" viewBox="0 0 24 24" fill="rgba(255,255,255,0.3)"><path d="M7 14c-1.66 0-3 1.34-3 3 0 1.31-1.16 2-2 2 .92 1.22 2.49 2 4 2 2.21 0 4-1.79 4-4 0-1.66-1.34-3-3-3zm13.71-9.37l-1.34-1.34a.996.996 0 00-1.41 0L9 12.25 11.75 15l8.96-8.96a.996.996 0 000-1.41z"/></svg></div>
-                <div class="mp-online-info">
-                    <div class="mp-online-title">${work.title}</div>
-                    <div class="mp-online-author">بواسطة: ${work.author}</div>
-                </div>
-            `;
-            card.addEventListener('click', () => {
-                // Generate a blank canvas with a nice background fill representing this theme
-                let color = { r: 255, g: 255, b: 255 };
-                if (work.title.includes('غروب')) color = { r: 253, g: 186, b: 116 }; // Peach sunrise
-                if (work.title.includes('طبيعة')) color = { r: 220, g: 252, b: 231 }; // Pale green
-                if (work.title.includes('الذئب')) color = { r: 241, g: 245, b: 249 }; // Light slate
-                
-                this.onNewProject(1200, 1200, false);
-                // Switch off portal
-                this.setIsVisible(false);
-            });
-            grid.append(card);
-        });
-
-        this.onlineContainer.append(header, grid);
-    }
+    // Online view removed
 
     // ===================== SIZE DIALOG =====================
     private buildSizeDialog(): void {
@@ -1074,11 +1102,10 @@ export class MobilePortal {
     }
 
     // ===================== NAVIGATION =====================
-    private switchView(view: 'welcome' | 'gallery' | 'online'): void {
-        this.currentView = view;
+    private switchView(view: 'welcome' | 'gallery'): void {
+        this.currentView = view as any;
         this.welcomeContainer.style.display = view === 'welcome' ? 'flex' : 'none';
         this.galleryContainer.style.display = view === 'gallery' ? 'block' : 'none';
-        this.onlineContainer.style.display = view === 'online' ? 'block' : 'none';
 
         if (view === 'gallery') {
             this.refreshGalleryList();
