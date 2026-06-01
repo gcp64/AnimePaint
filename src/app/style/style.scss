@@ -719,6 +719,12 @@ iframe {
     background-position: center;
 
     z-index: 0;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 8px;
+    box-sizing: border-box;
 }
 .tabrow__tab-hover {
     background-color: #fff;
