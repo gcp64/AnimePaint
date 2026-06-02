@@ -419,21 +419,24 @@ export class MobileUi {
 
     // ===================== STYLES =====================
     private injectStyles(): void {
-        const styleId = 'mp-mobile-styles-v3';
+        const styleId = 'mp-mobile-styles-v4';
         if (document.getElementById(styleId)) return;
 
         // Remove old style sheets
-        const oldStyle = document.getElementById('mp-mobile-styles-v2');
-        if (oldStyle) oldStyle.remove();
+        const oldStyle2 = document.getElementById('mp-mobile-styles-v2');
+        if (oldStyle2) oldStyle2.remove();
+        const oldStyle3 = document.getElementById('mp-mobile-styles-v3');
+        if (oldStyle3) oldStyle3.remove();
 
         const style = document.createElement('style');
         style.id = styleId;
         style.textContent = `
             :root {
                 --mp-accent: #6366f1;
-                --mp-accent-glow: rgba(99, 102, 241, 0.4);
-                --mp-bg: rgba(15, 15, 27, 0.88);
-                --mp-border: rgba(255, 255, 255, 0.08);
+                --mp-accent-glow: rgba(99, 102, 241, 0.45);
+                --mp-accent-neon: #a855f7;
+                --mp-bg: rgba(10, 10, 22, 0.76);
+                --mp-border: rgba(255, 255, 255, 0.12);
                 --mp-text: #e2e8f0;
                 --mp-text-dim: #94a3b8;
                 --mp-danger: #ef4444;
@@ -442,8 +445,8 @@ export class MobileUi {
 
             /* Light theme overrides */
             html:not(.kl-theme-dark) {
-                --mp-bg: rgba(255, 255, 255, 0.92);
-                --mp-border: rgba(0, 0, 0, 0.1);
+                --mp-bg: rgba(255, 255, 255, 0.78);
+                --mp-border: rgba(0, 0, 0, 0.08);
                 --mp-text: #1e293b;
                 --mp-text-dim: #64748b;
             }
@@ -513,14 +516,24 @@ export class MobileUi {
             /* === Shared glass panel === */
             .mp-glass {
                 background: var(--mp-bg) !important;
-                background-image: linear-gradient(135deg, rgba(99,102,241,0.07), rgba(139,92,246,0.05)) !important;
-                backdrop-filter: blur(24px) saturate(190%) !important;
-                -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
+                background-image: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 50%, rgba(99,102,241,0.03) 100%) !important;
+                backdrop-filter: blur(35px) saturate(210%) !important;
+                -webkit-backdrop-filter: blur(35px) saturate(210%) !important;
                 border: 1px solid var(--mp-border) !important;
                 color: var(--mp-text) !important;
                 font-family: 'Cairo', 'Outfit', system-ui, -apple-system, sans-serif !important;
-                box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.1) !important;
+                box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45), 
+                            inset 0 1px 0 rgba(255,255,255,0.18), 
+                            0 0 0 1px rgba(255,255,255,0.02) !important;
                 pointer-events: auto !important;
+                transition: box-shadow 0.3s, border-color 0.3s, transform 0.3s;
+            }
+            html:not(.kl-theme-dark) .mp-glass {
+                background-image: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.3) 50%, rgba(99,102,241,0.02) 100%) !important;
+                border: 1px solid rgba(0, 0, 0, 0.08) !important;
+                box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12), 
+                            inset 0 1px 0 rgba(255,255,255,0.6), 
+                            0 0 0 1px rgba(0,0,0,0.01) !important;
             }
 
             /* === Top Bar === */
@@ -537,13 +550,22 @@ export class MobileUi {
                 padding: 0 6px;
                 animation: mp-slideDown 0.3s ease-out;
                 z-index: 10001;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+                border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            }
+            html:not(.kl-theme-dark) .mp-top-bar {
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255,255,255,0.5) !important;
+                border: 1px solid rgba(0, 0, 0, 0.06) !important;
             }
 
             .mp-top-sep {
                 width: 1px; height: 24px;
-                background: rgba(255,255,255,0.1);
+                background: rgba(255,255,255,0.12);
                 margin: 0 2px;
                 flex-shrink: 0;
+            }
+            html:not(.kl-theme-dark) .mp-top-sep {
+                background: rgba(0,0,0,0.08);
             }
 
             /* === Bottom Bar === */
@@ -562,20 +584,26 @@ export class MobileUi {
                 animation: mp-slideUp 0.35s ease-out;
                 z-index: 10001;
                 touch-action: none !important;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+                border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            }
+            html:not(.kl-theme-dark) .mp-bottom-bar {
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255,255,255,0.5) !important;
+                border: 1px solid rgba(0, 0, 0, 0.06) !important;
             }
 
             /* === Button === */
             .mp-btn {
                 width: 44px; height: 44px;
                 border-radius: 12px;
-                border: 1px solid rgba(255,255,255,0.06);
+                border: 1px solid rgba(255,255,255,0.08);
                 background: rgba(255,255,255,0.03);
                 color: var(--mp-text);
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
-                transition: background 0.15s, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s, border-color 0.2s;
+                transition: background 0.15s, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s, border-color 0.25s;
                 touch-action: none !important;
                 -webkit-tap-highlight-color: transparent;
                 user-select: none;
@@ -593,22 +621,28 @@ export class MobileUi {
                 width: 20px; height: 20px;
                 fill: currentColor;
                 pointer-events: none;
+                transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
             }
             .mp-btn:hover {
-                border-color: rgba(255, 255, 255, 0.2) !important;
-                background: rgba(255, 255, 255, 0.05) !important;
+                border-color: rgba(255, 255, 255, 0.25) !important;
+                background: rgba(255, 255, 255, 0.06) !important;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.18);
             }
             .mp-btn:active,
             .mp-btn.mp-pressing {
-                transform: scale(0.85) !important;
-                background: rgba(255,255,255,0.08) !important;
+                transform: scale(0.88) translateY(1px) !important;
+                background: rgba(255,255,255,0.1) !important;
             }
             .mp-btn.mp-active {
-                background: linear-gradient(135deg, var(--mp-accent), #8b5cf6) !important;
-                border-color: transparent !important;
+                background: linear-gradient(135deg, var(--mp-accent), var(--mp-accent-neon)) !important;
+                border-color: rgba(255,255,255,0.15) !important;
                 color: #fff !important;
-                box-shadow: 0 4px 14px var(--mp-accent-glow), 0 0 10px rgba(99, 102, 241, 0.5) !important;
-                transform: scale(1.05) !important;
+                box-shadow: 0 6px 20px var(--mp-accent-glow), 0 0 12px rgba(168, 85, 247, 0.4) !important;
+                transform: scale(1.08) translateY(-1px) !important;
+            }
+            .mp-btn.mp-active svg {
+                transform: scale(1.1);
             }
 
             /* === Color Circle === */
@@ -618,27 +652,31 @@ export class MobileUi {
                 border: 2.5px solid #fff;
                 box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3);
                 cursor: pointer;
-                transition: transform 0.15s;
+                transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
                 touch-action: none !important;
                 -webkit-tap-highlight-color: transparent;
                 flex-shrink: 0;
                 pointer-events: auto !important;
+            }
+            .mp-color-circle:hover {
+                transform: scale(1.1) rotate(5deg);
+                box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.4);
             }
             .mp-color-circle:active { transform: scale(0.88); }
 
             /* === Popup Menu === */
             .mp-popup-menu {
                 position: fixed;
-                border-radius: 16px;
-                padding: 8px;
+                border-radius: 20px;
+                padding: 10px;
                 min-width: 220px;
                 max-height: 70vh;
                 overflow-y: auto;
                 display: none;
                 flex-direction: column;
-                gap: 3px;
+                gap: 4px;
                 z-index: 10002;
-                animation: mp-scaleIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+                animation: mp-scaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
                 touch-action: none !important;
                 pointer-events: auto !important;
             }
@@ -647,18 +685,18 @@ export class MobileUi {
             }
             .mp-popup-menu::-webkit-scrollbar { width: 4px; }
             .mp-popup-menu::-webkit-scrollbar-thumb {
-                background: rgba(255,255,255,0.15);
+                background: rgba(255,255,255,0.18);
                 border-radius: 2px;
             }
 
             .mp-menu-item {
-                padding: 11px 14px;
-                border-radius: 10px;
+                padding: 12px 16px;
+                border-radius: 12px;
                 cursor: pointer;
                 font-size: 13px;
-                font-weight: 500;
+                font-weight: 600;
                 color: var(--mp-text);
-                transition: background 0.15s, color 0.15s;
+                transition: background 0.15s, color 0.15s, transform 0.15s;
                 display: flex;
                 align-items: center;
                 gap: 10px;
@@ -669,11 +707,12 @@ export class MobileUi {
             }
             .mp-menu-item:active {
                 background: rgba(255,255,255,0.08);
+                transform: scale(0.97);
             }
             .mp-menu-item svg {
                 width: 18px; height: 18px;
                 fill: currentColor;
-                opacity: 0.7;
+                opacity: 0.75;
                 flex-shrink: 0;
             }
             .mp-menu-item.mp-danger {
@@ -682,7 +721,7 @@ export class MobileUi {
             .mp-menu-item.mp-danger svg { fill: var(--mp-danger); }
             .mp-menu-sep {
                 height: 1px;
-                background: rgba(255,255,255,0.08);
+                background: rgba(255,255,255,0.1);
                 margin: 4px 8px;
             }
             .mp-menu-item .mp-check {
@@ -697,24 +736,25 @@ export class MobileUi {
             .mp-tools-grid {
                 grid-template-columns: repeat(3, 1fr) !important;
                 gap: 8px !important;
-                padding: 10px !important;
+                padding: 12px !important;
                 min-width: 220px;
             }
             .mp-tool-cell {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                gap: 4px;
+                gap: 5px;
                 cursor: pointer;
-                padding: 8px 4px;
+                padding: 10px 6px;
                 border-radius: 12px;
-                transition: background 0.15s, box-shadow 0.2s;
+                transition: background 0.15s, box-shadow 0.2s, transform 0.15s;
                 touch-action: none !important;
                 -webkit-tap-highlight-color: transparent;
                 pointer-events: auto !important;
             }
             .mp-tool-cell:active {
                 background: rgba(255,255,255,0.06);
+                transform: scale(0.92);
             }
             .mp-tool-cell.mp-active {
                 background: linear-gradient(135deg, rgba(99,102,241,0.22), rgba(139,92,246,0.12)) !important;
@@ -723,6 +763,10 @@ export class MobileUi {
             .mp-tool-cell .mp-tool-icon {
                 width: 28px; height: 28px;
                 display: flex; align-items: center; justify-content: center;
+                transition: transform 0.2s;
+            }
+            .mp-tool-cell.mp-active .mp-tool-icon {
+                transform: scale(1.1);
             }
             .mp-tool-cell .mp-tool-icon svg {
                 width: 22px; height: 22px;
@@ -732,9 +776,9 @@ export class MobileUi {
                 fill: var(--mp-accent);
             }
             .mp-tool-cell .mp-tool-label {
-                font-size: 9px;
+                font-size: 10px;
                 color: var(--mp-text-dim);
-                font-weight: 600;
+                font-weight: 700;
                 text-align: center;
                 line-height: 1.1;
             }
@@ -748,21 +792,24 @@ export class MobileUi {
                 align-items: center !important;
                 gap: 6px !important;
                 grid-column: 1 / -1 !important;
-                border-top: 1px solid rgba(255, 255, 255, 0.08);
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
                 margin-top: 4px;
-                padding: 10px 4px !important;
+                padding: 12px 4px !important;
                 color: #ef4444 !important;
                 border-radius: 12px;
                 cursor: pointer;
-                transition: background 0.15s;
+                transition: background 0.15s, transform 0.15s;
                 touch-action: none !important;
                 pointer-events: auto !important;
+                font-weight: 700;
+                font-size: 12px;
             }
             html:not(.kl-theme-dark) .mp-tool-close-cell {
                 border-top-color: rgba(0, 0, 0, 0.08);
             }
             .mp-tool-close-cell:active {
                 background: rgba(239, 68, 68, 0.08);
+                transform: scale(0.96);
             }
             .mp-tool-close-cell svg {
                 width: 14px;
@@ -776,13 +823,13 @@ export class MobileUi {
                 bottom: calc(92px + env(safe-area-inset-bottom, 0px));
                 left: calc(8px + env(safe-area-inset-left, 0px));
                 width: 230px;
-                border-radius: 14px;
+                border-radius: 20px;
                 display: flex;
                 flex-direction: column;
                 gap: 8px;
-                padding: 10px 14px;
+                padding: 12px 14px;
                 box-sizing: border-box;
-                animation: mp-slideInLeft 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+                animation: mp-slideInLeft 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
                 z-index: 10001;
             }
             .mp-sliders-deck.mp-closing {
@@ -795,8 +842,8 @@ export class MobileUi {
                 margin-bottom: 2px;
             }
             .mp-sliders-title {
-                font-size: 10px;
-                font-weight: 700;
+                font-size: 11px;
+                font-weight: 800;
                 color: var(--mp-text-dim);
                 letter-spacing: 0.5px;
             }
@@ -812,74 +859,80 @@ export class MobileUi {
             }
             .mp-sliders-close:active { background: rgba(255,255,255,0.1); }
             .mp-sliders-close svg { width: 14px; height: 14px; fill: currentColor; }
- 
+
             .mp-slider-row {
                 display: flex;
                 align-items: center;
                 gap: 10px;
             }
             .mp-slider-label {
-                font-size: 10px;
+                font-size: 11px;
                 color: var(--mp-text-dim);
                 min-width: 72px;
-                font-weight: 600;
+                font-weight: 700;
                 text-align: right;
                 white-space: nowrap;
             }
             .mp-range {
                 flex-grow: 1;
-                height: 14px;
-                background: rgba(255,255,255,0.06) !important;
-                border-radius: 7px;
+                height: 10px;
+                background: rgba(255,255,255,0.08) !important;
+                border-radius: 5px;
                 outline: none;
                 -webkit-appearance: none;
                 appearance: none;
                 touch-action: none !important;
-                transition: background 0.15s;
+                transition: background 0.2s, box-shadow 0.2s;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+            }
+            html:not(.kl-theme-dark) .mp-range {
+                background: rgba(0,0,0,0.06) !important;
+                border: 1px solid rgba(0, 0, 0, 0.03);
             }
             .mp-range::-webkit-slider-thumb {
                 -webkit-appearance: none;
-                width: 24px; height: 24px;
+                width: 22px; height: 22px;
                 border-radius: 50%;
-                background: linear-gradient(135deg, var(--mp-accent), #8b5cf6);
-                box-shadow: 0 0 12px var(--mp-accent-glow), 0 2px 6px rgba(0,0,0,0.3);
+                background: radial-gradient(circle at 35% 35%, #ffffff 30%, var(--mp-accent) 35%, var(--mp-accent-neon) 75%, #4f46e5 100%);
+                box-shadow: 0 0 15px var(--mp-accent-glow), 0 3px 8px rgba(0,0,0,0.4);
                 cursor: pointer;
-                border: 2.5px solid #fff;
-                transition: transform 0.1s;
+                border: 2px solid #fff;
+                transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
             }
             .mp-range::-webkit-slider-thumb:active {
-                transform: scale(1.25);
+                transform: scale(1.35) !important;
+                box-shadow: 0 0 25px var(--mp-accent-glow), 0 4px 12px rgba(0,0,0,0.5), 0 0 0 6px rgba(99, 102, 241, 0.25) !important;
             }
             .mp-range::-webkit-slider-runnable-track {
-                height: 14px;
-                border-radius: 7px;
+                height: 10px;
+                border-radius: 5px;
             }
- 
+
             /* === Brush Size Preview === */
             .mp-brush-preview {
                 position: fixed;
                 pointer-events: none;
-                border: 2px solid rgba(255,255,255,0.5);
+                border: 2px solid rgba(255,255,255,0.6);
                 border-radius: 50%;
                 z-index: 9998;
                 display: none;
                 transition: width 0.1s, height 0.1s;
-                box-shadow: 0 0 4px rgba(0,0,0,0.3);
+                box-shadow: 0 0 6px rgba(0,0,0,0.4);
             }
- 
+
             /* === Layers Window === */
             .mp-layers-window {
                 position: fixed;
                 bottom: calc(92px + env(safe-area-inset-bottom, 0px));
                 right: calc(8px + env(safe-area-inset-right, 0px));
                 width: 260px; height: 340px;
-                border-radius: 16px;
+                border-radius: 20px;
                 display: none;
                 flex-direction: column;
                 padding: 0;
                 overflow: hidden;
                 z-index: 10001;
-                animation: mp-slideInRight 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+                animation: mp-slideInRight 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
             }
             .mp-layers-window.mp-closing {
                 animation: mp-slideOutRight 0.2s ease-in forwards !important;
@@ -888,14 +941,18 @@ export class MobileUi {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                padding: 10px 12px 8px;
-                border-bottom: 1px solid rgba(255,255,255,0.06);
-                font-size: 12px;
-                font-weight: 700;
+                padding: 12px 14px 10px;
+                border-bottom: 1px solid rgba(255,255,255,0.08);
+                font-size: 13px;
+                font-weight: 800;
                 color: #f1f5f9;
                 cursor: move;
                 flex-shrink: 0;
                 touch-action: none !important;
+            }
+            html:not(.kl-theme-dark) .mp-layers-header {
+                color: #1e293b;
+                border-bottom-color: rgba(0,0,0,0.08);
             }
             .mp-layers-close {
                 width: 26px; height: 26px;
@@ -912,53 +969,71 @@ export class MobileUi {
             .mp-layers-body {
                 flex-grow: 1;
                 overflow-y: auto;
-                padding: 8px;
+                padding: 10px;
             }
             .mp-layers-body::-webkit-scrollbar { width: 4px; }
             .mp-layers-body::-webkit-scrollbar-thumb {
-                background: rgba(255,255,255,0.12);
+                background: rgba(255,255,255,0.18);
                 border-radius: 2px;
             }
 
             /* Layer item overrides */
             .mp-layers-body .kl-layer {
-                height: 46px !important;
-                background: rgba(255,255,255,0.02) !important;
-                border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+                height: 48px !important;
+                background: rgba(255,255,255,0.03) !important;
+                border-bottom: 1px solid rgba(255,255,255,0.05) !important;
                 display: flex !important;
                 align-items: center !important;
-                border-radius: 8px !important;
-                margin-bottom: 3px !important;
+                border-radius: 10px !important;
+                margin-bottom: 5px !important;
+                border: 1px solid rgba(255,255,255,0.02) !important;
+                box-sizing: border-box !important;
+            }
+            html:not(.kl-theme-dark) .mp-layers-body .kl-layer {
+                background: rgba(0,0,0,0.02) !important;
+                border-bottom-color: rgba(0,0,0,0.05) !important;
+                border-color: rgba(0,0,0,0.01) !important;
             }
             .mp-layers-body .kl-layer__label {
                 font-size: 13px !important;
                 color: var(--mp-text) !important;
+                font-weight: 600 !important;
             }
             .mp-layers-body .kl-layer__opacity-label {
-                font-size: 12px !important;
+                font-size: 11px !important;
                 color: var(--mp-text-dim) !important;
+                font-weight: 700 !important;
             }
             .mp-layers-body input[type='checkbox'] {
                 width: 18px !important; height: 18px !important;
+                cursor: pointer;
             }
             .mp-layers-body button {
-                background: rgba(255,255,255,0.04) !important;
-                border: 1px solid rgba(255,255,255,0.07) !important;
+                background: rgba(255,255,255,0.05) !important;
+                border: 1px solid rgba(255,255,255,0.09) !important;
                 color: var(--mp-text) !important;
                 border-radius: 8px !important;
                 padding: 5px 10px !important;
                 font-size: 12px !important;
-                transition: background 0.15s !important;
+                font-weight: 600 !important;
+                transition: background 0.15s, transform 0.15s !important;
             }
             .mp-layers-body button:active {
-                background: rgba(255,255,255,0.1) !important;
+                background: rgba(255,255,255,0.12) !important;
+                transform: scale(0.95);
             }
             .mp-layers-body select {
-                background: rgba(12,12,24,0.9) !important;
-                border: 1px solid rgba(255,255,255,0.08) !important;
+                background: rgba(12,12,24,0.92) !important;
+                border: 1px solid rgba(255,255,255,0.1) !important;
                 color: var(--mp-text) !important;
                 padding: 3px 6px !important;
                 border-radius: 6px !important;
+                font-size: 11px !important;
+                font-weight: 600 !important;
+            }
+            html:not(.kl-theme-dark) .mp-layers-body select {
+                background: rgba(255,255,255,0.95) !important;
+                border-color: rgba(0,0,0,0.1) !important;
             }
 
             /* === Settings Panel === */
@@ -981,48 +1056,83 @@ export class MobileUi {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                padding: calc(16px + env(safe-area-inset-top, 0px)) 16px 12px;
-                border-bottom: 1px solid rgba(255,255,255,0.06);
+                padding: calc(16px + env(safe-area-inset-top, 0px)) 16px 14px;
+                border-bottom: 1px solid rgba(255,255,255,0.08);
                 flex-shrink: 0;
             }
+            html:not(.kl-theme-dark) .mp-settings-header {
+                border-bottom-color: rgba(0,0,0,0.08);
+            }
             .mp-settings-title {
-                font-size: 15px;
-                font-weight: 800;
+                font-size: 16px;
+                font-weight: 900;
             }
             .mp-settings-body {
-                padding: 12px 16px;
+                padding: 14px 16px;
                 display: flex;
                 flex-direction: column;
-                gap: 6px;
+                gap: 4px;
                 overflow-y: auto;
                 flex-grow: 1;
             }
+            .mp-settings-body::-webkit-scrollbar { width: 4px; }
+            .mp-settings-body::-webkit-scrollbar-thumb {
+                background: rgba(255,255,255,0.15);
+                border-radius: 2px;
+            }
             .mp-settings-group-title {
-                font-size: 10px;
-                font-weight: 700;
+                font-size: 11px;
+                font-weight: 800;
                 color: var(--mp-accent);
                 text-transform: uppercase;
                 letter-spacing: 1px;
-                margin-top: 8px;
-                margin-bottom: 4px;
+                margin-top: 14px;
+                margin-bottom: 8px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .mp-settings-group-title::after {
+                content: '';
+                flex-grow: 1;
+                height: 1px;
+                background: linear-gradient(90deg, rgba(99,102,241,0.3), transparent);
             }
             .mp-setting-row {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                padding: 10px 0;
-                border-bottom: 1px solid rgba(255,255,255,0.04);
+                padding: 12px 14px;
+                background: rgba(255,255,255,0.02);
+                border: 1px solid rgba(255,255,255,0.03);
+                border-radius: 12px;
+                margin-bottom: 6px;
                 gap: 12px;
+                transition: background-color 0.2s, border-color 0.2s;
+            }
+            html:not(.kl-theme-dark) .mp-setting-row {
+                background: rgba(0,0,0,0.02);
+                border-color: rgba(0,0,0,0.03);
+            }
+            .mp-setting-row:hover {
+                background: rgba(255,255,255,0.04);
+                border-color: rgba(255,255,255,0.06);
+            }
+            html:not(.kl-theme-dark) .mp-setting-row:hover {
+                background: rgba(0,0,0,0.03);
+                border-color: rgba(0,0,0,0.05);
             }
             .mp-setting-label {
-                font-size: 12px;
-                font-weight: 600;
+                font-size: 13px;
+                font-weight: 700;
                 flex-grow: 1;
             }
             .mp-setting-desc {
-                font-size: 9px;
+                font-size: 9.5px;
                 color: var(--mp-text-dim);
-                margin-top: 2px;
+                margin-top: 3px;
+                font-weight: 600;
+                line-height: 1.3;
             }
             /* Toggle Switch */
             .mp-toggle {
@@ -1038,28 +1148,42 @@ export class MobileUi {
                 cursor: pointer;
                 top: 0; left: 0; right: 0; bottom: 0;
                 background: rgba(255,255,255,0.1);
-                transition: .3s;
+                border: 1px solid rgba(255,255,255,0.05);
+                transition: background 0.3s cubic-bezier(0.25, 1, 0.5, 1);
                 border-radius: 24px;
+                box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
             }
             html:not(.kl-theme-dark) .mp-toggle-track {
                 background: rgba(0,0,0,0.1);
+                border-color: rgba(0,0,0,0.05);
             }
             .mp-toggle-track:before {
                 position: absolute;
                 content: "";
                 height: 18px; width: 18px;
-                left: 3px; bottom: 3px;
+                left: 2px; bottom: 2px;
                 background-color: white;
-                transition: .3s;
+                transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), width 0.25s;
                 border-radius: 50%;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                box-shadow: 0 3px 6px rgba(0,0,0,0.25);
             }
             .mp-toggle input:checked + .mp-toggle-track {
-                background: var(--mp-accent);
+                background: linear-gradient(135deg, var(--mp-accent), var(--mp-accent-neon));
+                box-shadow: 0 0 12px rgba(99, 102, 241, 0.45);
+                border-color: transparent;
             }
             .mp-toggle input:checked + .mp-toggle-track:before {
                 transform: translateX(20px);
             }
+            /* Stretch animation during clicks */
+            .mp-toggle:active .mp-toggle-track:before {
+                width: 22px;
+            }
+            .mp-toggle input:checked:active + .mp-toggle-track:before {
+                transform: translateX(16px);
+                width: 22px;
+            }
+
             /* Select Dropdown */
             .mp-setting-select {
                 background: rgba(255,255,255,0.06);
@@ -1072,11 +1196,41 @@ export class MobileUi {
                 font-family: inherit;
                 outline: none;
                 flex-shrink: 0;
-                min-width: 80px;
+                min-width: 90px;
+                cursor: pointer;
+                transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
             }
             html:not(.kl-theme-dark) .mp-setting-select {
                 background: rgba(0,0,0,0.04);
                 border-color: rgba(0,0,0,0.1);
+            }
+            .mp-setting-select:focus {
+                border-color: var(--mp-accent);
+                box-shadow: 0 0 8px var(--mp-accent-glow);
+                background-color: rgba(255,255,255,0.09);
+            }
+
+            /* Desktop Mode Premium Button */
+            .mp-desktop-btn {
+                padding: 6px 14px;
+                border-radius: 8px;
+                background: rgba(99,102,241,0.12) !important;
+                color: #6366f1 !important;
+                font-size: 11px;
+                font-weight: 700;
+                cursor: pointer;
+                flex-shrink: 0;
+                border: 1px solid rgba(99,102,241,0.25);
+                transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+            }
+            .mp-desktop-btn:hover {
+                background: rgba(99,102,241,0.18) !important;
+                border-color: rgba(99,102,241,0.4);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 10px rgba(99, 102, 241, 0.15);
+            }
+            .mp-desktop-btn:active {
+                transform: scale(0.95);
             }
 
             /* === Color History === */
@@ -1093,10 +1247,14 @@ export class MobileUi {
             .mp-color-swatch {
                 width: 32px; height: 32px;
                 border-radius: 50%;
-                border: 2px solid rgba(255,255,255,0.3);
+                border: 2px solid rgba(255,255,255,0.35);
                 cursor: pointer;
-                transition: transform 0.1s;
-                box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+                transition: transform 0.15s, box-shadow 0.15s;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+            }
+            .mp-color-swatch:hover {
+                transform: scale(1.1);
+                box-shadow: 0 4px 10px rgba(0,0,0,0.35);
             }
             .mp-color-swatch:active { transform: scale(0.85); }
 
@@ -2339,17 +2497,7 @@ export class MobileUi {
         const desktopInfo = BB.el({ tagName: 'div' });
         desktopInfo.innerHTML = '<div class="mp-setting-label">وضع سطح المكتب</div><div class="mp-setting-desc">يعرض واجهة الكمبيوتر الكاملة</div>';
         const desktopBtn = BB.el({
-            css: {
-                padding: '6px 14px',
-                borderRadius: '8px',
-                background: 'rgba(99,102,241,0.12)',
-                color: '#6366f1',
-                fontSize: '11px',
-                fontWeight: '700',
-                cursor: 'pointer',
-                flexShrink: '0',
-                border: '1px solid rgba(99,102,241,0.2)',
-            },
+            className: 'mp-desktop-btn',
             content: 'تفعيل'
         });
         this.addTouchButton(desktopBtn, () => {
@@ -2370,7 +2518,7 @@ export class MobileUi {
                 opacity: '0.5',
                 paddingBottom: '20px',
             },
-            content: 'Marie Mobile v2.4.3'
+            content: 'Marie Mobile v2.4.4'
         });
         body.append(versionInfo);
 
