@@ -2705,6 +2705,9 @@ export class KlApp {
         this.galleryStore = new GalleryStore();
         this.mobilePortal = new MobilePortal({
             galleryStore: this.galleryStore,
+            onImportImage: (file: File) => {
+                importHandler.handleFileSelect([file] as any, 'image');
+            },
             onLoadProject: async (projectId) => {
                 this.statusOverlay.out('جاري تحميل اللوحة...', false);
                 try {

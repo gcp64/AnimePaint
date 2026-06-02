@@ -10,6 +10,7 @@ export type TMobilePortalParams = {
     galleryStore: GalleryStore;
     onLoadProject: (projectId: string) => void;
     onNewProject: (width: number, height: number, isTransparent: boolean) => void;
+    onImportImage?: (file: File) => void;
 };
 
 export class MobilePortal {
@@ -17,6 +18,7 @@ export class MobilePortal {
     private readonly galleryStore: GalleryStore;
     private readonly onLoadProject: TMobilePortalParams['onLoadProject'];
     private readonly onNewProject: TMobilePortalParams['onNewProject'];
+    private readonly onImportImage?: TMobilePortalParams['onImportImage'];
 
     private currentView: 'welcome' | 'gallery' = 'welcome';
     private projectsList: TGalleryProjectMeta[] = [];
@@ -26,6 +28,7 @@ export class MobilePortal {
     private galleryContainer!: HTMLElement;
     private dialogOverlay!: HTMLElement;
     private settingsOverlay!: HTMLElement;
+    private previewOverlay!: HTMLElement; // Add preview overlay container
 
     private hexToRgb(hex: string): string {
         hex = hex.replace('#', '');
@@ -40,6 +43,7 @@ export class MobilePortal {
         this.galleryStore = p.galleryStore;
         this.onLoadProject = p.onLoadProject;
         this.onNewProject = p.onNewProject;
+        this.onImportImage = p.onImportImage;
 
         this.injectStyles();
 
@@ -66,12 +70,14 @@ export class MobilePortal {
         this.buildGalleryView();
         this.buildSizeDialog();
         this.buildSettingsOverlay();
+        this.buildPreviewOverlay();
  
         this.rootEl.append(
             this.welcomeContainer,
             this.galleryContainer,
             this.dialogOverlay,
-            this.settingsOverlay
+            this.settingsOverlay,
+            this.previewOverlay
         );
     }
 
@@ -86,7 +92,7 @@ export class MobilePortal {
         // Header Buttons
         const header = BB.el({ className: 'mp-portal-header' });
         
-        const headerBrand = BB.el({ className: 'mp-header-brand', content: 'ماريا ستوديو' });
+        const headerBrand = BB.el({ className: 'mp-header-brand', content: 'Maria Studio' });
         const headerLeft = BB.el({ className: 'mp-header-left' });
         
         const settingsBtn = document.createElement('div');
@@ -125,11 +131,26 @@ export class MobilePortal {
         });
         imgWrap.append(wheel, brushIcon);
  
-        const title = BB.el({ className: 'mp-logo-title', content: 'ماريا' });
-        const subtitle = BB.el({ className: 'mp-logo-subtitle', content: 'استوديو الرسم الرقمي الاحترافي' });
-        const version = BB.el({ className: 'mp-logo-version', content: 'النسخة المحمولة Ver 2.5.0' });
+        const title = BB.el({ className: 'mp-logo-title', content: 'Maria' });
+        const subtitle = BB.el({ className: 'mp-logo-subtitle', content: 'Professional Digital Art Studio' });
+        const version = BB.el({ className: 'mp-logo-version', content: 'Mobile Ver 2.6.0' });
         
         logoSec.append(imgWrap, title, subtitle, version);
+
+        // Hidden input file for draw on image
+        const importInput = document.createElement('input');
+        importInput.type = 'file';
+        importInput.accept = 'image/*';
+        importInput.style.display = 'none';
+        importInput.addEventListener('change', () => {
+            const files = importInput.files;
+            if (files && files.length > 0 && this.onImportImage) {
+                requestPersistentStorage().catch(e => console.warn('Persistent storage request on import image:', e));
+                this.setIsVisible(false);
+                this.onImportImage(files[0]);
+            }
+        });
+        this.welcomeContainer.append(importInput);
 
         // Actions cards
         const actions = BB.el({ className: 'mp-welcome-actions' });
@@ -148,6 +169,23 @@ export class MobilePortal {
         `;
         newDrawingCard.addEventListener('click', () => {
             this.showNewCanvasDialog(true);
+            this.triggerHaptic(12);
+        });
+
+        const importDrawingCard = BB.el({ className: 'mp-hero-card mp-action-card', css: { marginTop: '10px' } });
+        importDrawingCard.innerHTML = `
+            <div class="mp-hero-card-content">
+                <div class="mp-hero-card-icon" style="background: linear-gradient(135deg, #10b981, #059669) !important;">
+                    <svg viewBox="0 0 24 24" width="36" height="36" fill="#ffffff"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+                </div>
+                <div class="mp-hero-card-text">
+                    <div class="mp-hero-card-title">رسم فوق صورة (Draw on Image)</div>
+                    <div class="mp-hero-card-desc">اختر صورة من جهازك لتعديلها والرسم فوقها كلوحة</div>
+                </div>
+            </div>
+        `;
+        importDrawingCard.addEventListener('click', () => {
+            importInput.click();
             this.triggerHaptic(12);
         });
 
@@ -455,11 +493,10 @@ export class MobilePortal {
                     thumb.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="opacity: 0.2;"><path d="M12 22C6.49 22 2 17.51 2 12S6.49 2 12 2s10 4.49 10 10-4.49 10-10 10zm-5.5-9c-.83 0-1.5-.67-1.5-1.5S5.67 10 6.5 10 8 10.67 8 11.5 7.33 13 6.5 13zm3-4C8.67 9 8 8.33 8 7.5S8.67 6 9.5 6s1.5.67 1.5 1.5S10.33 9 9.5 9zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 6 14.5 6s1.5.67 1.5 1.5S15.33 9 14.5 9zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 10 17.5 10s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>';
                 }
 
-                // Launch drawing editor on thumbnail click
+                // Launch drawing preview inspector on thumbnail click
                 thumb.addEventListener('click', () => {
-                    requestPersistentStorage().catch(e => console.warn('Persistent storage request on load:', e));
-                    this.setIsVisible(false);
-                    this.onLoadProject(project.projectId);
+                    this.showPreviewDialog(project);
+                    this.triggerHaptic(12);
                 });
 
                 const info = BB.el({ className: 'mp-project-info' });
@@ -866,6 +903,314 @@ export class MobilePortal {
 
         this.settingsOverlay.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
         this.settingsOverlay.addEventListener('pointerdown', (e) => e.stopPropagation(), { passive: true });
+    }
+
+    private buildPreviewOverlay(): void {
+        this.previewOverlay = BB.el({ className: 'mp-dialog-overlay' });
+        
+        // Prevent event leakage to canvas
+        this.previewOverlay.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
+        this.previewOverlay.addEventListener('pointerdown', (e) => e.stopPropagation(), { passive: true });
+    }
+
+    private showPreviewDialog(project: TGalleryProjectMeta): void {
+        this.previewOverlay.innerHTML = '';
+        this.previewOverlay.style.display = 'flex';
+
+        const dialog = BB.el({
+            className: 'mp-dialog mp-portal-animate',
+            css: {
+                maxWidth: '440px',
+                width: '90%',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+                padding: '24px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+            }
+        });
+
+        const headerRow = BB.el({
+            css: {
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+            }
+        });
+        const title = BB.el({ className: 'mp-dialog-title', content: 'معاينة اللوحة الفنية', css: { margin: '0' } });
+        const closeIcon = BB.el({
+            content: '×',
+            css: {
+                fontSize: '24px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                opacity: '0.6',
+            },
+            onClick: () => {
+                this.previewOverlay.style.display = 'none';
+                this.triggerHaptic(8);
+            }
+        });
+        headerRow.append(title, closeIcon);
+
+        // Preview image wrapper
+        const imgWrapper = BB.el({
+            css: {
+                width: '100%',
+                maxHeight: '220px',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                background: '#0c0c16',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+            }
+        });
+        
+        const previewImg = document.createElement('img');
+        previewImg.style.maxWidth = '100%';
+        previewImg.style.maxHeight = '220px';
+        previewImg.style.objectFit = 'contain';
+
+        if (project.thumbnailBlob && project.thumbnailBlob.size > 0) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                previewImg.src = reader.result as string;
+            };
+            reader.readAsDataURL(project.thumbnailBlob);
+            imgWrapper.append(previewImg);
+        } else {
+            imgWrapper.innerHTML = '<div style="opacity: 0.2; font-size: 11px;">لا توجد صورة معاينة</div>';
+        }
+
+        // Info area
+        const detailsContainer = BB.el({
+            css: {
+                background: 'rgba(255,255,255,0.02)',
+                border: '1px solid rgba(255,255,255,0.05)',
+                borderRadius: '12px',
+                padding: '12px 14px',
+                fontSize: '11px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+            }
+        });
+
+        const projTitleRow = BB.el({
+            innerHTML: `اسم اللوحة: <strong style="color: var(--mp-accent-color); font-size: 13px;">${project.title}</strong>`
+        });
+        
+        const dateStr = new Date(project.timestamp).toLocaleDateString('ar-EG', {
+            month: 'long', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+        
+        const metaRow = BB.el({
+            innerHTML: `الأبعاد: <strong>${project.width} × ${project.height} بكسل</strong><br>تاريخ التعديل: <strong>${dateStr}</strong>`
+        });
+
+        detailsContainer.append(projTitleRow, metaRow);
+
+        // Buttons Grid
+        const gridActions = BB.el({
+            css: {
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: '10px',
+                marginTop: '10px',
+            }
+        });
+
+        // 1. Edit Button (Full width row)
+        const editBtn = BB.el({
+            tagName: 'button',
+            className: 'mp-dialog-btn mp-confirm-btn',
+            content: '📂 فتح للتعديل والرسم',
+            css: {
+                gridColumn: '1 / -1',
+                padding: '12px',
+                fontSize: '13px',
+                fontWeight: 'bold',
+            },
+            onClick: () => {
+                requestPersistentStorage().catch(e => console.warn('Persistent storage request on load context:', e));
+                this.previewOverlay.style.display = 'none';
+                this.setIsVisible(false);
+                this.onLoadProject(project.projectId);
+                this.triggerHaptic(12);
+            }
+        });
+
+        // 2. Native Share Button (if AndroidBridge exists, show share button, else hide or disable)
+        const isAndroid = !!(window as any).AndroidBridge;
+        const shareBtn = BB.el({
+            tagName: 'button',
+            content: '🔗 مشاركة اللوحة',
+            css: {
+                padding: '10px',
+                background: 'rgba(99, 102, 241, 0.15)',
+                border: '1px solid rgba(99, 102, 241, 0.3)',
+                color: '#818cf8',
+                borderRadius: '8px',
+                fontWeight: '600',
+                fontSize: '11px',
+                cursor: 'pointer',
+            },
+            onClick: async () => {
+                this.triggerHaptic(8);
+                const pData = await this.galleryStore.loadProject(project.projectId);
+                if (pData) {
+                    const canvas = BB.canvas(pData.width, pData.height);
+                    const ctx = canvas.getContext('2d')!;
+                    for (const layer of pData.layers) {
+                        if (!layer.isVisible) continue;
+                        ctx.globalAlpha = layer.opacity;
+                        ctx.globalCompositeOperation = layer.mixModeStr as any || 'source-over';
+                        if (layer.image instanceof HTMLCanvasElement || layer.image instanceof HTMLImageElement) {
+                            ctx.drawImage(layer.image, 0, 0);
+                        }
+                    }
+                    const dataUrl = canvas.toDataURL('image/png');
+                    const base64 = dataUrl.split(',')[1];
+                    if (isAndroid) {
+                        (window as any).AndroidBridge.shareImage(project.title, base64);
+                    } else {
+                        // Desktop share fallback via download
+                        const link = document.createElement('a');
+                        link.download = `${project.title}.png`;
+                        link.href = dataUrl;
+                        link.click();
+                    }
+                }
+            }
+        });
+
+        // 3. Export PNG
+        const exportBtn = BB.el({
+            tagName: 'button',
+            content: '💾 تصدير PNG',
+            css: {
+                padding: '10px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                color: '#cbd5e1',
+                borderRadius: '8px',
+                fontWeight: '600',
+                fontSize: '11px',
+                cursor: 'pointer',
+            },
+            onClick: async () => {
+                this.triggerHaptic(8);
+                const pData = await this.galleryStore.loadProject(project.projectId);
+                if (pData) {
+                    const canvas = BB.canvas(pData.width, pData.height);
+                    const ctx = canvas.getContext('2d')!;
+                    for (const layer of pData.layers) {
+                        if (!layer.isVisible) continue;
+                        ctx.globalAlpha = layer.opacity;
+                        ctx.globalCompositeOperation = layer.mixModeStr as any || 'source-over';
+                        if (layer.image instanceof HTMLCanvasElement || layer.image instanceof HTMLImageElement) {
+                            ctx.drawImage(layer.image, 0, 0);
+                        }
+                    }
+                    const dataUrl = canvas.toDataURL('image/png');
+                    const link = document.createElement('a');
+                    link.download = `${project.title}.png`;
+                    link.href = dataUrl;
+                    link.click();
+                }
+            }
+        });
+
+        // 4. Duplicate
+        const duplicateBtn = BB.el({
+            tagName: 'button',
+            content: '👯 تكرار اللوحة (Copy)',
+            css: {
+                padding: '10px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                color: '#cbd5e1',
+                borderRadius: '8px',
+                fontWeight: '600',
+                fontSize: '11px',
+                cursor: 'pointer',
+            },
+            onClick: async () => {
+                requestPersistentStorage().catch(e => console.warn('Persistent storage request on duplicate:', e));
+                this.triggerHaptic(10);
+                const pData = await this.galleryStore.loadProject(project.projectId);
+                if (pData) {
+                    const newProject = {
+                        ...pData,
+                        projectId: randomUuid()
+                    };
+                    await this.galleryStore.saveProject(newProject, `${project.title} (نسخة)`);
+                    this.previewOverlay.style.display = 'none';
+                    this.refreshGalleryList();
+                }
+            }
+        });
+
+        // 5. Rename
+        const renameBtn = BB.el({
+            tagName: 'button',
+            content: '✏️ تعديل الاسم',
+            css: {
+                padding: '10px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                color: '#cbd5e1',
+                borderRadius: '8px',
+                fontWeight: '600',
+                fontSize: '11px',
+                cursor: 'pointer',
+            },
+            onClick: async () => {
+                this.triggerHaptic(8);
+                const newTitle = prompt('أدخل الاسم الجديد للوحة:', project.title);
+                if (newTitle && newTitle.trim() !== '') {
+                    await this.galleryStore.renameProject(project.projectId, newTitle.trim());
+                    project.title = newTitle.trim();
+                    projTitleRow.innerHTML = `اسم اللوحة: <strong style="color: var(--mp-accent-color); font-size: 13px;">${project.title}</strong>`;
+                    this.refreshGalleryList();
+                }
+            }
+        });
+
+        // 6. Delete (Full width red card)
+        const deleteBtn = BB.el({
+            tagName: 'button',
+            content: '🗑️ حذف اللوحة نهائياً',
+            css: {
+                gridColumn: '1 / -1',
+                padding: '10px',
+                background: 'rgba(239, 68, 68, 0.15)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                color: '#f87171',
+                borderRadius: '8px',
+                fontWeight: '700',
+                fontSize: '11px',
+                cursor: 'pointer',
+                marginTop: '10px',
+            },
+            onClick: async () => {
+                this.triggerHaptic(4); // reject/delete haptic
+                if (confirm(`هل أنت متأكد من حذف اللوحة "${project.title}" نهائياً؟`)) {
+                    await this.galleryStore.deleteProject(project.projectId);
+                    this.previewOverlay.style.display = 'none';
+                    this.refreshGalleryList();
+                }
+            }
+        });
+
+        gridActions.append(editBtn, shareBtn, exportBtn, duplicateBtn, renameBtn, deleteBtn);
+        dialog.append(headerRow, imgWrapper, detailsContainer, gridActions);
+        
+        this.previewOverlay.append(dialog);
     }
 
     private injectStyles(): void {
