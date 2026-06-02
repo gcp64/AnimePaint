@@ -1012,7 +1012,21 @@ export class MobilePortal {
             innerHTML: `الأبعاد: <strong>${project.width} × ${project.height} بكسل</strong><br>تاريخ التعديل: <strong>${dateStr}</strong>`
         });
 
-        detailsContainer.append(projTitleRow, metaRow);
+        const layersRow = BB.el({
+            innerHTML: `عدد الطبقات: <strong style="opacity: 0.5;">جاري التحميل...</strong>`
+        });
+
+        detailsContainer.append(projTitleRow, metaRow, layersRow);
+
+        this.galleryStore.loadProject(project.projectId).then(p => {
+            if (p && p.layers) {
+                layersRow.innerHTML = `عدد الطبقات: <strong style="color: var(--mp-accent);">${p.layers.length} طبقة</strong>`;
+            } else {
+                layersRow.innerHTML = `عدد الطبقات: <strong>غير معروف</strong>`;
+            }
+        }).catch(() => {
+            layersRow.innerHTML = `عدد الطبقات: <strong>1 طبقة</strong>`;
+        });
 
         // Buttons Grid
         const gridActions = BB.el({
