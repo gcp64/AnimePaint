@@ -3,6 +3,9 @@ import { randomUuid, isBlob } from '../../bb/base/base';
 import { TKlProject } from '../kl-types';
 import { ProjectConverter } from './project-converter';
 import { requestPersistentStorage } from './request-persistent-storage';
+import { drawProject } from '../canvas/draw-project';
+import { canvasToBlob } from '../../bb/base/canvas';
+import { triggerHaptic } from '../ui/utils/haptic';
 
 export type TGalleryProjectMeta = {
     projectId: string;
@@ -13,10 +16,166 @@ export type TGalleryProjectMeta = {
     thumbnailBlob: Blob;
 };
 
+function blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const dataUrl = reader.result as string;
+            const base64 = dataUrl.split(',')[1];
+            resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+}
+
+function base64ToBlob(base64: string, mimeType: string): Blob {
+    const byteCharacters = atob(base64);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    return new Blob([byteArray], { type: mimeType });
+}
+
 export class GalleryStore {
     private saveLocks: Record<string, boolean> = {};
 
+    async syncNativeStorage(silent: boolean = false): Promise<{ recovered: number; backedUp: number }> {
+        let recoveredCount = 0;
+        let backedUpCount = 0;
+        if (!(window as any).AndroidBridge) {
+            return { recovered: 0, backedUp: 0 };
+        }
+        try {
+            const nativeListStr = (window as any).AndroidBridge.listProjectsNative();
+            const nativeList = JSON.parse(nativeListStr) as {
+                projectId: string;
+                title: string;
+                width: number;
+                height: number;
+                timestamp: number;
+                thumbnailBase64: string;
+            }[];
+            
+            // 1. Recover from Native to IndexedDB (if missing in IDB)
+            const idbKeys = await KL_INDEXED_DB.getKeys(BROWSER_STORAGE_STORE);
+            for (const item of nativeList) {
+                if (!idbKeys.includes(item.projectId)) {
+                    try {
+                        const rawJson = (window as any).AndroidBridge.loadProjectNative(item.projectId);
+                        if (rawJson) {
+                            const payload = JSON.parse(rawJson);
+                            
+                            // Recreate Blobs
+                            const thumbBlob = base64ToBlob(payload.thumbnailBase64, 'image/png');
+                            const thumbId = randomUuid();
+                            await KL_INDEXED_DB.set(IMAGE_DATA_STORE, thumbId, thumbBlob);
+                            
+                            const layers = [];
+                            for (const l of payload.layers) {
+                                const lBlob = base64ToBlob(l.blobBase64, 'image/png');
+                                const lBlobId = randomUuid();
+                                await KL_INDEXED_DB.set(IMAGE_DATA_STORE, lBlobId, lBlob);
+                                layers.push({
+                                    name: l.name,
+                                    isVisible: l.isVisible,
+                                    opacity: l.opacity,
+                                    mixModeStr: l.mixModeStr,
+                                    blob: { id: lBlobId }
+                                });
+                            }
+                            
+                            const raw = {
+                                id: item.projectId,
+                                projectId: item.projectId,
+                                width: payload.width,
+                                height: payload.height,
+                                timestamp: payload.timestamp,
+                                title: payload.title,
+                                thumbnail: { id: thumbId },
+                                layers: layers
+                            };
+                            await KL_INDEXED_DB.set(BROWSER_STORAGE_STORE, item.projectId, raw);
+                            recoveredCount++;
+                        }
+                    } catch (err) {
+                        console.error('Error recovering project:', item.projectId, err);
+                    }
+                }
+            }
+            
+            // 2. Backup from IndexedDB to Native (if missing in Native)
+            const projectKeys = idbKeys.filter(k => k !== '1');
+            const nativeIds = nativeList.map(n => n.projectId);
+            
+            for (const key of projectKeys) {
+                if (!nativeIds.includes(key)) {
+                    try {
+                        const raw = (await KL_INDEXED_DB.get(BROWSER_STORAGE_STORE, key)) as any;
+                        if (raw) {
+                            // Extract Blobs
+                            const thumbResult = await KL_INDEXED_DB.get(IMAGE_DATA_STORE, raw.thumbnail.id);
+                            if (!isBlob(thumbResult)) continue;
+                            
+                            const layersBase64 = [];
+                            let layersOk = true;
+                            for (const l of raw.layers) {
+                                const lResult = await KL_INDEXED_DB.get(IMAGE_DATA_STORE, l.blob.id);
+                                if (!isBlob(lResult)) {
+                                    layersOk = false;
+                                    break;
+                                }
+                                layersBase64.push({
+                                    name: l.name,
+                                    isVisible: l.isVisible,
+                                    opacity: l.opacity,
+                                    mixModeStr: l.mixModeStr,
+                                    blobBase64: await blobToBase64(lResult)
+                                });
+                            }
+                            if (!layersOk) continue;
+                            
+                            const payload = {
+                                projectId: key,
+                                title: raw.title || 'لوحة بدون عنوان',
+                                width: raw.width,
+                                height: raw.height,
+                                timestamp: raw.timestamp || Date.now(),
+                                thumbnailBase64: await blobToBase64(thumbResult),
+                                layers: layersBase64
+                            };
+                            (window as any).AndroidBridge.saveProjectNative(
+                                key,
+                                raw.title || 'لوحة بدون عنوان',
+                                JSON.stringify(payload)
+                            );
+                            backedUpCount++;
+                        }
+                    } catch (err) {
+                        console.error('Error backing up project to native:', key, err);
+                    }
+                }
+            }
+            
+            if (!silent && (recoveredCount > 0 || backedUpCount > 0)) {
+                console.log(`Sync complete: Recovered ${recoveredCount} projects, backed up ${backedUpCount} projects.`);
+            }
+        } catch (e) {
+            console.error('syncNativeStorage error:', e);
+        }
+        return { recovered: recoveredCount, backedUp: backedUpCount };
+    }
+
     async listProjects(): Promise<TGalleryProjectMeta[]> {
+        if ((window as any).AndroidBridge) {
+            try {
+                await this.syncNativeStorage(true);
+            } catch (err) {
+                console.warn('Auto sync on listProjects failed:', err);
+            }
+        }
         if (!KL_INDEXED_DB.getIsAvailable()) {
             return [];
         }
@@ -146,6 +305,57 @@ export class GalleryStore {
             // Write project metadata and references to BROWSER_STORAGE_STORE
             await KL_INDEXED_DB.set(BROWSER_STORAGE_STORE, key, raw);
             
+            // Mirror to Android Native Storage
+            if ((window as any).AndroidBridge) {
+                try {
+                    const layersBase64 = [];
+                    for (let i = 0; i < storageProject.layers.length; i++) {
+                        const l = storageProject.layers[i];
+                        const lData = imageDataList.find(d => d.id === raw.layers[i].blob.id);
+                        if (lData) {
+                            layersBase64.push({
+                                name: l.name,
+                                isVisible: l.isVisible,
+                                opacity: l.opacity,
+                                mixModeStr: l.mixModeStr,
+                                blobBase64: await blobToBase64(lData.data)
+                            });
+                        }
+                    }
+                    const payload = {
+                        projectId: key,
+                        title: title || 'لوحة بدون عنوان',
+                        width: storageProject.width,
+                        height: storageProject.height,
+                        timestamp: storageProject.timestamp,
+                        thumbnailBase64: await blobToBase64(storageProject.thumbnail!),
+                        layers: layersBase64
+                    };
+                    (window as any).AndroidBridge.saveProjectNative(
+                        key,
+                        title || 'لوحة بدون عنوان',
+                        JSON.stringify(payload)
+                    );
+                } catch (err) {
+                    console.error('AndroidBridge saveProject native mirror error:', err);
+                }
+            }
+
+            // Export to phone gallery (Pictures/MariaStudio)
+            if ((window as any).AndroidBridge && localStorage.getItem('maria_core_auto_export_gallery') !== 'false') {
+                try {
+                    const fullCanvas = drawProject(project, 1.0);
+                    const fullBlob = await canvasToBlob(fullCanvas, 'image/png');
+                    const base64Png = await blobToBase64(fullBlob);
+                    (window as any).AndroidBridge.saveImageToGallery(title || 'لوحة بدون عنوان', base64Png);
+                } catch (err) {
+                    console.error('AndroidBridge saveImageToGallery error:', err);
+                }
+            }
+
+            // Trigger success haptic vibration
+            triggerHaptic(3);
+            
             // Clean up obsolete blobs
             for (const id of deleteIds) {
                 await KL_INDEXED_DB.remove(IMAGE_DATA_STORE, id);
@@ -239,6 +449,13 @@ export class GalleryStore {
             }
             
             await KL_INDEXED_DB.remove(BROWSER_STORAGE_STORE, projectId);
+            if ((window as any).AndroidBridge) {
+                try {
+                    (window as any).AndroidBridge.deleteProjectNative(projectId);
+                } catch (err) {
+                    console.error('AndroidBridge delete error:', err);
+                }
+            }
             for (const id of deleteIds) {
                 await KL_INDEXED_DB.remove(IMAGE_DATA_STORE, id);
             }
@@ -262,6 +479,19 @@ export class GalleryStore {
             if (!raw) return;
             raw.title = newTitle;
             await KL_INDEXED_DB.set(BROWSER_STORAGE_STORE, projectId, raw);
+            
+            if ((window as any).AndroidBridge) {
+                try {
+                    const rawJson = (window as any).AndroidBridge.loadProjectNative(projectId);
+                    if (rawJson) {
+                        const payload = JSON.parse(rawJson);
+                        payload.title = newTitle;
+                        (window as any).AndroidBridge.saveProjectNative(projectId, newTitle, JSON.stringify(payload));
+                    }
+                } catch (err) {
+                    console.error('AndroidBridge rename error:', err);
+                }
+            }
         } catch (e) {
             console.error('GalleryStore renameProject error:', e);
         }

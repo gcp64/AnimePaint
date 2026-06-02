@@ -10,19 +10,22 @@ import { c } from '../../../bb/base/c';
 import { SaveReminder } from '../components/save-reminder';
 import { showModal } from '../modals/base/showModal';
 import { createImage } from '../../../bb/base/ui';
+import { triggerHaptic } from '../utils/haptic';
 
 export type TSettingsUiParams = {
     onLeftRight: () => void;
     saveReminder: SaveReminder | undefined;
     customAbout?: HTMLElement;
     onSidebarWidthChange?: (width: number) => void;
+    galleryStore?: any;
+    canvasHud?: any;
 };
 
 export class SettingsUi {
     private readonly rootEl: HTMLElement;
 
     // ----------------------------------- public -----------------------------------
-    constructor({ onLeftRight, saveReminder, customAbout, onSidebarWidthChange }: TSettingsUiParams) {
+    constructor({ onLeftRight, saveReminder, customAbout, onSidebarWidthChange, galleryStore, canvasHud }: TSettingsUiParams) {
         this.rootEl = BB.el({
             css: {
                 margin: '10px',
@@ -496,6 +499,224 @@ export class SettingsUi {
                 gridSizeSelect.getElement(),
             ])
         );
+
+        // ---- HUD & Feedback Settings ----
+        const hudFeedbackSection = BB.el({
+            css: {
+                marginTop: '20px',
+                padding: '12px',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '8px',
+                background: 'rgba(255, 255, 255, 0.02)',
+            }
+        });
+        const hudTitle = BB.el({
+            content: '🎨 واجهة الرسم والمؤثرات التفاعلية',
+            css: {
+                fontWeight: '700',
+                fontSize: '13px',
+                color: 'var(--active-highlight-color, #3b82f6)',
+                marginBottom: '10px',
+            }
+        });
+        hudFeedbackSection.append(hudTitle);
+
+        // Haptic Feedback Checkbox
+        const hapticEnabled = localStorage.getItem('maria_core_haptic_feedback') !== 'false';
+        const hapticCheckbox = new KL.Checkbox({
+            init: hapticEnabled,
+            label: 'تفعيل الاهتزاز التفاعلي بالأصابع (Haptic Feedback)',
+            name: 'haptic-feedback',
+            callback: (checked) => {
+                localStorage.setItem('maria_core_haptic_feedback', checked ? 'true' : 'false');
+                if (checked) {
+                    triggerHaptic(3);
+                }
+            },
+            css: {
+                marginTop: '6px',
+                display: 'block',
+            }
+        });
+        hudFeedbackSection.append(hapticCheckbox.getElement());
+
+        // Auto Export to Gallery Checkbox
+        const autoExportEnabled = localStorage.getItem('maria_core_auto_export_gallery') !== 'false';
+        const autoExportCheckbox = new KL.Checkbox({
+            init: autoExportEnabled,
+            label: 'تصدير تلقائي لمعرض الصور للهاتف عند كل حفظ ("حفظ غصب")',
+            name: 'auto-export-gallery',
+            callback: (checked) => {
+                localStorage.setItem('maria_core_auto_export_gallery', checked ? 'true' : 'false');
+                triggerHaptic(1);
+            },
+            css: {
+                marginTop: '10px',
+                display: 'block',
+            }
+        });
+        hudFeedbackSection.append(autoExportCheckbox.getElement());
+
+        if (canvasHud) {
+            // HUD Position Select
+            const savedHudPos = localStorage.getItem('maria_core_hud_position') || 'bottom-left';
+            const hudPosSelect = new KL.Select({
+                optionArr: [
+                    ['bottom-left', 'سفلي يسار (الافتراضي)'],
+                    ['bottom-right', 'سفلي يمين'],
+                    ['top-left', 'علوي يسار'],
+                    ['top-right', 'علوي يمين'],
+                ],
+                initValue: savedHudPos,
+                onChange: (val) => {
+                    localStorage.setItem('maria_core_hud_position', val);
+                    canvasHud.updateStyles();
+                    triggerHaptic(1);
+                },
+                name: 'hud-position',
+            });
+            hudPosSelect.getElement().style.flexGrow = '1';
+            hudFeedbackSection.append(
+                c(',flex,items-center,gap-5,mt-15,flexWrap', [
+                    BB.el({ content: 'موقع لوحة المعلومات (HUD):', css: { marginRight: '5px', fontSize: '11px' } }),
+                    hudPosSelect.getElement(),
+                ])
+            );
+
+            // HUD Theme Select
+            const savedHudStyle = localStorage.getItem('maria_core_hud_style') || 'dark-glass';
+            const hudStyleSelect = new KL.Select({
+                optionArr: [
+                    ['dark-glass', '⬛ زجاجي داكن بلوري'],
+                    ['light-glass', '⬜ زجاجي مضيء بلوري'],
+                    ['neon', '⚡ نيون سيبربانك متوهج'],
+                    ['minimal', '⚙️ شفاف مبسط للغاية'],
+                ],
+                initValue: savedHudStyle,
+                onChange: (val) => {
+                    localStorage.setItem('maria_core_hud_style', val);
+                    canvasHud.updateStyles();
+                    triggerHaptic(1);
+                },
+                name: 'hud-style',
+            });
+            hudStyleSelect.getElement().style.flexGrow = '1';
+            hudFeedbackSection.append(
+                c(',flex,items-center,gap-5,mt-15,flexWrap', [
+                    BB.el({ content: 'مظهر لوحة معلومات الرسم:', css: { marginRight: '5px', fontSize: '11px' } }),
+                    hudStyleSelect.getElement(),
+                ])
+            );
+
+            // HUD Opacity Select
+            const savedHudOpacity = localStorage.getItem('maria_core_hud_opacity') || '0.7';
+            const hudOpacitySelect = new KL.Select({
+                optionArr: [
+                    ['0.3', 'شفاف جداً (30%)'],
+                    ['0.5', 'خفيف (50%)'],
+                    ['0.7', 'متوسط (70%)'],
+                    ['0.9', 'شبه معتم (90%)'],
+                    ['1.0', 'معتم بالكامل (100%)'],
+                ],
+                initValue: savedHudOpacity,
+                onChange: (val) => {
+                    localStorage.setItem('maria_core_hud_opacity', val);
+                    canvasHud.updateStyles();
+                    triggerHaptic(1);
+                },
+                name: 'hud-opacity',
+            });
+            hudOpacitySelect.getElement().style.flexGrow = '1';
+            hudFeedbackSection.append(
+                c(',flex,items-center,gap-5,mt-15,flexWrap', [
+                    BB.el({ content: 'شفافية لوحة معلومات الرسم:', css: { marginRight: '5px', fontSize: '11px' } }),
+                    hudOpacitySelect.getElement(),
+                ])
+            );
+        }
+
+        this.rootEl.append(hudFeedbackSection);
+
+        // ---- super storage settings ----
+        const isAndroid = !!(window as any).AndroidBridge;
+        const storageSection = BB.el({
+            css: {
+                marginTop: '20px',
+                padding: '12px',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '8px',
+                background: 'rgba(255, 255, 255, 0.02)',
+            }
+        });
+        const storageTitle = BB.el({
+            content: '⚙️ إعدادات التخزين الاحتياطي للأمان الفائق',
+            css: {
+                fontWeight: '700',
+                fontSize: '13px',
+                color: 'var(--active-highlight-color, #3b82f6)',
+                marginBottom: '6px',
+            }
+        });
+        const storageDesc = BB.el({
+            content: isAndroid 
+                ? 'الحفظ الاحتياطي الخارق نشط ومحمي بملفات أندرويد الداخلية. لتفادي أي مسح تلقائي للوحات من نظام أندرويد عند امتلاء الذاكرة، انقر على المزامنة القسرية أدناه.'
+                : 'التخزين الاحتياطي للنظام غير متاح خارج بيئة التطبيق الرسمية.',
+            css: {
+                fontSize: '11px',
+                opacity: '0.7',
+                marginBottom: '10px',
+                lineHeight: '1.4',
+            }
+        });
+        storageSection.append(storageTitle, storageDesc);
+
+        if (isAndroid && galleryStore) {
+            const syncBtn = BB.el({
+                tagName: 'button',
+                content: 'مزامنة وإصلاح التخزين الآن (Force Sync)',
+                css: {
+                    padding: '8px 12px',
+                    background: 'var(--active-highlight-color, #3b82f6)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontWeight: 'bold',
+                    fontSize: '11px',
+                    cursor: 'pointer',
+                    width: '100%',
+                },
+                onClick: async () => {
+                    syncBtn.disabled = true;
+                    const oldText = syncBtn.innerText;
+                    syncBtn.innerText = 'جاري المزامنة وفحص الملفات...';
+                    try {
+                        const result = await galleryStore.syncNativeStorage(false);
+                        showModal({
+                            message: '✓ نجاح المزامنة والإصلاح',
+                            div: c('', [
+                                c('.info-hint', 'تم التحقق من سلامة كافة اللوحات بنجاح وقفلها في التخزين المخصص للبرنامج.'),
+                                c('br'),
+                                `تمت استعادة: ${result.recovered} لوحات مفقودة من الهاتف.<br>تم نسخ احتياطي لـ: ${result.backedUp} لوحات جديدة للجهاز.`
+                            ]),
+                            buttons: ['حسناً'],
+                            callback: () => {
+                                if (result.recovered > 0) {
+                                    window.location.reload();
+                                }
+                            }
+                        });
+                    } catch (err) {
+                        alert('حدث خطأ أثناء المزامنة: ' + err);
+                    } finally {
+                        syncBtn.disabled = false;
+                        syncBtn.innerText = oldText;
+                    }
+                }
+            });
+            storageSection.append(syncBtn);
+        }
+
+        this.rootEl.append(storageSection);
 
         // ---- flip ui ----
         BB.el({

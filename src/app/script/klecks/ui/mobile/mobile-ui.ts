@@ -2518,7 +2518,7 @@ export class MobileUi {
                 opacity: '0.5',
                 paddingBottom: '20px',
             },
-            content: 'Maria Mobile v2.4.6'
+            content: 'Maria Mobile v2.5.0'
         });
         body.append(versionInfo);
 

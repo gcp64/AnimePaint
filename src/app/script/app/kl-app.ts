@@ -2248,6 +2248,8 @@ export class KlApp {
             saveReminder: this.saveReminder,
             customAbout: p.aboutEl,
             onSidebarWidthChange: (width) => this.updateSidebarWidth(width),
+            galleryStore: this.galleryStore,
+            canvasHud: this.canvasHud,
         });
 
         mainTabRow = new KL.TabRow({

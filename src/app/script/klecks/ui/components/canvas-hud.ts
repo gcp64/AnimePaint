@@ -14,25 +14,18 @@ export class CanvasHud {
             className: 'maria-canvas-hud',
             css: {
                 position: 'absolute',
-                bottom: '20px',
-                left: '20px',
                 zIndex: '10',
-                background: 'rgba(11, 11, 18, 0.7)',
-                backdropFilter: 'blur(12px)',
-                webkitBackdropFilter: 'blur(12px)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
                 borderRadius: '8px',
                 padding: '8px 12px',
-                color: '#cbd5e1',
                 fontFamily: 'Cairo, Outfit, sans-serif',
                 fontSize: '10px',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)',
                 pointerEvents: 'none',
                 userSelect: 'none',
                 minWidth: '150px',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '4px',
+                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
             }
         });
 
@@ -85,6 +78,9 @@ export class CanvasHud {
         colorRow.append(colorLabel, colorValueWrapper);
 
         this.rootEl.append(titleEl, zoomRow, sizeRow, layersRow, colorRow);
+        
+        // Initial style apply
+        this.updateStyles();
     }
 
     private createRow(label: string, valueEl: HTMLElement): HTMLElement {
@@ -102,6 +98,76 @@ export class CanvasHud {
         });
         row.append(labelEl, valueEl);
         return row;
+    }
+
+    updateStyles(): void {
+        const pos = localStorage.getItem('maria_core_hud_position') || 'bottom-left';
+        const style = localStorage.getItem('maria_core_hud_style') || 'dark-glass';
+        const opacityVal = parseFloat(localStorage.getItem('maria_core_hud_opacity') || '0.7');
+
+        // 1. Position Setup
+        const positionStyles: Record<string, string> = {
+            top: 'auto',
+            bottom: 'auto',
+            left: 'auto',
+            right: 'auto',
+        };
+
+        if (pos === 'top-left') {
+            positionStyles.top = '20px';
+            positionStyles.left = '20px';
+        } else if (pos === 'top-right') {
+            positionStyles.top = '20px';
+            positionStyles.right = '20px';
+        } else if (pos === 'bottom-right') {
+            positionStyles.bottom = '20px';
+            positionStyles.right = '20px';
+        } else {
+            // bottom-left
+            positionStyles.bottom = '20px';
+            positionStyles.left = '20px';
+        }
+        css(this.rootEl, positionStyles);
+
+        // 2. Style Setup
+        let background = `rgba(11, 11, 18, ${opacityVal})`;
+        let backdropFilter = 'blur(12px)';
+        let border = '1px solid rgba(255, 255, 255, 0.08)';
+        let color = '#cbd5e1';
+        let boxShadow = '0 4px 20px rgba(0, 0, 0, 0.4)';
+
+        if (style === 'light-glass') {
+            background = `rgba(255, 255, 255, ${opacityVal})`;
+            border = '1px solid rgba(0, 0, 0, 0.08)';
+            color = '#1e293b';
+            boxShadow = '0 4px 20px rgba(0, 0, 0, 0.15)';
+        } else if (style === 'neon') {
+            background = `rgba(10, 5, 20, ${opacityVal})`;
+            border = '1px solid var(--active-highlight-color, #3b82f6)';
+            boxShadow = '0 0 15px rgba(59, 130, 246, 0.4)';
+            color = '#f1f5f9';
+        } else if (style === 'minimal') {
+            background = `rgba(0, 0, 0, ${opacityVal})`;
+            border = 'none';
+            color = '#cbd5e1';
+            boxShadow = 'none';
+            backdropFilter = 'none';
+        }
+
+        css(this.rootEl, {
+            background,
+            backdropFilter,
+            webkitBackdropFilter: backdropFilter,
+            border,
+            color,
+            boxShadow,
+        });
+
+        // Set valueEl texts to appropriate colors for themes
+        const valColor = style === 'light-glass' ? '#0f172a' : '#f8fafc';
+        if (this.zoomEl) this.zoomEl.style.color = valColor;
+        if (this.sizeEl) this.sizeEl.style.color = valColor;
+        if (this.layersEl) this.layersEl.style.color = valColor;
     }
 
     updateZoom(zoomPercent: number): void {

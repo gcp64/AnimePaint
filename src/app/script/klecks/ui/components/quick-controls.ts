@@ -1,5 +1,6 @@
 import { BB } from '../../../bb/bb';
 import { createLaserPulse } from './laser-pulse';
+import { triggerHaptic } from '../utils/haptic';
 
 export type TQuickControlsParams = {
     onUndo: () => void;
@@ -74,6 +75,7 @@ export class QuickControls {
                 },
                 onClick: (e) => {
                     e.preventDefault();
+                    triggerHaptic(1);
                     createLaserPulse(btn);
                     item.action();
                 }
