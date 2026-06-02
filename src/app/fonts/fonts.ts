@@ -17,6 +17,11 @@ import fontYunga from 'url:./YUNGA-Display.woff2';
 import fontCairo from 'url:./Cairo-Regular.woff2';
 import fontAmiri from 'url:./Amiri-Regular.woff2';
 import fontTajawal from 'url:./Tajawal-Regular.woff2';
+import fontLalezar from 'url:./Lalezar-Regular.ttf';
+import fontReemKufi from 'url:./ReemKufi-Regular.ttf';
+import fontLemonada from 'url:./Lemonada-Regular.ttf';
+import fontChanga from 'url:./Changa-Regular.ttf';
+import fontRuwudu from 'url:./Ruwudu-Regular.ttf';
 
 export const FONTS: {
     name: string;
@@ -41,4 +46,9 @@ export const FONTS: {
     { name: 'Cairo', url: fontCairo },
     { name: 'Amiri', url: fontAmiri },
     { name: 'Tajawal', url: fontTajawal },
+    { name: 'Lalezar', url: fontLalezar },
+    { name: 'Reem Kufi', url: fontReemKufi },
+    { name: 'Lemonada', url: fontLemonada },
+    { name: 'Changa', url: fontChanga },
+    { name: 'Ruwudu', url: fontRuwudu },
 ];

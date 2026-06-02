@@ -176,7 +176,202 @@ export const blendBrushUi = (function () {
                 presetsGrid.append(btn);
             });
 
-            div.append(presetsHeader, presetsGrid);
+            // Custom Presets
+            const customPresetsHeader = BB.el({
+                content: 'فرش الدمج المخصصة (حفظ وتخصيص)',
+                className: 'kl-presets-header',
+                css: {
+                    marginTop: '25px',
+                }
+            });
+
+            const customPresetsGrid = BB.el({
+                className: 'kl-presets-grid',
+                css: {
+                    marginBottom: '10px',
+                }
+            });
+
+            const saveRow = BB.el({
+                css: {
+                    display: 'flex',
+                    gap: '6px',
+                    marginTop: '8px',
+                    width: '100%',
+                }
+            });
+
+            const customNameInput = BB.el({
+                tagName: 'input',
+                className: 'kl-presets-select',
+                css: {
+                    flexGrow: '1',
+                    marginBottom: '0',
+                    height: '32px',
+                    padding: '0 8px',
+                    fontSize: '11px',
+                }
+            }) as HTMLInputElement;
+            customNameInput.placeholder = 'اسم فرشة الدمج المخصصة...';
+
+            const saveBtn = BB.el({
+                tagName: 'button',
+                className: 'kl-preset-btn',
+                content: 'حفظ الحالية',
+                css: {
+                    height: '32px',
+                    padding: '0 12px',
+                    whiteSpace: 'nowrap',
+                    fontWeight: 'bold',
+                    borderColor: 'var(--active-highlight-color)',
+                }
+            });
+
+            saveRow.append(customNameInput, saveBtn);
+
+            function getCustomPresets() {
+                try {
+                    const data = localStorage.getItem('animepaint_custom_blends');
+                    return data ? JSON.parse(data) : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function saveCustomPresets(list: any[]) {
+                localStorage.setItem('animepaint_custom_blends', JSON.stringify(list));
+            }
+
+            function updateCustomPresetsGrid() {
+                customPresetsGrid.innerHTML = '';
+                const list = getCustomPresets();
+                if (list.length === 0) {
+                    const emptyTip = BB.el({
+                        css: {
+                            gridColumn: 'span 2',
+                            fontSize: '10px',
+                            opacity: '0.4',
+                            textAlign: 'center',
+                            padding: '12px 0',
+                            fontStyle: 'italic',
+                        },
+                        content: 'لا توجد فرش دمج مخصصة بعد. اكتب اسماً واحفظ!'
+                    });
+                    customPresetsGrid.append(emptyTip);
+                    return;
+                }
+
+                list.forEach((preset: any, idx: number) => {
+                    const itemContainer = BB.el({
+                        css: {
+                            display: 'flex',
+                            alignItems: 'center',
+                            background: 'rgba(255, 255, 255, 0.02)',
+                            border: '1px solid rgba(255, 255, 255, 0.05)',
+                            borderRadius: '6px',
+                            padding: '2px 4px 2px 8px',
+                            justifyContent: 'space-between',
+                            gap: '4px',
+                            minWidth: '0',
+                        }
+                    });
+
+                    const applyBtn = BB.el({
+                        tagName: 'button',
+                        content: preset.name,
+                        css: {
+                            background: 'none',
+                            border: 'none',
+                            color: '#cbd5e1',
+                            fontSize: '11px',
+                            cursor: 'pointer',
+                            textAlign: 'right',
+                            padding: '4px 0',
+                            flexGrow: '1',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            fontWeight: 'bold',
+                            fontFamily: 'inherit',
+                        }
+                    });
+
+                    applyBtn.onclick = () => {
+                        setSize(preset.size);
+                        sizeSlider.setValue(preset.size);
+                        p.onSizeChange(preset.size);
+
+                        brush.setOpacity(preset.opacity);
+                        opacitySlider.setValue(preset.opacity);
+                        p.onOpacityChange(preset.opacity);
+
+                        brush.setBlending(preset.blending);
+                        blendingSlider.setValue(preset.blending);
+                    };
+
+                    const deleteBtn = BB.el({
+                        tagName: 'button',
+                        content: '×',
+                        css: {
+                            background: 'none',
+                            border: 'none',
+                            color: 'rgba(239, 68, 68, 0.6)',
+                            fontSize: '14px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            transition: 'all 0.2s',
+                        }
+                    });
+
+                    deleteBtn.onmouseenter = () => {
+                        deleteBtn.style.color = '#ff4d4d';
+                        deleteBtn.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                    };
+                    deleteBtn.onmouseleave = () => {
+                        deleteBtn.style.color = 'rgba(239, 68, 68, 0.6)';
+                        deleteBtn.style.backgroundColor = 'transparent';
+                    };
+
+                    deleteBtn.onclick = () => {
+                        const current = getCustomPresets();
+                        current.splice(idx, 1);
+                        saveCustomPresets(current);
+                        updateCustomPresetsGrid();
+                    };
+
+                    itemContainer.append(applyBtn, deleteBtn);
+                    customPresetsGrid.append(itemContainer);
+                });
+            }
+
+            saveBtn.onclick = () => {
+                const name = customNameInput.value.trim();
+                if (!name) {
+                    alert('يرجى كتابة اسم لفرشاة الدمج المخصصة أولاً!');
+                    return;
+                }
+                const current = getCustomPresets();
+                if (current.some((p: any) => p.name === name)) {
+                    alert('هناك فرشاة مخصصة بنفس الاسم بالفعل!');
+                    return;
+                }
+                const newPreset = {
+                    name,
+                    size: brush.getSize(),
+                    opacity: brush.getOpacity(),
+                    blending: brush.getBlending(),
+                };
+                current.push(newPreset);
+                saveCustomPresets(current);
+                customNameInput.value = '';
+                updateCustomPresetsGrid();
+            };
+
+            updateCustomPresetsGrid();
+
+            div.append(presetsHeader, presetsGrid, customPresetsHeader, customPresetsGrid, saveRow);
         }
 
         init();
