@@ -117,7 +117,6 @@ export class IndexedDb {
             request.onsuccess = (event) => {
                 this.db = (event.target as IDBOpenDBRequest).result;
                 this.db.onversionchange = () => {
-                    this.isAvailable = false;
                     this.disconnect();
                     throw new Error('idb onversionchange');
                 };
@@ -125,7 +124,6 @@ export class IndexedDb {
             };
 
             request.onerror = (event) => {
-                this.isAvailable = false;
                 reject((event.target as IDBOpenDBRequest).error);
             };
         });
@@ -166,9 +164,9 @@ export class IndexedDb {
     }
 
     async testConnection(): Promise<boolean> {
-        this.isAvailable = this.isAvailable && (await areBlobUrlsSupported());
-        if (!this.isAvailable) {
-            return this.isAvailable;
+        if (typeof indexedDB === 'undefined') {
+            this.isAvailable = false;
+            return false;
         }
         try {
             for (const name of this.storeNames) {
@@ -176,10 +174,14 @@ export class IndexedDb {
                 const { transaction } = this.getTransaction(name, 'readonly');
                 transaction.abort();
             }
+            this.isAvailable = true;
+            return true;
         } catch (e) {
-            this.isAvailable = false;
+            console.error('indexed-db testConnection error:', e);
+            // DO NOT brick the connection forever; keep isAvailable true so we can retry saving later!
+            this.isAvailable = true;
+            return false;
         }
-        return this.isAvailable;
     }
 
     async set(store: string, key: IDBValidKey | undefined, value: unknown): Promise<void> {

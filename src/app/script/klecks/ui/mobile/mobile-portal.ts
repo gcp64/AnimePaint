@@ -3,6 +3,7 @@ import { GalleryStore, TGalleryProjectMeta } from '../../storage/gallery-store';
 import { THEME } from '../../../theme/theme';
 import { LANG } from '../../../language/language';
 import { randomUuid } from '../../../bb/base/base';
+import { requestPersistentStorage } from '../../storage/request-persistent-storage';
 
 
 export type TMobilePortalParams = {
@@ -85,7 +86,7 @@ export class MobilePortal {
         // Header Buttons
         const header = BB.el({ className: 'mp-portal-header' });
         
-        const headerBrand = BB.el({ className: 'mp-header-brand', content: 'ماري ستوديو' });
+        const headerBrand = BB.el({ className: 'mp-header-brand', content: 'ماريا ستوديو' });
         const headerLeft = BB.el({ className: 'mp-header-left' });
         
         const settingsBtn = document.createElement('div');
@@ -100,7 +101,7 @@ export class MobilePortal {
         helpBtn.className = 'mp-header-btn';
         helpBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.25z"/></svg>';
         helpBtn.addEventListener('click', () => {
-            this.showInfoDialog('Marie Mobile v2.4.4', 'تطبيق رسم احترافي للهاتف مع طبقات، معرض محلي، وأدوات تخصيص متقدمة.');
+            this.showInfoDialog('Maria Mobile v2.4.5', 'تطبيق رسم احترافي للهاتف مع طبقات، معرض محلي، وأدوات تخصيص متقدمة.');
         });
 
         const premiumBtn = document.createElement('div');
@@ -124,9 +125,9 @@ export class MobilePortal {
         });
         imgWrap.append(wheel, brushIcon);
  
-        const title = BB.el({ className: 'mp-logo-title', content: 'ماري' });
+        const title = BB.el({ className: 'mp-logo-title', content: 'ماريا' });
         const subtitle = BB.el({ className: 'mp-logo-subtitle', content: 'استوديو الرسم الرقمي الاحترافي' });
-        const version = BB.el({ className: 'mp-logo-version', content: 'النسخة المحمولة Ver 2.4.4' });
+        const version = BB.el({ className: 'mp-logo-version', content: 'النسخة المحمولة Ver 2.4.5' });
         
         logoSec.append(imgWrap, title, subtitle, version);
 
@@ -370,6 +371,7 @@ export class MobilePortal {
 
         const confirmBtn = BB.el({ className: 'mp-dialog-btn mp-confirm-btn', content: 'بدء الرسم' });
         confirmBtn.addEventListener('click', () => {
+            requestPersistentStorage().catch(e => console.warn('Persistent storage request on new project:', e));
             const w = Math.max(50, Math.min(4096, parseInt(wInput.value) || 1000));
             const h = Math.max(50, Math.min(4096, parseInt(hInput.value) || 1000));
             const isTrans = toggleInput.checked;
@@ -455,6 +457,7 @@ export class MobilePortal {
 
                 // Launch drawing editor on thumbnail click
                 thumb.addEventListener('click', () => {
+                    requestPersistentStorage().catch(e => console.warn('Persistent storage request on load:', e));
                     this.setIsVisible(false);
                     this.onLoadProject(project.projectId);
                 });
@@ -505,6 +508,7 @@ export class MobilePortal {
                 label: 'فتح للتعديل',
                 icon: '<svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 000-1.41l-2.34-2.34a.996.996 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>',
                 action: () => {
+                    requestPersistentStorage().catch(e => console.warn('Persistent storage request on load context:', e));
                     this.setIsVisible(false);
                     this.onLoadProject(project.projectId);
                 }
@@ -524,6 +528,7 @@ export class MobilePortal {
                 label: 'تكرار الرسمة (Duplicate)',
                 icon: '<svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>',
                 action: async () => {
+                    requestPersistentStorage().catch(e => console.warn('Persistent storage request on duplicate:', e));
                     // Duplicate project layers in database
                     const pData = await this.galleryStore.loadProject(project.projectId);
                     if (pData) {

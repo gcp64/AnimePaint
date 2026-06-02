@@ -2518,7 +2518,7 @@ export class MobileUi {
                 opacity: '0.5',
                 paddingBottom: '20px',
             },
-            content: 'Marie Mobile v2.4.4'
+            content: 'Maria Mobile v2.4.5'
         });
         body.append(versionInfo);
 
@@ -2531,7 +2531,7 @@ export class MobileUi {
                 opacity: '0.3',
                 paddingBottom: '16px',
             },
-            content: 'Marie by GCP64'
+            content: 'Maria by GCP64'
         });
         body.append(appInfoRow);
 

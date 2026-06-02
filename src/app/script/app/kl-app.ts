@@ -1416,6 +1416,9 @@ export class KlApp {
                 const currentProj = this.klCanvas.getProject();
                 this.statusOverlay.out('جاري حفظ اللوحة...', false);
                 
+                // Immediately request persistent storage under the active user gesture
+                requestPersistentStorage().catch(e => console.warn('User gesture storage persist call:', e));
+                
                 setTimeout(async () => {
                     try {
                         await this.galleryStore.saveProject(currentProj, this.currentProjectTitle);
