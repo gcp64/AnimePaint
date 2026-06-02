@@ -59,10 +59,66 @@ export class GalleryStore {
                 thumbnailBase64: string;
             }[];
             
-            // 1. Recover from Native to IndexedDB (if missing in IDB)
+            // 1. Recover from Native to IndexedDB (if missing in IDB or if any referenced blob is missing)
             const idbKeys = await KL_INDEXED_DB.getKeys(BROWSER_STORAGE_STORE);
             for (const item of nativeList) {
+                let shouldRecover = false;
                 if (!idbKeys.includes(item.projectId)) {
+                    shouldRecover = true;
+                } else {
+                    // Check if blobs exist in IMAGE_DATA_STORE
+                    try {
+                        const raw = (await KL_INDEXED_DB.get(BROWSER_STORAGE_STORE, item.projectId)) as any;
+                        if (!raw) {
+                            shouldRecover = true;
+                        } else {
+                            let hasThumbnail = false;
+                            if (raw.thumbnail && raw.thumbnail.id) {
+                                hasThumbnail = await KL_INDEXED_DB.has(IMAGE_DATA_STORE, raw.thumbnail.id);
+                            }
+                            if (!hasThumbnail) {
+                                shouldRecover = true;
+                            } else {
+                                // Check layers
+                                for (const layer of raw.layers || []) {
+                                    if (layer.blob && layer.blob.id) {
+                                        const hasLayerBlob = await KL_INDEXED_DB.has(IMAGE_DATA_STORE, layer.blob.id);
+                                        if (!hasLayerBlob) {
+                                            shouldRecover = true;
+                                            break;
+                                        }
+                                    } else {
+                                        shouldRecover = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (shouldRecover) {
+                            console.warn(`Self-Healing: Project ${item.projectId} has missing or corrupted blobs in IndexedDB. Cleaning and force-recovering from native storage...`);
+                            // Delete corrupted IndexedDB meta to avoid conflict
+                            await KL_INDEXED_DB.remove(BROWSER_STORAGE_STORE, item.projectId);
+                            // Delete possible orphaned thumbnail
+                            if (raw && raw.thumbnail && raw.thumbnail.id) {
+                                await KL_INDEXED_DB.remove(IMAGE_DATA_STORE, raw.thumbnail.id).catch(() => {});
+                            }
+                            // Delete possible orphaned layers
+                            if (raw && raw.layers) {
+                                for (const layer of raw.layers) {
+                                    if (layer.blob && layer.blob.id) {
+                                        await KL_INDEXED_DB.remove(IMAGE_DATA_STORE, layer.blob.id).catch(() => {});
+                                    }
+                                }
+                            }
+                        }
+                    } catch (checkErr) {
+                        console.error('Self-healing check failed for project:', item.projectId, checkErr);
+                        shouldRecover = true;
+                    }
+                }
+
+                if (shouldRecover) {
                     try {
                         const rawJson = (window as any).AndroidBridge.loadProjectNative(item.projectId);
                         if (rawJson) {
@@ -369,6 +425,13 @@ export class GalleryStore {
     }
 
     async loadProject(projectId: string): Promise<TKlProject | undefined> {
+        if ((window as any).AndroidBridge) {
+            try {
+                await this.syncNativeStorage(true);
+            } catch (err) {
+                console.warn('Auto sync on loadProject failed:', err);
+            }
+        }
         if (!KL_INDEXED_DB.getIsAvailable()) {
             return undefined;
         }
